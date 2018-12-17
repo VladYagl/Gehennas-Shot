@@ -29,6 +29,20 @@ class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action
     }
 }
 
+//TODO Create objects through factories or builders, do some thing with it
+class Shoot(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(10) {
+    override fun perform(): ActionResult {
+        val bullet = Entity("Bullet")
+        val pos = entity[Position::class]
+        Glyph(bullet, 'o')
+        pos?.level?.spawn(bullet, pos.x, pos.y)
+        bullet.add(object : Behaviour(bullet) {
+            override val action = Move(bullet, dir)
+        })
+        return end()
+    }
+}
+
 abstract class Behaviour(entity: Entity) : WaitTime(entity) {
     abstract val action: Action
 }

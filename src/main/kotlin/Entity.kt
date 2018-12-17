@@ -1,18 +1,22 @@
 import kotlin.reflect.KClass
+import kotlin.reflect.full.safeCast
 
-enum class TEMP(val char: Char) {
-    NONE('¿'),
-    FLOOR('.'),
-    WALL('▓'),
-    PLAYER('@'),
-}
-
-class Entity {
+class Entity(val name: String = "Entity") {
     private val components = HashMap<KClass<out Component>, Component>()
 
     operator fun <T : Component> get(clazz: KClass<T>): T? {
         @Suppress("UNCHECKED_CAST")
         return components[clazz] as T?
+    }
+
+    fun <T : Component> all(clazz: KClass<T>): List<T> {
+        return components.mapNotNull {
+            clazz.safeCast(it.value)
+        }
+    }
+
+    fun <T : Component> has(clazz: KClass<T>): Boolean {
+        return get(clazz) != null
     }
 
     fun add(component: Component) {
@@ -24,33 +28,9 @@ class Entity {
         components.remove(component::class)
         ComponentManager.remove(component)
     }
-}
 
-object ComponentManager {
-    private val components = HashMap<KClass<out Component>, ArrayList<Component>>()
-
-    fun add(component: Component) {
-        val list = components[component::class] ?: {
-            val newList = ArrayList<Component>()
-            components[component::class] = newList
-            newList
-        }()
-        list.add(component)
-    }
-
-    fun remove(component: Component) {
-        components[component::class]?.remove(component)
-    }
-
-    operator fun <T : Component> get(clazz: KClass<T>): ArrayList<T> {
-        @Suppress("UNCHECKED_CAST")
-        return components[clazz] as ArrayList<T>
+    override fun toString(): String {
+        return "Entity($name)"
     }
 }
 
-open class Component(val entity: Entity) {
-}
-
-class Position(entity: Entity, val x: Int, val y: Int, val level: Level) : Component(entity)
-
-class Glyph(entity: Entity, val char: Char) : Component(entity)

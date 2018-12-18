@@ -10,7 +10,7 @@ class Think : Action(0) {
     override fun perform(): ActionResult = end()
 }
 
-class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(10) {
+class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(100) {
     override fun perform(): ActionResult {
         val (x, y) = dir
         return if (x == 0 && y == 0) {
@@ -30,15 +30,16 @@ class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action
 }
 
 //TODO Create objects through factories or builders, do some thing with it
-class Shoot(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(10) {
+class Shoot(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(100) {
     override fun perform(): ActionResult {
         val bullet = Entity("Bullet")
         val pos = entity[Position::class]
-        Glyph(bullet, 'o')
+        Glyph(bullet, 167.toChar())
+        Stats(bullet, speed = 475)
         pos?.level?.spawn(bullet, pos.x, pos.y)
-        bullet.add(object : Behaviour(bullet) {
+        object : Behaviour(bullet) {
             override val action = Move(bullet, dir)
-        })
+        }
         return end()
     }
 }

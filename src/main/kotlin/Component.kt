@@ -25,5 +25,10 @@ class Obstacle(
 
 class Floor(entity: Entity) : Component(entity)
 
+class Stats(
+    entity: Entity,
+    val speed: Int = 100
+) : Component(entity)
+
 abstract class WaitTime(entity: Entity, var time: Long = 0) : Component(entity)
 

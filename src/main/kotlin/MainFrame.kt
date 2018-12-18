@@ -7,7 +7,7 @@ import javax.swing.JLayeredPane
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
-    //private val font = AsciiFont.TAFFER_10x10
+    //    private val font = AsciiFont.TAFFER_10x10
     private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
 
     private val world: AsciiPanel = AsciiPanel(11 * 8, 8 * 8, font)
@@ -82,27 +82,19 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 priority[pos.x, pos.y] = glyph.priority
             }
         }
+        info.write("In game time: " + game.gameTime, 0, 5)
         world.paintImmediately(0, 0, world.width, world.height)
         info.paintImmediately(0, 0, info.width, info.height)
         log.paintImmediately(0, 0, log.width, log.height)
     }
 
+    private var state: UiState = UiState.Normal(game)
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         info.writeCenter("Last keys", 10, Color.white, Color.darkGray)
         when (e.id) {
             KeyEvent.KEY_TYPED -> {
                 info.write("Last typed: ${e.keyChar}", 0, 11)
-                when (e.keyChar) {
-                    //TODO: DO STATE PATTERN
-                    'j' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(0, +1))
-                    'k' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(0, -1))
-                    'h' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(-1, 0))
-                    'l' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(+1, 0))
-                    'y' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(-1, -1))
-                    'u' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(+1, -1))
-                    'n' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(+1, +1))
-                    'b' -> game.player[ThinkUntilSet::class]?.action = Move(game.player, Pair(-1, +1))
-                }
+                state = state.handleChar(e.keyChar)
             }
             KeyEvent.KEY_PRESSED -> {
                 info.write("Last pressed: ${e.keyCode}", 0, 12)
@@ -115,17 +107,45 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         return false
     }
 
-    private fun getDir(char: Char): Pair<Int, Int>? {
-        return when (char) {
-            'j' -> Pair(0, +1)
-            'k' -> Pair(0, -1)
-            'h' -> Pair(-1, 0)
-            'l' -> Pair(+1, 0)
-            'y' -> Pair(-1, -1)
-            'u' -> Pair(+1, -1)
-            'n' -> Pair(+1, +1)
-            'b' -> Pair(-1, +1)
-            else -> null
+    private sealed class UiState(val game: Game) {
+        fun getDir(char: Char): Pair<Int, Int>? {
+            return when (char) {
+                'j' -> Pair(0, +1)
+                'k' -> Pair(0, -1)
+                'h' -> Pair(-1, 0)
+                'l' -> Pair(+1, 0)
+                'y' -> Pair(-1, -1)
+                'u' -> Pair(+1, -1)
+                'n' -> Pair(+1, +1)
+                'b' -> Pair(-1, +1)
+                else -> null
+            }
+        }
+
+        abstract fun handleChar(char: Char): UiState
+
+        class Normal(game: Game) : UiState(game) {
+            override fun handleChar(char: Char): UiState {
+                val dir = getDir(char)
+                if (dir != null) {
+                    game.player[ThinkUntilSet::class]?.action = Move(game.player, dir)
+                }
+                return when (char) {
+                    'f' -> Aim(game)
+                    else -> this
+                }
+            }
+        }
+
+        class Aim(game: Game) : UiState(game) {
+            override fun handleChar(char: Char): UiState {
+                val dir = getDir(char)
+                if (dir != null) {
+                    game.player[ThinkUntilSet::class]?.action = Shoot(game.player, dir)
+                    return Normal(game)
+                }
+                return this
+            }
         }
     }
 }

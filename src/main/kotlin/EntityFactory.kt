@@ -1,4 +1,5 @@
 import com.beust.klaxon.JsonReader
+import org.reflections.Reflections
 import java.io.File
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -7,18 +8,7 @@ import kotlin.reflect.full.primaryConstructor
 
 //TODO : THIS DEFINITELY NEEDS SOME TESTING !!!
 //TODO : MAKE SEPARATE CLASS FOR ENTITIES HASH MAP
-//TODO : IT GETS HIS RESOURCES FROM MainFrame CLASS, I GUESS ITS NO GOOD
 class EntityFactory {
-    private val components = listOf(
-        Position::class,
-        Glyph::class,
-        Obstacle::class,
-        Floor::class,
-        Stats::class,
-        ThinkUntilSet::class,
-        BulletBehaviour::class
-    )
-
     private val entities = HashMap<String, List<Pair<KFunction<Component>, HashMap<KParameter, Any>>>>()
 
     fun newEntity(name: String): Entity {
@@ -33,10 +23,11 @@ class EntityFactory {
     }
 
     init {
-        val url = MainFrame::class.java.classLoader.getResource("entities.json")
-        println(url)
-        val file = File(url.toURI())
-        JsonReader(file.bufferedReader()).use { reader ->
+        val reflections = Reflections("")
+        val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
+
+        val stream = (Thread::currentThread)().contextClassLoader.getResourceAsStream("entities.json")
+        JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
                 while (reader.hasNext()) {
                     val name = reader.nextName()

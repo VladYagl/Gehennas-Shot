@@ -1,5 +1,3 @@
-import java.beans.beancontext.BeanContext
-
 data class ActionResult(val time: Long, val succeeded: Boolean)
 
 abstract class Action(private val time: Long) {

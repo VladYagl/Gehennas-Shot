@@ -1,0 +1,45 @@
+{
+    "player": {
+        "glyph": {
+            "char": 2,
+            "priority": 100
+        },
+        "obstacle": {
+            "blockView": false,
+            "blockMove": true
+        },
+        "stats": {
+            "speed": 100
+        },
+        "thinkUntilSet": {}
+    },
+
+    "bullet": {
+        "glyph": {
+            "char": 167,
+            "priority": 120
+        },
+        "stats": {
+            "speed": 475
+        }
+    },
+
+    "wall": {
+        "glyph": {
+            "char": 178,
+            "priority": 10
+        },
+        "obstacle": {
+            "blockView": true,
+            "blockMove": true
+        }
+    },
+
+    "floor": {
+        "glyph": {
+            "char": 46,
+            "priority": -1
+        },
+        "floor": {}
+    }
+}

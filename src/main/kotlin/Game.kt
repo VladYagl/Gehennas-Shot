@@ -1,14 +1,10 @@
-class Game {
-    private val level = Level(11 * 8, 8 * 8)
-    val player = Entity("Player")
+class Game(private val factory: EntityFactory) {
+    private val level = Level(11 * 8, 8 * 8, factory)
+    val player = factory.newEntity("player")
     var gameTime: Long = 0
 
     init {
         level.spawn(player, 10, 10)
-        Glyph(player, 2.toChar(), 100)
-        Obstacle(player, blockView = false, blockMove = true)
-        Stats(player, speed = 100)
-        ThinkUntilSet(player)
     }
 
     fun update() {

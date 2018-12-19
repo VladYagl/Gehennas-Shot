@@ -1,38 +1,40 @@
-open class Component(val entity: Entity) {
-    init {
-        entity.add(this)
-    }
+abstract class Component {
+    abstract val entity: Entity
 }
 
-class Position(
-    entity: Entity,
+data class Position(
+    override val entity: Entity,
     val x: Int,
     val y: Int,
     val level: Level
-) : Component(entity) {
+) : Component() {
     operator fun plus(dir: Pair<Int, Int>): Pair<Int, Int> {
         return Pair(x + dir.first, y + dir.second)
     }
+
+    fun move(x: Int, y: Int) {
+        level.move(entity, x, y)
+    }
 }
 
-class Glyph(
-    entity: Entity,
+data class Glyph(
+    override val entity: Entity,
     val char: Char,
     val priority: Int = 0
-) : Component(entity)
+) : Component()
 
-class Obstacle(
-    entity: Entity,
+data class Obstacle(
+    override val entity: Entity,
     val blockMove: Boolean = false,
     val blockView: Boolean = false
-) : Component(entity)
+) : Component()
 
-class Floor(entity: Entity) : Component(entity)
+data class Floor(override val entity: Entity) : Component()
 
-class Stats(
-    entity: Entity,
+data class Stats(
+    override val entity: Entity,
     val speed: Int = 100
-) : Component(entity)
+) : Component()
 
-abstract class WaitTime(entity: Entity, var time: Long = 0) : Component(entity)
+abstract class WaitTime(open var time: Long = 0) : Component()
 

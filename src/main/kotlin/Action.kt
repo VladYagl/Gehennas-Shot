@@ -25,7 +25,7 @@ class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action
             if (pos.level.isBlocked(newx, newy)) {
                 ActionResult(0, false)
             } else {
-                pos.level.move(entity, newx, newy)
+                pos.move(newx, newy)
                 end()
             }
         }
@@ -35,21 +35,19 @@ class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action
 //TODO Create objects through factories or builders, do some thing with it
 class Shoot(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(100) {
     override fun perform(): ActionResult {
-        val bullet = Entity("Bullet")
-        val pos = entity[Position::class]
-        Glyph(bullet, 167.toChar())
-        Stats(bullet, speed = 475)
-        BulletBehaviour(bullet, dir)
-        pos?.level?.spawn(bullet, pos.x, pos.y)
+        val pos = entity[Position::class]!!
+        val bullet = pos.level.factory.newEntity("bullet")
+        pos.level.spawn(bullet, pos.x, pos.y)
+        bullet.add(BulletBehaviour(bullet, dir))
         return end()
     }
 }
 
-abstract class Behaviour(entity: Entity, time: Long = 0) : WaitTime(entity, time) {
+abstract class Behaviour : WaitTime() {
     abstract val action: Action
 }
 
-class ThinkUntilSet(entity: Entity) : Behaviour(entity) {
+data class ThinkUntilSet(override val entity: Entity) : Behaviour() {
     override var action: Action = Think()
         get() {
             val res = field
@@ -58,7 +56,8 @@ class ThinkUntilSet(entity: Entity) : Behaviour(entity) {
         }
 }
 
-class BulletBehaviour(entity: Entity, private var dir: Pair<Int, Int>, time: Long = 0) : Behaviour(entity, time) {
+data class BulletBehaviour(override val entity: Entity, private var dir: Pair<Int, Int>, override var time: Long = 0) :
+    Behaviour() {
     override val action: Action
         get() {
             val (x, y) = dir

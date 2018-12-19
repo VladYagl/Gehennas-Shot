@@ -1,9 +1,10 @@
-class Level(val width: Int, val height: Int) {
+class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     private val cells = Array(width) { Array(height) { HashSet<Entity>() } }
 
     fun spawn(entity: Entity, x: Int, y: Int) {
         cells[x, y].add(entity)
-        Position(entity, x, y, this)
+        val pos = Position(entity, x, y, this)
+        entity.add(pos)
     }
 
     fun remove(entity: Entity) {
@@ -26,17 +27,11 @@ class Level(val width: Int, val height: Int) {
     }
 
     private fun wall(x: Int, y: Int) {
-        val wall = Entity("Wall")
-        spawn(wall, x, y)
-        Glyph(wall, 178.toChar(), 10)
-        Obstacle(wall, true, true)
+        spawn(factory.newEntity("wall"), x, y)
     }
 
     private fun floor(x: Int, y: Int) {
-        val floor = Entity("Floor")
-        spawn(floor, x, y)
-        Glyph(floor, '.', -1)
-        Floor(floor)
+        spawn(factory.newEntity("floor"), x, y)
     }
 
     init {

@@ -4,7 +4,6 @@ import kotlin.reflect.full.safeCast
 
 object ComponentManager {
     private val components = HashMap<KClass<out Component>, ArrayList<Entity>>()
-    private val entities = ArrayList<Entity>()
 
     //Need this for tests, clever people sad that it's sign of code smell xd
     fun clear() {

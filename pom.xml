@@ -14,6 +14,10 @@
 
     <repositories>
         <repository>
+            <id>Spring Plugins</id>
+            <url>http://repo.spring.io/plugins-release/</url>
+        </repository>
+        <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
@@ -51,6 +55,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>klaxon</artifactId>
+            <version>4.0.2</version>
+        </dependency>
         <dependency>
             <groupId>com.github.trystan</groupId>
             <artifactId>AsciiPanel</artifactId>

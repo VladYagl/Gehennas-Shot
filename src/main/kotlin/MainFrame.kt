@@ -15,7 +15,8 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private val info: AsciiPanel = AsciiPanel(5 * 8, 9 * 8, font)
     private val log: AsciiPanel = AsciiPanel(11 * 8, 1 * 8, font)
 
-    private val game = Game()
+    private val factory = EntityFactory()
+    private val game = Game(factory)
 
     init {
         title = "Gehenna's Shot"
@@ -69,7 +70,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                         }
                     }
                     info.write("Repaint count = " + count++, 0, 0)
-//                    repaint()
+                    if (needRepaint) {
+                        repaint()
+                        needRepaint = false
+                    }
                 }
             }
         }.start()
@@ -99,8 +103,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         log.paintImmediately(0, 0, log.width, log.height)
     }
 
+    private var needRepaint = true
     private var state: UiState = UiState.Normal(game)
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
+        needRepaint = true
         info.writeCenter("Last keys", 10, Color.white, Color.darkGray)
         when (e.id) {
             KeyEvent.KEY_TYPED -> {
@@ -115,7 +121,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             }
         }
         info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 13)
-        repaint()
         return false
     }
 

@@ -2,6 +2,7 @@ import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
 import java.awt.*
 import java.awt.event.KeyEvent
+import java.lang.Exception
 import javax.swing.JFrame
 import javax.swing.JLayeredPane
 
@@ -56,9 +57,19 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             var count = 0
             while (true) {
                 if (this.isValid) {
-                    game.update()
+                    try {
+                        game.update()
+                    } catch (e: Exception) {
+                        info.setCursorPosition(0, info.heightInCharacters - 3)
+                        e.message?.forEach {
+                            info.write(it, Color.RED)
+                            if (info.cursorX == 40) {
+                                info.setCursorPosition(0, info.cursorY + 1)
+                            }
+                        }
+                    }
                     info.write("Repaint count = " + count++, 0, 0)
-                    repaint()
+//                    repaint()
                 }
             }
         }.start()
@@ -104,6 +115,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             }
         }
         info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 13)
+        repaint()
         return false
     }
 
@@ -118,6 +130,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 'u' -> Pair(+1, -1)
                 'n' -> Pair(+1, +1)
                 'b' -> Pair(-1, +1)
+                '.' -> Pair(0, 0)
                 else -> null
             }
         }

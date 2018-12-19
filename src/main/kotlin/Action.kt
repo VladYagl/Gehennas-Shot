@@ -1,3 +1,5 @@
+import java.beans.beancontext.BeanContext
+
 data class ActionResult(val time: Long, val succeeded: Boolean)
 
 abstract class Action(private val time: Long) {
@@ -10,6 +12,7 @@ class Think : Action(0) {
     override fun perform(): ActionResult = end()
 }
 
+//TODO: IMHO MOVE SHOULD NOT CHECK FOR EMPTY SLOTS, BUT OKAY IT COULD IF THIS PLACE IS UNKNOWN
 class Move(private val entity: Entity, private val dir: Pair<Int, Int>) : Action(100) {
     override fun perform(): ActionResult {
         val (x, y) = dir
@@ -36,15 +39,13 @@ class Shoot(private val entity: Entity, private val dir: Pair<Int, Int>) : Actio
         val pos = entity[Position::class]
         Glyph(bullet, 167.toChar())
         Stats(bullet, speed = 475)
+        BulletBehaviour(bullet, dir)
         pos?.level?.spawn(bullet, pos.x, pos.y)
-        object : Behaviour(bullet) {
-            override val action = Move(bullet, dir)
-        }
         return end()
     }
 }
 
-abstract class Behaviour(entity: Entity) : WaitTime(entity) {
+abstract class Behaviour(entity: Entity, time: Long = 0) : WaitTime(entity, time) {
     abstract val action: Action
 }
 
@@ -54,5 +55,32 @@ class ThinkUntilSet(entity: Entity) : Behaviour(entity) {
             val res = field
             field = Think()
             return res
+        }
+}
+
+class BulletBehaviour(entity: Entity, private var dir: Pair<Int, Int>, time: Long = 0) : Behaviour(entity, time) {
+    override val action: Action
+        get() {
+            val (x, y) = dir
+            val pos = entity[Position::class]!!
+            val (newx, newy) = pos + dir
+            val obstacle = pos.level.obstacle(newx, newy)
+            val dir = if (obstacle == null) {
+                Pair(x, y)
+            } else {
+                val h = pos.level.obstacle(newx - x, newy)
+                val v = pos.level.obstacle(newx, newy - y)
+                if (h != null && v != null) {
+                    Pair(-x, -y)
+                } else if (h != null) {
+                    Pair(+x, -y)
+                } else if (v != null) {
+                    Pair(-x, +y)
+                } else {
+                    Pair(-x, -y)
+                }
+            }
+            this.dir = dir
+            return Move(entity, dir)
         }
 }

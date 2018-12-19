@@ -22,9 +22,6 @@ class Game {
             if (first is Behaviour) {
                 val result = first.action.perform()
                 first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
-                if (first.entity.name == "Bullet") {
-                    println(first.time)
-                }
             }
         }
     }

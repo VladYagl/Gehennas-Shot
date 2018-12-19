@@ -17,8 +17,8 @@ class Level(val width: Int, val height: Int) {
         spawn(entity, x, y)
     }
 
-    fun obstacles(x: Int, y: Int): List<Entity> {
-        return cells[x][y].filter { it.has(Obstacle::class) }
+    fun obstacle(x: Int, y: Int): Entity? {
+        return cells[x][y].firstOrNull { it[Obstacle::class]?.blockMove ?: false }
     }
 
     fun isBlocked(x: Int, y: Int): Boolean {

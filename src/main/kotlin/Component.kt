@@ -9,7 +9,11 @@ class Position(
     val x: Int,
     val y: Int,
     val level: Level
-) : Component(entity)
+) : Component(entity) {
+    operator fun plus(dir: Pair<Int, Int>): Pair<Int, Int> {
+        return Pair(x + dir.first, y + dir.second)
+    }
+}
 
 class Glyph(
     entity: Entity,

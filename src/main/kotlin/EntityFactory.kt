@@ -57,7 +57,7 @@ class EntityFactory {
                                     args[parameter] = value
                                 }
                             }
-                            list.add(Pair(constructor, args))
+                            list.add(constructor to args)
                         }
                     }
                     entities[name] = list

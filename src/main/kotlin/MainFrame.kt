@@ -79,6 +79,15 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }.start()
     }
 
+    private fun AsciiPanel.clearLine(y: Int) {
+        clear(' ', 0, y, widthInCharacters, 1)
+    }
+
+    private fun AsciiPanel.writeLine(line: String, y: Int) {
+        clearLine(y)
+        write(line, 0, y)
+    }
+
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     override fun repaint() {
         priority.forEach { it.fill(-2) }
@@ -97,10 +106,41 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 priority[pos.x, pos.y] = glyph.priority
             }
         }
+        predict()
+
         info.write("In game time: " + game.gameTime, 0, 5)
         world.paintImmediately(0, 0, world.width, world.height)
         info.paintImmediately(0, 0, info.width, info.height)
         log.paintImmediately(0, 0, log.width, log.height)
+    }
+
+    private fun predict() {
+        for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
+            val fakeEntity = Entity("Stub")
+            val behaviour = entity[BulletBehaviour::class]!!.copy(entity = fakeEntity)
+            var fakePos = entity[Position::class]!!.copy(entity = fakeEntity)
+            val glyph = entity[Glyph::class]!!
+            val speed = entity[Stats::class]?.speed ?: 100
+            var color = world.defaultForegroundColor
+            fakeEntity.add(fakePos)
+            var time = behaviour.time
+            while (time < 100) {
+                val action = behaviour.action
+                if (action is Move) {
+                    val (x, y) = fakePos + action.dir
+                    fakeEntity.remove(fakePos)
+                    fakePos = Position(fakeEntity, x, y, fakePos.level)
+                    fakeEntity.add(fakePos)
+                    if (glyph.priority > priority[x, y]) {
+                        color *= 0.75
+                        world.write(glyph.char, x, y, color)
+                        priority[x, y] = glyph.priority
+                    }
+                }
+                time += action.time * 100 / speed // TODO : COPYPASTA!!!
+            }
+            fakeEntity.remove(fakePos)
+        }
     }
 
     private var needRepaint = true
@@ -110,11 +150,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         info.writeCenter("Last keys", 10, Color.white, Color.darkGray)
         when (e.id) {
             KeyEvent.KEY_TYPED -> {
-                info.write("Last typed: ${e.keyChar}", 0, 11)
+                info.writeLine("Last typed: ${e.keyChar}", 11)
                 state = state.handleChar(e.keyChar)
             }
             KeyEvent.KEY_PRESSED -> {
-                info.write("Last pressed: ${e.keyCode}", 0, 12)
+                info.writeLine("Last pressed: ${e.keyCode}", 12)
                 when (e.keyCode) {
                     KeyEvent.VK_ESCAPE -> System.exit(0)
                 }
@@ -127,15 +167,15 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private sealed class UiState(val game: Game) {
         fun getDir(char: Char): Pair<Int, Int>? {
             return when (char) {
-                'j' -> Pair(0, +1)
-                'k' -> Pair(0, -1)
-                'h' -> Pair(-1, 0)
-                'l' -> Pair(+1, 0)
-                'y' -> Pair(-1, -1)
-                'u' -> Pair(+1, -1)
-                'n' -> Pair(+1, +1)
-                'b' -> Pair(-1, +1)
-                '.' -> Pair(0, 0)
+                '.', '5' -> 0 to 0
+                'j', '2' -> 0 to +1
+                'k', '8' -> 0 to -1
+                'h', '4' -> -1 to 0
+                'l', '6' -> +1 to 0
+                'y', '7' -> -1 to -1
+                'u', '9' -> +1 to -1
+                'n', '3' -> +1 to +1
+                'b', '1' -> -1 to +1
                 else -> null
             }
         }

@@ -9,7 +9,7 @@ data class Position(
     val level: Level
 ) : Component() {
     operator fun plus(dir: Pair<Int, Int>): Pair<Int, Int> {
-        return Pair(x + dir.first, y + dir.second)
+        return x + dir.first to y + dir.second
     }
 
     fun move(x: Int, y: Int) {

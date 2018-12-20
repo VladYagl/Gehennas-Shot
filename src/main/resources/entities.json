@@ -22,6 +22,10 @@
             "char": 167,
             "priority": 120
         },
+        "obstacle": {
+            "blockView": true,
+            "blockMove": false
+        },
         "stats": {
             "speed": 475
         }

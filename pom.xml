@@ -77,6 +77,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.squidpony</groupId>
+            <artifactId>squidlib-util</artifactId>
+            <version>3.0.0-b9</version>
+        </dependency>
+        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version>

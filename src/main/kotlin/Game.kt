@@ -1,5 +1,5 @@
 class Game(private val factory: EntityFactory) {
-    private val level = Level(11 * 8, 8 * 8, factory)
+    val level = Level(11 * 8, 8 * 8, factory)
     val player = factory.newEntity("player")
     var gameTime: Long = 0
 

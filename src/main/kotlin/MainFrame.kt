@@ -113,7 +113,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun update() {
+        world.clear()
         priority.forEach { it.fill(-2) }
+        val playerPos = game.player[Position::class]!!
+        game.level.updateFOV(playerPos.x, playerPos.y)
         for (entity in ComponentManager[Glyph::class, Position::class]) {
             val pos = entity[Position::class]!!
             val glyph = entity[Glyph::class]!!
@@ -127,7 +130,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 info.writeText("Effects = " + entity.all(Effect::class), 0, 5)
             }
 
-            if (glyph.priority >= priority[pos.x, pos.y]) {
+            if (glyph.priority >= priority[pos.x, pos.y] && game.level.isVisible(pos.x, pos.y)) {
                 world.write(glyph.char, pos.x, pos.y)
                 priority[pos.x, pos.y] = glyph.priority
             }
@@ -140,6 +143,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         log.paintImmediately(0, 0, log.width, log.height)
     }
 
+    //TODO : PREDICT RELATIVE TO PLAYER SPEED
     private fun predict() {
         for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
             val fakeEntity = Entity("Stub")
@@ -227,7 +231,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 if (dir != null) {
 //                    game.player[ThinkUntilSet::class]?.action = Shoot(game.player, dir)
                     game.player[ThinkUntilSet::class]?.action =
-                            ApplyEffect(game.player, RunAndGun(game.player, dir, 500))
+                            ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 0))
                     return Normal(game)
                 }
                 return this

@@ -2,6 +2,7 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
 
+//TODO : CANT HAVE SAME COMPONENT TYPE TWICE
 data class Entity(val name: String = "Entity", val id: String = UUID.randomUUID().toString()) {
     private val components = HashMap<KClass<out Component>, Component>()
 

@@ -11,6 +11,9 @@
         "stats": {
             "speed": 100
         },
+        "health": {
+            "max": 100
+        },
         "thinkUntilSet": {}
     },
 

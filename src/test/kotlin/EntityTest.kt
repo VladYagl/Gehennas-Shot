@@ -5,12 +5,12 @@ class EntityTest : ManagerTest() {
     @Test
     fun addingRemovingComponent() {
         val player = Entity("Player")
-        Glyph(player, '@')
-        Obstacle(player, true, true)
+        player.add(Glyph(player, '@'))
+        player.add(Obstacle(player, true, true))
 
         val monster = Entity("Kobold")
-        Glyph(monster, 'k')
-        Obstacle(monster, true, false)
+        monster.add(Glyph(monster, 'k'))
+        monster.add(Obstacle(monster, true, false))
 
         val position = player[Position::class]
         assertNull(position)

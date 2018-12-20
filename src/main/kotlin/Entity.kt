@@ -30,6 +30,12 @@ data class Entity(val name: String = "Entity", val id: String = UUID.randomUUID(
         ComponentManager.remove(component)
     }
 
+    fun clean() {
+        components.toList().forEach {
+            remove(it.second)
+        }
+    }
+
     override fun toString(): String {
         return "Entity($name)"
     }

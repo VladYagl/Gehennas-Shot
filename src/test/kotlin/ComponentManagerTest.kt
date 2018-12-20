@@ -19,14 +19,14 @@ class ComponentManagerTest : ManagerTest() {
             wall = Entity("Wall")
             item = Entity("Sword")
 
-            Obstacle(floor, blockMove = false, blockView = false)
-            Floor(floor)
-            Glyph(floor, '.')
+            floor.add(Obstacle(floor, blockMove = false, blockView = false))
+            floor.add(Floor(floor))
+            floor.add(Glyph(floor, '.'))
 
-            Obstacle(wall, blockMove = true, blockView = true)
-            Glyph(wall, '.')
+            wall.add(Obstacle(wall, blockMove = true, blockView = true))
+            wall.add(Glyph(wall, '.'))
 
-            Glyph(item, '(')
+            item.add(Glyph(item, '('))
         }
     }
 
@@ -36,7 +36,7 @@ class ComponentManagerTest : ManagerTest() {
         assertNull(floor[Glyph::class])
         assertEquals(2, ComponentManager[Glyph::class].size)
         assertEquals(2, ComponentManager.all(Glyph::class).size)
-        Glyph(floor, '.')
+        floor.add(Glyph(floor, '.'))
     }
 
     @Test

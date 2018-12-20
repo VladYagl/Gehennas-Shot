@@ -2,9 +2,14 @@ import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
 import java.awt.*
 import java.awt.event.KeyEvent
+import java.io.PrintStream
+import java.io.PrintWriter
+import java.io.Writer
 import java.lang.Exception
 import javax.swing.JFrame
 import javax.swing.JLayeredPane
+import java.io.StringWriter
+
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
@@ -17,6 +22,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private val factory = EntityFactory()
     private val game = Game(factory)
+    private var stop = false
 
     init {
         title = "Gehenna's Shot"
@@ -59,19 +65,20 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             while (true) {
                 if (this.isValid) {
                     try {
-                        game.update()
-                    } catch (e: Exception) {
-                        info.setCursorPosition(0, info.heightInCharacters - 3)
-                        e.message?.forEach {
-                            info.write(it, Color.RED)
-                            if (info.cursorX == 40) {
-                                info.setCursorPosition(0, info.cursorY + 1)
-                            }
+                        if (!stop) {
+                            game.update()
                         }
+                    } catch (e: Throwable) {
+                        val errors = StringWriter()
+                        e.printStackTrace(PrintWriter(errors))
+                        e.printStackTrace()
+                        info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
+                        info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
+                        stop = true
                     }
                     info.write("Repaint count = " + count++, 0, 0)
                     if (needRepaint) {
-                        repaint()
+                        update()
                         needRepaint = false
                     }
                 }
@@ -88,8 +95,24 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         write(line, 0, y)
     }
 
+    private fun AsciiPanel.writeText(text: String, x: Int, y: Int, color: Color = this.defaultForegroundColor) {
+        setCursorPosition(x, y)
+        text.forEach {
+            if (it == '\n' || cursorX >= widthInCharacters) {
+                if (cursorY >= heightInCharacters - 1) return
+                setCursorPosition(0, cursorY + 1)
+            }
+            when (it) {
+                '\n', '\r' -> {
+                }
+                '\t' -> write("   ", color)
+                else -> write(it, color)
+            }
+        }
+    }
+
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
-    override fun repaint() {
+    private fun update() {
         priority.forEach { it.fill(-2) }
         for (entity in ComponentManager[Glyph::class, Position::class]) {
             val pos = entity[Position::class]!!
@@ -99,6 +122,9 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
                 info.write("Player pos = ${pos.x}, ${pos.y}", 0, 2)
                 info.write("Player pos priority = ${priority[pos.x, pos.y]}", 0, 3)
+                info.writeLine("Player hp = " + entity[Health::class]?.current, 4)
+                info.clear(' ', 0, 5, info.widthInCharacters, 4)
+                info.writeText("Effects = " + entity.all(Effect::class), 0, 5)
             }
 
             if (glyph.priority >= priority[pos.x, pos.y]) {
@@ -108,7 +134,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
         predict()
 
-        info.write("In game time: " + game.gameTime, 0, 5)
+        info.write("In game time: " + game.gameTime, 0, 12)
         world.paintImmediately(0, 0, world.width, world.height)
         info.paintImmediately(0, 0, info.width, info.height)
         log.paintImmediately(0, 0, log.width, log.height)
@@ -121,7 +147,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             var fakePos = entity[Position::class]!!.copy(entity = fakeEntity)
             val glyph = entity[Glyph::class]!!
             val speed = entity[Stats::class]?.speed ?: 100
-            var color = world.defaultForegroundColor
+            var color = world.defaultForegroundColor * 0.5
             fakeEntity.add(fakePos)
             var time = behaviour.time
             while (time < 100) {
@@ -132,7 +158,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                     fakePos = Position(fakeEntity, x, y, fakePos.level)
                     fakeEntity.add(fakePos)
                     if (glyph.priority > priority[x, y]) {
-                        color *= 0.75
+                        color *= 0.85
                         world.write(glyph.char, x, y, color)
                         priority[x, y] = glyph.priority
                     }
@@ -147,20 +173,20 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private var state: UiState = UiState.Normal(game)
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         needRepaint = true
-        info.writeCenter("Last keys", 10, Color.white, Color.darkGray)
+        info.writeCenter("Last keys", 20, Color.white, Color.darkGray)
         when (e.id) {
             KeyEvent.KEY_TYPED -> {
-                info.writeLine("Last typed: ${e.keyChar}", 11)
+                info.writeLine("Last typed: ${e.keyChar}", 21)
                 state = state.handleChar(e.keyChar)
             }
             KeyEvent.KEY_PRESSED -> {
-                info.writeLine("Last pressed: ${e.keyCode}", 12)
+                info.writeLine("Last pressed: ${e.keyCode}", 22)
                 when (e.keyCode) {
                     KeyEvent.VK_ESCAPE -> System.exit(0)
                 }
             }
         }
-        info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 13)
+        info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 23)
         return false
     }
 
@@ -199,7 +225,9 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             override fun handleChar(char: Char): UiState {
                 val dir = getDir(char)
                 if (dir != null) {
-                    game.player[ThinkUntilSet::class]?.action = Shoot(game.player, dir)
+//                    game.player[ThinkUntilSet::class]?.action = Shoot(game.player, dir)
+                    game.player[ThinkUntilSet::class]?.action =
+                            ApplyEffect(game.player, RunAndGun(game.player, dir, 500))
                     return Normal(game)
                 }
                 return this

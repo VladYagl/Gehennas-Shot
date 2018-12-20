@@ -13,11 +13,25 @@ class Game(private val factory: EntityFactory) {
         if (first != null) {
             val time = first.time
             gameTime += time
-            waiters.forEach { it.time -= time }
+            waiters.forEach {
+                it.time -= time
+                if (it is Effect) {
+                    it.duration -= time
+                    if (it.duration < 0) {
+                        it.entity.remove(it)
+                    }
+                }
+            }
 
-            if (first is Behaviour) {
-                val result = first.action.perform()
-                first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
+            when (first) { // TODO: it's copy pasta!
+                is Behaviour -> {
+                    val result = first.action.perform()
+                    first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
+                }
+                is Effect -> {
+                    val result = first.action.perform()
+                    first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
+                }
             }
         }
     }

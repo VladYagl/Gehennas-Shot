@@ -38,3 +38,10 @@ data class Stats(
 
 abstract class WaitTime(open var time: Long = 0) : Component()
 
+data class Health(
+    override val entity: Entity,
+    val max: Int
+) : Component() {
+    var current = max
+}
+

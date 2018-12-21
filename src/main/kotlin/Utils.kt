@@ -14,6 +14,18 @@ inline fun BooleanArray(width: Int, height: Int, init: () -> Boolean): Array<Boo
     return Array(width) { BooleanArray(height) { init() } }
 }
 
+fun Array<BooleanArray>.fill(element: Boolean = false) {
+    forEach { it.fill(element) }
+}
+
+fun Array<DoubleArray>.fill(element: Double = 0.0) {
+    forEach { it.fill(element) }
+}
+
+fun <T> Array<Array<T>>.fill(init: () -> T) {
+    forEach { it.fill(init()) }
+}
+
 operator fun <T> Array<Array<T>>.get(x: Int, y: Int): T {
     return get(x)[y]
 }

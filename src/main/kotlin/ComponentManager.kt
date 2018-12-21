@@ -1,9 +1,10 @@
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.safeCast
 
 object ComponentManager {
-    private val components = HashMap<KClass<out Component>, ArrayList<Entity>>()
+    private val components = HashMap<KClass<out Component>, HashSet<Entity>>()
 
     //Need this for tests, clever people sad that it's sign of code smell xd
     fun clear() {
@@ -11,12 +12,12 @@ object ComponentManager {
     }
 
     fun add(component: Component) {
-        val list = components[component::class] ?: {
-            val newList = ArrayList<Entity>()
-            components[component::class] = newList
-            newList
+        val set = components[component::class] ?: {
+            val newSet = HashSet<Entity>()
+            components[component::class] = newSet
+            newSet
         }()
-        list.add(component.entity)
+        set.add(component.entity)
     }
 
     fun remove(component: Component) {
@@ -25,7 +26,7 @@ object ComponentManager {
 
     fun <T : Component> all(clazz: KClass<T>): List<T> {
         return components.mapNotNull {
-            if (it.key.isSubclassOf(clazz))
+            if (clazz.isSuperclassOf(it.key))
                 it.value.mapNotNull { entity -> clazz.safeCast(entity[it.key]) }
             else
                 null
@@ -33,14 +34,14 @@ object ComponentManager {
     }
 
     operator fun get(clazz: KClass<out Component>): List<Entity> {
-        return components[clazz] ?: emptyList()
+        return components[clazz]?.toList() ?: emptyList()
     }
 
     operator fun get(vararg classes: KClass<out Component>): List<Entity> {
         var min = Int.MAX_VALUE
-        var best: ArrayList<Entity> = ArrayList()
+        var best: List<Entity> = ArrayList()
         for (clazz in classes) {
-            val list = components[clazz] ?: return emptyList()
+            val list = components[clazz]?.toList() ?: return emptyList()
             if (list.size < min) {
                 min = list.size
                 best = list

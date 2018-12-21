@@ -135,7 +135,8 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 writeGlyph(glyph, pos.x, pos.y)
             } else {
                 val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack
-                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
+//                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
+                writeGlyph(mem, pos.x, pos.y, Color(128, 32, 32))
             }
 
 
@@ -245,7 +246,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 if (dir != null) {
 //                    game.player[ThinkUntilSet::class]?.action = Shoot(game.player, dir)
                     game.player[ThinkUntilSet::class]?.action =
-                            ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 0))
+                            ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 10))
                     return Normal(game)
                 }
                 return this

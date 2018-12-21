@@ -1,13 +1,27 @@
-import squidpony.squidgrid.FOV
-import squidpony.squidgrid.FOV.SHADOW
+import rlforj.los.ILosBoard
+import rlforj.los.PrecisePermissive
 
-class Level(val width: Int, val height: Int, val factory: EntityFactory) {
+class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosBoard {
     private val cells = Array(width, height) { HashSet<Entity>() }
     private val walkable = BooleanArray(width, height) { false }
     private val transparent = DoubleArray(width, height) { 0.0 }
-    private var fov = DoubleArray(width, height) { 0.0 }
-    private val fovSolver = FOV(SHADOW)
+    private var fov = BooleanArray(width, height) { false }
     private var memory = Array(width, height) { null as Glyph? }
+    private val fovAlgorithm = PrecisePermissive()
+
+    override fun contains(x: Int, y: Int): Boolean {
+        return (x in 0 until width) && (y in 0 until height)
+    }
+
+    override fun isObstacle(x: Int, y: Int): Boolean = transparent[x, y] == 1.0
+
+    override fun visit(x: Int, y: Int) {
+        fov[x, y] = true
+        val glyph = cells[x, y].maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
+        if (glyph != null && glyph.memorable) {
+            memory[x, y] = glyph
+        }
+    }
 
     fun spawn(entity: Entity, x: Int, y: Int) {
         cells[x, y].add(entity)
@@ -22,7 +36,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
         entity.remove(pos)
         update(pos.x, pos.y)
     }
-
+/**/
     fun move(entity: Entity, x: Int, y: Int) {
         remove(entity)
         spawn(entity, x, y)
@@ -37,7 +51,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     }
 
     fun isVisible(x: Int, y: Int): Boolean {
-        return fov[x, y] != 0.0
+        return fov[x, y]
     }
 
     fun memory(x: Int, y: Int): Glyph? {
@@ -45,17 +59,8 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     }
 
     fun updateFOV(x: Int, y: Int) {
-        fov = fovSolver.calculateFOV(transparent, x, y, 25.0)
-        cells.forEachIndexed { i, row ->
-            row.forEachIndexed { j, entities ->
-                if (isVisible(i, j)) {
-                    val glyph = entities.maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
-                    if (glyph != null && glyph.memorable) {
-                        memory[i, j] = glyph
-                    }
-                }
-            }
-        }
+        fov.fill(false)
+        fovAlgorithm.visitFieldOfView(this, x, y, 25)
     }
 
     private fun update(x: Int, y: Int) {

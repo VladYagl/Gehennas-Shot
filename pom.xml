@@ -110,9 +110,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.squidpony</groupId>
-            <artifactId>squidlib-util</artifactId>
-            <version>3.0.0-b9</version>
+            <groupId>rlforj</groupId>
+            <artifactId>rlforj</artifactId>
+            <version>0.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/rlforj.0.2.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

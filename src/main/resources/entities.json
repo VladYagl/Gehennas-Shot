@@ -40,11 +40,11 @@
     "bullet": {
         "glyph": {
             "char": 167,
-            "priority": 120,
+            "priority": 80,
             "memorable": false
         },
         "obstacle": {
-            "blockView": false,
+            "blockView": true,
             "blockMove": false
         },
         "stats": {

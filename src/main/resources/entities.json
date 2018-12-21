@@ -34,7 +34,7 @@
         "health": {
             "max": 100
         },
-        "thinkUntilSet": {}
+        "RandomBehaviour": {}
     },
 
     "bullet": {
@@ -44,7 +44,7 @@
             "memorable": false
         },
         "obstacle": {
-            "blockView": true,
+            "blockView": false,
             "blockMove": false
         },
         "stats": {

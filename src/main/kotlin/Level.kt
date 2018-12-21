@@ -89,5 +89,6 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
         room(0, 0, width, height)
         room(13, 15, 10, 20)
         remove(cells[22, 21].find { it.has(Obstacle::class) }!!)
+        spawn(factory.newEntity("bandit"), 15, 18)
     }
 }

@@ -1,3 +1,5 @@
+import kotlin.random.Random
+
 abstract class Behaviour : WaitTime() {
     abstract val action: Action
 }
@@ -8,6 +10,14 @@ data class ThinkUntilSet(override val entity: Entity) : Behaviour() {
             val res = field
             field = Think()
             return res
+        }
+}
+
+data class RandomBehaviour(override val entity: Entity) : Behaviour() {
+    override val action: Action
+        get() {
+            val random = Random.Default
+            return Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
         }
 }
 

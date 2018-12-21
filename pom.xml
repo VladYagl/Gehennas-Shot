@@ -34,6 +34,26 @@
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
+                <groupId>com.googlecode.addjars-maven-plugin</groupId>
+                <artifactId>addjars-maven-plugin</artifactId>
+                <version>1.0.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>add-jars</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/lib</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
                 <version>1.4</version>
@@ -109,6 +129,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.xaguzman</groupId>
+            <artifactId>pathfinding</artifactId>
+            <version>0.2.6</version>
+        </dependency>
         <dependency>
             <groupId>rlforj</groupId>
             <artifactId>rlforj</artifactId>

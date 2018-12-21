@@ -1,13 +1,33 @@
+import org.xguzm.pathfinding.grid.GridCell
+import org.xguzm.pathfinding.grid.NavigationGrid
+import org.xguzm.pathfinding.grid.finders.AStarGridFinder
 import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
+import org.xguzm.pathfinding.grid.finders.GridFinderOptions
+import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
+import kotlin.test.assertNotNull
+
 
 class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosBoard {
     private val cells = Array(width, height) { HashSet<Entity>() }
-    private val walkable = BooleanArray(width, height) { false }
+
+    //fov
     private val transparent = DoubleArray(width, height) { 0.0 }
     private var fov = BooleanArray(width, height) { false }
     private var memory = Array(width, height) { null as Glyph? }
     private val fovAlgorithm = PrecisePermissive()
+
+    //path find
+    private val navGrid = NavigationGrid(Array(width, height) { GridCell() }, true)
+    private val pathFinderOptions = GridFinderOptions(
+        true,
+        false,
+        ChebyshevDistance(),
+        false,
+        1.0F,
+        1.0F
+    )
+    private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 
     override fun contains(x: Int, y: Int): Boolean {
         return (x in 0 until width) && (y in 0 until height)
@@ -23,6 +43,25 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         }
     }
 
+    @Deprecated("DEBUG") // TODO!!!
+    fun findPath(x: Int, y: Int): List<Pair<Int, Int>>? {
+        var pos: Position? = null
+        cells.forEach { row ->
+            row.forEach { entities ->
+                entities.forEach {
+                    if (it.name == "player") {
+                        pos = it[Position::class]
+                    }
+                }
+            }
+        }
+        return findPath(x, y, pos!!.x, pos!!.y)
+    }
+
+    fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Pair<Int, Int>>? {
+        return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
+    }
+
     fun spawn(entity: Entity, x: Int, y: Int) {
         cells[x, y].add(entity)
         val pos = Position(entity, x, y, this)
@@ -36,7 +75,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         entity.remove(pos)
         update(pos.x, pos.y)
     }
-/**/
+
     fun move(entity: Entity, x: Int, y: Int) {
         remove(entity)
         spawn(entity, x, y)
@@ -64,8 +103,9 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
     }
 
     private fun update(x: Int, y: Int) {
-        walkable[x, y] = cells[x, y].any { it.has(Floor::class) } &&
-                cells[x, y].none { it[Obstacle::class]?.blockMove == true }
+        navGrid.setWalkable(x, y,
+            cells[x, y].any { it.has(Floor::class) } &&
+                    cells[x, y].none { it[Obstacle::class]?.blockMove == true })
         transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
     }
 

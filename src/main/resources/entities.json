@@ -7,7 +7,7 @@
         },
         "obstacle": {
             "blockView": false,
-            "blockMove": true
+            "blockMove": false
         },
         "stats": {
             "speed": 100
@@ -34,7 +34,7 @@
         "health": {
             "max": 100
         },
-        "RandomBehaviour": {}
+        "MonsterBehaviour": {}
     },
 
     "bullet": {

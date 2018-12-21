@@ -61,6 +61,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         pane.size = Dimension(log.width + info.width, info.height + 39)
         size = pane.preferredSize
 
+        //TODO: MOVE OUT MAIN LOOP
         Thread {
             var count = 0
             while (true) {
@@ -131,7 +132,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
             val glyph = entity[Glyph::class]!!
 
-            if (game.level.isVisible(pos.x, pos.y)) {
+            if (game.level.isVisible(pos.x, pos.y) || true) {
                 writeGlyph(glyph, pos.x, pos.y)
             } else {
                 val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack

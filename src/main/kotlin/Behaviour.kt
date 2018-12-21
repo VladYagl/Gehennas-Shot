@@ -21,6 +21,21 @@ data class RandomBehaviour(override val entity: Entity) : Behaviour() {
         }
 }
 
+data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
+    override val action: Action
+        get() {
+            val pos = entity[Position::class]!!
+            val next = pos.level.findPath(pos.x, pos.y)?.first()
+            return if (next != null) {
+                Move(entity, next.first - pos.x to next.second - pos.y)
+            } else {
+                val random = Random.Default
+                Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
+            }
+        }
+}
+
+
 data class BulletBehaviour(override val entity: Entity, private var dir: Pair<Int, Int>, override var time: Long = 0) :
     Behaviour() {
     override val action: Action

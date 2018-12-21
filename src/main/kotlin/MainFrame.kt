@@ -13,7 +13,7 @@ import java.io.StringWriter
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
-    //    private val font = AsciiFont.TAFFER_10x10
+    //        private val font = AsciiFont.TAFFER_10x10
     private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
 
     private val world: AsciiPanel = AsciiPanel(11 * 8, 8 * 8, font)
@@ -111,6 +111,13 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
     }
 
+    private fun writeGlyph(glyph: Glyph, x: Int, y: Int, color: Color = world.defaultForegroundColor) {
+        if (glyph.priority >= priority[x, y]) {
+            world.write(glyph.char, x, y, color)
+            priority[x, y] = glyph.priority
+        }
+    }
+
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun update() {
         world.clear()
@@ -119,7 +126,16 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         game.level.updateFOV(playerPos.x, playerPos.y)
         for (entity in ComponentManager[Glyph::class, Position::class]) {
             val pos = entity[Position::class]!!
+
             val glyph = entity[Glyph::class]!!
+
+            if (game.level.isVisible(pos.x, pos.y)) {
+                writeGlyph(glyph, pos.x, pos.y)
+            } else {
+                val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack
+                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.5)
+            }
+
 
             if (entity == game.player) {
                 info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
@@ -128,11 +144,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 info.writeLine("Player hp = " + entity[Health::class]?.current, 4)
                 info.clear(' ', 0, 5, info.widthInCharacters, 4)
                 info.writeText("Effects = " + entity.all(Effect::class), 0, 5)
-            }
-
-            if (glyph.priority >= priority[pos.x, pos.y] && game.level.isVisible(pos.x, pos.y)) {
-                world.write(glyph.char, pos.x, pos.y)
-                priority[pos.x, pos.y] = glyph.priority
             }
         }
         predict()
@@ -154,21 +165,22 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             var color = world.defaultForegroundColor * 0.5
             fakeEntity.add(fakePos)
             var time = behaviour.time
-            while (time < 100) {
-                val action = behaviour.action
-                if (action is Move) {
-                    val (x, y) = fakePos + action.dir
-                    fakeEntity.remove(fakePos)
-                    fakePos = Position(fakeEntity, x, y, fakePos.level)
-                    fakeEntity.add(fakePos)
-                    if (glyph.priority > priority[x, y]) {
-                        color *= 0.85
-                        world.write(glyph.char, x, y, color)
-                        priority[x, y] = glyph.priority
+            if (fakePos.level.isVisible(fakePos.x, fakePos.y))
+                while (time < 100) {
+                    val action = behaviour.action
+                    if (action is Move) {
+                        val (x, y) = fakePos + action.dir
+                        fakeEntity.remove(fakePos)
+                        fakePos = Position(fakeEntity, x, y, fakePos.level)
+                        fakeEntity.add(fakePos)
+                        if (glyph.priority > priority[x, y] && fakePos.level.isVisible(x, y)) {
+                            color *= 0.85
+                            world.write(glyph.char, x, y, color)
+                            priority[x, y] = glyph.priority
+                        }
                     }
+                    time += action.time * 100 / speed // TODO : COPYPASTA!!!
                 }
-                time += action.time * 100 / speed // TODO : COPYPASTA!!!
-            }
             fakeEntity.remove(fakePos)
         }
     }

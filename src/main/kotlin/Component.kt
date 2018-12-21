@@ -20,7 +20,8 @@ data class Position(
 data class Glyph(
     override val entity: Entity,
     val char: Char,
-    val priority: Int = 0
+    val priority: Int = 0,
+    val memorable: Boolean = true
 ) : Component()
 
 data class Obstacle(

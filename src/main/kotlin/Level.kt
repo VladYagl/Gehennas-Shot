@@ -7,6 +7,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     private val transparent = DoubleArray(width, height) { 0.0 }
     private var fov = DoubleArray(width, height) { 0.0 }
     private val fovSolver = FOV(SHADOW)
+    private var memory = Array(width, height) { null as Glyph? }
 
     fun spawn(entity: Entity, x: Int, y: Int) {
         cells[x, y].add(entity)
@@ -39,8 +40,22 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
         return fov[x, y] != 0.0
     }
 
+    fun memory(x: Int, y: Int): Glyph? {
+        return memory[x, y]
+    }
+
     fun updateFOV(x: Int, y: Int) {
-        fov = fovSolver.calculateLOSMap(transparent, x, y)
+        fov = fovSolver.calculateFOV(transparent, x, y, 15.0)
+        cells.forEachIndexed { i, row ->
+            row.forEachIndexed { j, entities ->
+                if (isVisible(i, j)) {
+                    val glyph = entities.maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
+                    if (glyph != null && glyph.memorable) {
+                        memory[i, j] = glyph
+                    }
+                }
+            }
+        }
     }
 
     private fun update(x: Int, y: Int) {

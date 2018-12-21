@@ -2,7 +2,8 @@
     "player": {
         "glyph": {
             "char": 2,
-            "priority": 100
+            "priority": 100,
+            "memorable": false
         },
         "obstacle": {
             "blockView": false,
@@ -20,7 +21,8 @@
     "bullet": {
         "glyph": {
             "char": 167,
-            "priority": 120
+            "priority": 120,
+            "memorable": false
         },
         "obstacle": {
             "blockView": true,

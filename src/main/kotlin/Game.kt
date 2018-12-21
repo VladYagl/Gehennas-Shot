@@ -7,6 +7,7 @@ class Game(private val factory: EntityFactory) {
         level.spawn(player, 10, 10)
     }
 
+    // TODO: Think about energy randomization / but maybe i don't really need one
     fun update() {
         val waiters = ComponentManager.all(WaitTime::class)
         val first = waiters.minBy { it.time }

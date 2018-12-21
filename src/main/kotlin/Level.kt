@@ -45,7 +45,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     }
 
     fun updateFOV(x: Int, y: Int) {
-        fov = fovSolver.calculateFOV(transparent, x, y, 15.0)
+        fov = fovSolver.calculateFOV(transparent, x, y, 25.0)
         cells.forEachIndexed { i, row ->
             row.forEachIndexed { j, entities ->
                 if (isVisible(i, j)) {

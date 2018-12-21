@@ -9,6 +9,7 @@ import java.lang.Exception
 import javax.swing.JFrame
 import javax.swing.JLayeredPane
 import java.io.StringWriter
+import javax.swing.JOptionPane.showMessageDialog
 
 
 class MainFrame : JFrame(), KeyEventDispatcher {
@@ -72,6 +73,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                         val errors = StringWriter()
                         e.printStackTrace(PrintWriter(errors))
                         e.printStackTrace()
+                        showMessageDialog(null, errors.toString())
                         info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
                         info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
                         stop = true
@@ -133,7 +135,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 writeGlyph(glyph, pos.x, pos.y)
             } else {
                 val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack
-                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.5)
+                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
             }
 
 

@@ -7,7 +7,8 @@
         },
         "obstacle": {
             "blockView": false,
-            "blockMove": false
+            "blockMove": true,
+            "blockPath": false
         },
         "stats": {
             "speed": 100

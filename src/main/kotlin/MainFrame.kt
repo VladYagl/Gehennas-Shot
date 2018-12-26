@@ -132,7 +132,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
             val glyph = entity[Glyph::class]!!
 
-            if (game.level.isVisible(pos.x, pos.y) || true) {
+            if (game.level.isVisible(pos.x, pos.y)) {
                 writeGlyph(glyph, pos.x, pos.y)
             } else {
                 val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack

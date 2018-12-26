@@ -105,7 +105,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
     private fun update(x: Int, y: Int) {
         navGrid.setWalkable(x, y,
             cells[x, y].any { it.has(Floor::class) } &&
-                    cells[x, y].none { it[Obstacle::class]?.blockMove == true })
+                    cells[x, y].none { it[Obstacle::class]?.blockPath == true })
         transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
     }
 

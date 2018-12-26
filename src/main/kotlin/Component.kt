@@ -27,7 +27,8 @@ data class Glyph(
 data class Obstacle(
     override val entity: Entity,
     val blockMove: Boolean = false,
-    val blockView: Boolean = false
+    val blockView: Boolean = false,
+    val blockPath: Boolean = blockMove
 ) : Component()
 
 data class Floor(override val entity: Entity) : Component()

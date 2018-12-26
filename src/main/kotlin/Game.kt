@@ -24,16 +24,17 @@ class Game(private val factory: EntityFactory) {
                 }
             }
 
-            when (first) { // TODO: it's copy pasta!
+            val result = when (first) { // TODO: it's copy pasta!
                 is Behaviour -> {
-                    val result = first.action.perform()
-                    first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
+                    first.lastResult = first.action.perform()
+                    first.lastResult!!
                 }
-                is Effect -> {
-                    val result = first.action.perform()
-                    first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
-                }
+
+                is Effect -> first.action.perform()
+
+                else -> throw Exception("Unknown waiter: $first of type: ${first::class}")
             }
+            first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
         }
     }
 }

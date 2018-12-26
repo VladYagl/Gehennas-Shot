@@ -5,7 +5,6 @@ import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
-import kotlin.test.assertNotNull
 
 
 class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosBoard {

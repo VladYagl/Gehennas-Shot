@@ -66,19 +66,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             var count = 0
             while (true) {
                 if (this.isValid) {
-                    try {
-                        if (!stop) {
-                            game.update()
-                        }
-                    } catch (e: Throwable) {
-                        val errors = StringWriter()
-                        e.printStackTrace(PrintWriter(errors))
-                        e.printStackTrace()
-                        showMessageDialog(null, errors.toString())
-                        info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
-                        info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
-                        stop = true
-                    }
+                    game.update()
                     info.write("Repaint count = " + count++, 0, 0)
                     if (needRepaint) {
                         update()
@@ -87,6 +75,15 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 }
             }
         }.start()
+    }
+
+    private fun printExeption(e: Throwable) {
+        val errors = StringWriter()
+        e.printStackTrace(PrintWriter(errors))
+        e.printStackTrace()
+        info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
+        info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
+        stop = true
     }
 
     private fun AsciiPanel.clearLine(y: Int) {

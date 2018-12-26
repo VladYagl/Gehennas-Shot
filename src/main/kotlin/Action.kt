@@ -49,8 +49,16 @@ data class Shoot(
     }
 }
 
+data class Destroy(private val entity: Entity, override val time: Long) : Action() {
+    override fun perform(): ActionResult {
+        entity[Position::class]?.level?.remove(entity)
+        entity.clean()
+        return end()
+    }
+}
+
 //TODO: Maybe components should handle this logic
-class Collide(
+data class Collide(
     private val entity: Entity,
     private val victim: Entity,
     private val damage: Int,

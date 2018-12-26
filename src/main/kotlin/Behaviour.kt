@@ -2,6 +2,7 @@ import kotlin.random.Random
 
 abstract class Behaviour : WaitTime() {
     abstract val action: Action
+    var lastResult: ActionResult? = null
 }
 
 data class ThinkUntilSet(override val entity: Entity) : Behaviour() {
@@ -24,6 +25,9 @@ data class RandomBehaviour(override val entity: Entity) : Behaviour() {
 data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
     override val action: Action
         get() {
+            if (lastResult?.succeeded == false) {
+                return Move(entity, 0 to 0)
+            }
             val pos = entity[Position::class]!!
             val next = pos.level.findPath(pos.x, pos.y)?.first()
             return if (next != null) {

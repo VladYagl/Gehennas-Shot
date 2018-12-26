@@ -4,6 +4,7 @@ class Game(private val factory: EntityFactory) {
     var gameTime: Long = 0
 
     init {
+        level.init()
         level.spawn(player, 10, 10)
     }
 

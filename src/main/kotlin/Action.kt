@@ -11,7 +11,6 @@ data class Think(override val time: Long = 0) : Action() {
     override fun perform(): ActionResult = end()
 }
 
-//TODO: IMHO MOVE SHOULD NOT CHECK FOR EMPTY SLOTS, BUT OKAY IT COULD IF THIS PLACE IS UNKNOWN
 data class Move(
     private val entity: Entity,
     val dir: Pair<Int, Int>,
@@ -49,9 +48,9 @@ data class Shoot(
     }
 }
 
-data class Destroy(private val entity: Entity, override val time: Long) : Action() {
+data class Destroy(private val entity: Entity, override val time: Long = 0) : Action() {
     override fun perform(): ActionResult {
-        entity[Position::class]?.level?.remove(entity)
+//        entity[Position::class]?.level?.remove(entity)
         entity.clean()
         return end()
     }
@@ -65,7 +64,7 @@ data class Collide(
     override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
-        entity[Position::class]?.level?.remove(entity)
+//        entity[Position::class]?.level?.remove(entity)
         val health = victim[Health::class]
         if (health != null) {
             health.current -= damage

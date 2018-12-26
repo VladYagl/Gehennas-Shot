@@ -24,11 +24,13 @@ data class Entity(val name: String = "Entity", val id: String = UUID.randomUUID(
     fun add(component: Component) {
         components[component::class] = component
         ComponentManager.add(component)
+        component.onAdd()
     }
 
     fun remove(component: Component) {
         components.remove(component::class)
         ComponentManager.remove(component)
+        component.onRemove()
     }
 
     fun clean() {

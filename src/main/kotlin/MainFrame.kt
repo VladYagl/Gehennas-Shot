@@ -134,7 +134,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             } else {
                 val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack
 //                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
-                writeGlyph(mem, pos.x, pos.y, Color(128, 32, 32))
+                writeGlyph(mem, pos.x, pos.y, Color(96, 32, 32))
             }
 
 
@@ -160,7 +160,9 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
             val fakeEntity = Entity("Stub")
             val behaviour = entity[BulletBehaviour::class]!!.copy(entity = fakeEntity)
-            var fakePos = entity[Position::class]!!.copy(entity = fakeEntity)
+            val realPos = entity[Position::class]!!
+            // TODO: Now it actually moves this fake entity through real level, and also adds it to component manager
+            var fakePos = realPos.copy(entity = fakeEntity)
             val glyph = entity[Glyph::class]!!
             val speed = entity[Stats::class]?.speed ?: 100
             var color = world.defaultForegroundColor * 0.5
@@ -174,7 +176,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                         fakeEntity.remove(fakePos)
                         fakePos = Position(fakeEntity, x, y, fakePos.level)
                         fakeEntity.add(fakePos)
-                        if (glyph.priority > priority[x, y] && fakePos.level.isVisible(x, y)) {
+                        if (glyph.priority > priority[x, y] && realPos.level.isVisible(x, y)) {
                             color *= 0.85
                             world.write(glyph.char, x, y, color)
                             priority[x, y] = glyph.priority

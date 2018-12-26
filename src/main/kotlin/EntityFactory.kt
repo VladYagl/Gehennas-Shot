@@ -1,20 +1,13 @@
 import com.beust.klaxon.JsonReader
+import com.beust.klaxon.KlaxonException
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
-import javax.swing.JOptionPane.ERROR_MESSAGE
-import javax.swing.JOptionPane.showMessageDialog
-import kotlin.reflect.KClass
+import org.reflections.util.ClasspathHelper
+import org.reflections.util.ConfigurationBuilder
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.jvm.jvmName
-import org.reflections.util.FilterBuilder
-import org.reflections.util.ClasspathHelper
-import org.reflections.scanners.ResourcesScanner
-import org.reflections.scanners.TypeAnnotationsScanner
-import org.reflections.util.ConfigurationBuilder
-import java.util.LinkedList
 
 
 //TODO : THIS DEFINITELY NEEDS SOME TESTING !!!
@@ -42,6 +35,8 @@ class EntityFactory {
         val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
 
         val stream = (Thread::currentThread)().contextClassLoader.getResourceAsStream("entities.json")
+        //TODO: Throw proper exceptions of where error happens and why
+        //TODO: WTF REFACTOR THIS SHIT | SPLIT ON CLASSES | EXCEPTIONS | TESTS | JUST DO IT
         JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
                 while (reader.hasNext()) {

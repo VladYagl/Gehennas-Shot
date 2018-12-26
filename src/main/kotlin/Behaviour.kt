@@ -26,7 +26,7 @@ data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
     override val action: Action
         get() {
             if (lastResult?.succeeded == false) {
-                return Move(entity, 0 to 0)
+                return Move(entity, 0 to 0, 1000)
             }
             val pos = entity[Position::class]!!
             val next = pos.level.findPath(pos.x, pos.y)?.first()
@@ -44,6 +44,9 @@ data class BulletBehaviour(override val entity: Entity, private var dir: Pair<In
     Behaviour() {
     override val action: Action
         get() {
+            if (lastResult?.succeeded == false) {
+                return Destroy(entity)
+            }
             val (x, y) = dir
             val pos = entity[Position::class]!!
             val (newx, newy) = pos + dir

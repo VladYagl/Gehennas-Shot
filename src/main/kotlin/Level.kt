@@ -6,7 +6,6 @@ import rlforj.los.PrecisePermissive
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
 
-
 class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosBoard {
     private val cells = Array(width, height) { HashSet<Entity>() }
 
@@ -62,16 +61,24 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
     }
 
     fun spawn(entity: Entity, x: Int, y: Int) {
-        cells[x, y].add(entity)
         val pos = Position(entity, x, y, this)
         entity.add(pos)
-        update(x, y)
+    }
+
+    fun spawn(pos: Position) {
+        cells[pos.x, pos.y].add(pos.entity)
+        update(pos.x, pos.y)
     }
 
     fun remove(entity: Entity) {
         val pos = entity[Position::class]!!
-        cells[pos.x, pos.y].remove(entity)
+//        cells[pos.x, pos.y].remove(entity)
         entity.remove(pos)
+//        update(pos.x, pos.y)
+    }
+
+    fun remove(pos: Position) {
+        cells[pos.x, pos.y].remove(pos.entity)
         update(pos.x, pos.y)
     }
 
@@ -129,7 +136,7 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         }
     }
 
-    init {
+    fun init() {
         room(0, 0, width, height)
         room(13, 15, 10, 20)
         remove(cells[22, 21].find { it.has(Obstacle::class) }!!)

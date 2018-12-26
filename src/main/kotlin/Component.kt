@@ -1,5 +1,11 @@
 abstract class Component {
     abstract val entity: Entity
+
+    /** always after add */
+    open fun onAdd() {}
+
+    /** always after remove */
+    open fun onRemove() {}
 }
 
 data class Position(
@@ -14,6 +20,14 @@ data class Position(
 
     fun move(x: Int, y: Int) {
         level.move(entity, x, y)
+    }
+
+    override fun onRemove() {
+        level.remove(this)
+    }
+
+    override fun onAdd() {
+        level.spawn(this)
     }
 }
 

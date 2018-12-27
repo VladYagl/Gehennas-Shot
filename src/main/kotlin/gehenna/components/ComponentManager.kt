@@ -41,16 +41,16 @@ object ComponentManager {
 
     operator fun get(vararg classes: KClass<out Component>): List<Entity> {
         var min = Int.MAX_VALUE
-        var best: List<Entity> = ArrayList()
+        var best: KClass<out Component> = classes[0]
         for (clazz in classes) {
-            val list = components[clazz]?.toList() ?: return emptyList()
-            if (list.size < min) {
-                min = list.size
-                best = list
+            val size = components[clazz]?.size ?: 0
+            if (size < min) {
+                min = size
+                best = clazz
             }
         }
         val list = ArrayList<Entity>()
-        for (entity in best) {
+        for (entity in components[best] ?: emptySet<Entity>()) {
             if (classes.all { entity.has(it) }) {
                 list.add(entity)
             }

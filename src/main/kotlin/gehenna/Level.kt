@@ -10,12 +10,12 @@ import rlforj.los.PrecisePermissive
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
 
-class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosBoard {
-    private val cells = Array(width, height) { HashSet<Entity>() }
+open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
+    protected val cells = Array(width, height) { HashSet<Entity>() }
 
     //fov
     private val transparent = DoubleArray(width, height) { 0.0 }
-    private var fov = BooleanArray(width, height) { false }
+    private val fov = FovBoard()
     private var memory = Array(width, height) { null as Glyph? }
     private val fovAlgorithm = PrecisePermissive()
 
@@ -30,20 +30,6 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         1.0F
     )
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
-
-    override fun contains(x: Int, y: Int): Boolean {
-        return (x in 0 until width) && (y in 0 until height)
-    }
-
-    override fun isObstacle(x: Int, y: Int): Boolean = transparent[x, y] == 1.0
-
-    override fun visit(x: Int, y: Int) {
-        fov[x, y] = true
-        val glyph = cells[x, y].maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
-        if (glyph != null && glyph.memorable) {
-            memory[x, y] = glyph
-        }
-    }
 
     @Deprecated("DEBUG") // TODO!!!
     fun findPath(x: Int, y: Int): List<Pair<Int, Int>>? {
@@ -64,6 +50,10 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
     }
 
+    operator fun get(x: Int, y: Int): HashSet<Entity> {
+        return cells[x, y]
+    }
+
     fun spawn(entity: Entity, x: Int, y: Int) {
         val pos = Position(entity, x, y, this)
         entity.add(pos)
@@ -76,9 +66,9 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
 
     fun remove(entity: Entity) {
         val pos = entity[Position::class]!!
-//        cells[pos.x, pos.y].remove(entity)
+        //cells[pos.x, pos.y].remove(entity)
         entity.remove(pos)
-//        update(pos.x, pos.y)
+        //update(pos.x, pos.y)
     }
 
     fun remove(pos: Position) {
@@ -107,9 +97,10 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         return memory[x, y]
     }
 
-    fun updateFOV(x: Int, y: Int) {
-        fov.fill(false)
-        fovAlgorithm.visitFieldOfView(this, x, y, 25)
+    fun visitFOV(x: Int, y: Int, visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }) {
+        fov.visitor = visitor
+        fov.clear()
+        fovAlgorithm.visitFieldOfView(fov, x, y, 25)
     }
 
     private fun update(x: Int, y: Int) {
@@ -119,31 +110,33 @@ class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosB
         transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
     }
 
-    private fun wall(x: Int, y: Int) {
-        spawn(factory.newEntity("wall"), x, y)
-    }
+    private inner class FovBoard : ILosBoard {
+        private var board = BooleanArray(width, height) { false }
+        operator fun get(x: Int, y: Int): Boolean {
+            return board[x, y]
+        }
 
-    private fun floor(x: Int, y: Int) {
-        spawn(factory.newEntity("floor"), x, y)
-    }
+        var visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }
 
-    private fun room(x1: Int, y1: Int, width: Int, height: Int) {
-        for (x in x1 until x1 + width) {
-            for (y in y1 until y1 + height) {
-                if (cells[x, y].none { it.has(Floor::class) }) {
-                    floor(x, y)
-                }
-                if (x == x1 || x == x1 + width - 1 || y == y1 || y == y1 + height - 1) {
-                    wall(x, y)
-                }
+        override fun contains(x: Int, y: Int): Boolean {
+            return (x in 0 until width) && (y in 0 until height)
+        }
+
+        override fun isObstacle(x: Int, y: Int): Boolean = transparent[x, y] == 1.0
+
+        override fun visit(x: Int, y: Int) {
+            board[x, y] = true
+            val glyph = cells[x, y].maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
+            if (glyph != null && glyph.memorable) {
+                memory[x, y] = glyph
             }
+            cells[x, y].forEach { it[Glyph::class]?.let { glyph -> visitor(glyph, x, y) } }
+        }
+
+        fun clear() {
+            board.fill(false)
         }
     }
-
-    fun init() {
-        room(0, 0, width, height)
-        room(13, 15, 10, 20)
-        remove(cells[22, 21].find { it.has(Obstacle::class) }!!)
-        spawn(factory.newEntity("bandit"), 15, 18)
-    }
 }
+
+

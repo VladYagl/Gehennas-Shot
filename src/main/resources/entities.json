@@ -67,5 +67,13 @@
             "priority": -1
         },
         "floor": {}
+    },
+
+    "stairs": {
+        "glyph": {
+            "char": 62,
+            "priority": 20
+        },
+        "stairs": {}
     }
 }

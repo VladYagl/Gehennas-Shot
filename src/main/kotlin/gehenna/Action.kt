@@ -88,3 +88,22 @@ data class ApplyEffect(
         return end()
     }
 }
+
+//Maybe pass stairs?
+data class ClimbStairs(private val entity: Entity, override val time: Long = 100) : Action() {
+    override fun perform(): ActionResult {
+        val pos = entity[Position::class]!!
+        val stairs = pos.neighbors.firstOrNull { it.has(Stairs::class) }?.get(Stairs::class)
+            ?: return ActionResult(0, false)
+        if (stairs.pos == null) {
+            val depth = if (pos.level is DungeonLevel) pos.level.depth + 1 else -1
+            val level = DungeonLevel(5 * 8, 6 * 8, pos.level.factory, depth)
+            level.init()
+            stairs.pos = Position(stairs.entity, 2, 2, level)
+        }
+        val destination = stairs.pos!!
+        pos.level.remove(entity)
+        destination.level.spawn(entity, destination.x, destination.y)
+        return end()
+    }
+}

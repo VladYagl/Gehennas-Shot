@@ -34,6 +34,8 @@ data class Position(
         level.move(entity, x, y)
     }
 
+    val neighbors: HashSet<Entity> get() = level[x, y]
+
     override fun onRemove() {
         level.remove(this)
     }
@@ -87,3 +89,4 @@ data class Logger(override val entity: Entity) : Component() {
     }
 }
 
+data class Stairs(override val entity: Entity, var pos: Position? = null) : Component()

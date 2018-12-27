@@ -50,6 +50,7 @@ data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
 }
 
 
+//TODO: try some player seeking behaviour
 data class BulletBehaviour(override val entity: Entity, private var dir: Pair<Int, Int>, override var time: Long = 0) :
     Behaviour() {
     override val action: Action

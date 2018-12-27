@@ -105,10 +105,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         return camera.x <= x && camera.y <= y && camera.x + world.widthInCharacters > x && camera.y + world.heightInCharacters > y
     }
 
+    private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun writeGlyph(glyph: Glyph, x: Int, y: Int, color: Color = world.defaultForegroundColor) {
         if (inView(x, y)) {
             val p = (x to y) - camera
-            if (glyph.priority >= priority[p.x, p.y]) {
+            if (glyph.priority > priority[p.x, p.y]) {
                 world.write(glyph.char, p.x, p.y, color)
                 priority[p.x, p.y] = glyph.priority
             }
@@ -141,12 +142,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
     }
 
-    private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun update() {
-        prepare()
         updateLog()
-        predict()
         drawWorld()
+        predict()
+        updateInfo()
 
         info.write("In game time: " + game.gameTime, 0, 12)
         world.paintImmediately(0, 0, world.width, world.height)
@@ -183,52 +183,49 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         camera = x to y
     }
 
-    private fun prepare() {
+    private fun drawWorld() {
         world.clear()
         priority.forEach { it.fill(-2) }
         val playerPos = game.player[Position::class]!!
-        moveCamera(playerPos.point)
         val level = playerPos.level
-        level.updateFOV(playerPos.x, playerPos.y)
-    }
+        moveCamera(playerPos.point)
+        level.visitFOV(playerPos.x, playerPos.y) { glyph, x, y -> writeGlyph(glyph, x, y) }
 
-    private fun drawWorld() {
-        for (entity in ComponentManager[Glyph::class, Position::class]) {
-            val pos = entity[Position::class]!!
-            if (!inView(pos.x, pos.y)) continue
-            val glyph = entity[Glyph::class]!!
-
-            if (pos.level.isVisible(pos.x, pos.y)) {
-                writeGlyph(glyph, pos.x, pos.y)
-            } else {
-                val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(
-                    game.player,
-                    ' ',
-                    Int.MIN_VALUE
-                ) // FIXME: It's hack
-//                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
-                writeGlyph(mem, pos.x, pos.y, Color(96, 32, 32))
-            }
-
-
-            if (entity == game.player) {
-                info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
-                info.write("Player pos = ${pos.x}, ${pos.y}", 0, 2)
-                info.writeLine("Player hp = " + entity[Health::class]?.current, 4)
-                info.clear(' ', 0, 5, info.widthInCharacters, 4)
-                info.writeText("Effects = " + entity.all(Effect::class), 0, 5)
+        for (x in 0 until world.widthInCharacters) {
+            for (y in 0 until world.heightInCharacters) {
+                if (priority[x, y] == -2 && x < level.width && y < level.height) {
+                    level.memory(x, y)?.let {
+                        writeGlyph(it, x, y, Color(96, 32, 32))
+                    }
+                }
             }
         }
     }
 
-    //TODO : PREDICT RELATIVE TO PLAYER SPEED
+    private fun updateInfo() {
+        val glyph = game.player[Glyph::class]!!
+        val pos = game.player[Position::class]!!
+        info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
+        info.write("Player pos = ${pos.x}, ${pos.y}", 0, 2)
+        info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
+        info.clear(' ', 0, 5, info.widthInCharacters, 4)
+        info.writeText("Effects = " + game.player.all(Effect::class), 0, 5)
+
+        if (pos.level is DungeonLevel) {
+            info.writeText("Level: " + pos.level.depth, 0, 6)
+        }
+    }
+
     private fun predict() {
+        //TODO : PREDICT RELATIVE TO PLAYER SPEED
         for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
             val realPos = entity[Position::class]!!
+            if (realPos.level != game.player[Position::class]!!.level) continue
             if (!inView(realPos.x, realPos.y)) continue
             val fakeEntity = Entity("Stub")
             val behaviour = entity[BulletBehaviour::class]!!.copy(entity = fakeEntity)
             // FIXME: Now it actually moves this fake entity through real level, and also adds it to component manager
+            // FIXME: Though I'm not performing it's actions, so in theory it can't break anything
             var fakePos = realPos.copy(entity = fakeEntity)
             val glyph = entity[Glyph::class]!!
             val speed = entity[Stats::class]?.speed ?: 100

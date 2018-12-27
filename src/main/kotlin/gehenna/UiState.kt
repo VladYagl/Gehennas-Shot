@@ -21,14 +21,22 @@ sealed class UiState(val game: Game) {
 
     abstract fun handleChar(char: Char): UiState
 
+    fun action(value: Action) {
+        game.player[ThinkUntilSet::class]?.action = value
+    }
+
     class Normal(game: Game) : UiState(game) {
         override fun handleChar(char: Char): UiState {
             val dir = getDir(char)
             if (dir != null) {
-                game.player[ThinkUntilSet::class]?.action = Move(game.player, dir)
+                action(Move(game.player, dir))
             }
             return when (char) {
                 'f' -> Aim(game)
+                '>', '<' -> {
+                    action(ClimbStairs(game.player))
+                    this
+                }
                 else -> this
             }
         }
@@ -38,12 +46,7 @@ sealed class UiState(val game: Game) {
         override fun handleChar(char: Char): UiState {
             val dir = getDir(char)
             if (dir != null) {
-//                    game.player[gehenna.ThinkUntilSet::class]?.action = gehenna.Shoot(game.player, dir)
-                game.player[ThinkUntilSet::class]?.action =
-                        ApplyEffect(
-                            game.player,
-                            RunAndGun(game.player, dir, 500, time = 10)
-                        )
+                action(ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 10)))
                 return Normal(game)
             }
             return this

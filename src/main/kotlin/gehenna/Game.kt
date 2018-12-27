@@ -3,11 +3,11 @@ package gehenna
 import gehenna.components.*
 
 class Game(private val factory: EntityFactory) {
-    val level = Level(5 * 8, 6 * 8, factory)
     val player = factory.newEntity("player")
     var gameTime: Long = 0
 
     init {
+        val level = DungeonLevel(5 * 8, 6 * 8, factory)
         level.init()
         level.spawn(player, 10, 10)
     }

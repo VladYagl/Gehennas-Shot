@@ -59,5 +59,19 @@ data class Health(
     val max: Int
 ) : Component() {
     var current = max
+        private set
+
+    fun dealDamage(amount: Int) {
+        current -= amount
+        if (current <= 0)
+            entity.clean()
+    }
+}
+
+data class Logger(override val entity: Entity) : Component() {
+    val log = ArrayList<String>()
+    fun add(text: String) {
+        log.add(text)
+    }
 }
 

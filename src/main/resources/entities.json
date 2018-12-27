@@ -16,7 +16,8 @@
         "health": {
             "max": 100
         },
-        "thinkUntilSet": {}
+        "thinkUntilSet": {},
+        "logger": {}
     },
 
     "bandit": {
@@ -43,10 +44,6 @@
             "char": 167,
             "priority": 80,
             "memorable": false
-        },
-        "obstacle": {
-            "blockView": true,
-            "blockMove": false
         },
         "stats": {
             "speed": 475

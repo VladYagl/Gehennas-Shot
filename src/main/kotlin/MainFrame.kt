@@ -1,21 +1,19 @@
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
+import utils.*
 import java.awt.*
 import java.awt.event.KeyEvent
-import java.io.PrintStream
 import java.io.PrintWriter
-import java.io.Writer
-import java.lang.Exception
 import javax.swing.JFrame
 import javax.swing.JLayeredPane
 import java.io.StringWriter
-import javax.swing.JOptionPane.showMessageDialog
 
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
     //        private val font = AsciiFont.TAFFER_10x10
     private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
+    private val trueDarkGray = Color(32, 32, 32)
 
     private val world: AsciiPanel = AsciiPanel(11 * 8, 8 * 8, font)
     private val info: AsciiPanel = AsciiPanel(5 * 8, 9 * 8, font)
@@ -25,18 +23,19 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private val game = Game(factory)
     private var stop = false
 
+    private val mainPane = JLayeredPane()
+
     init {
         title = "Gehenna's Shot"
         isResizable = false
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
 
-        val pane = JLayeredPane()
-        add(pane)
-        pane.layout = null
+        add(mainPane)
+        mainPane.layout = null
 
-        pane.add(log)
-        pane.add(world)
-        pane.add(info)
+        mainPane.add(log)
+        mainPane.add(world)
+        mainPane.add(info)
 
         log.size = log.preferredSize
         world.size = world.preferredSize
@@ -46,7 +45,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         world.location = Point(0, log.height + 1)
         info.location = Point(log.width + 1, 0)
 
-        val trueDarkGray = Color(32, 32, 32)
         world.defaultBackgroundColor = trueDarkGray
         info.defaultBackgroundColor = trueDarkGray
         log.defaultBackgroundColor = trueDarkGray
@@ -58,29 +56,17 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         info.repaint()
         log.repaint()
 
-        pane.size = Dimension(log.width + info.width, info.height + 39)
-        size = pane.preferredSize
+        mainPane.size = Dimension(log.width + info.width, info.height + 39)
+        size = mainPane.preferredSize
 
-        //TODO: MOVE OUT MAIN LOOP
-        Thread {
-            var count = 0
-            while (true) {
-                if (this.isValid) {
-                    game.update()
-                    info.write("Repaint count = " + count++, 0, 0)
-                    if (needRepaint) {
-                        update()
-                        needRepaint = false
-                    }
-                }
-            }
-        }.start()
+        game.player[Logger::class]?.add("Welcome to Gehenna's Shot")
+        game.player[Logger::class]?.add("   Suffer bitch,   love you " + 3.toChar())
+        Thread { mainLoop() }.start()
     }
 
-    private fun printExeption(e: Throwable) {
+    private fun printException(e: Throwable) {
         val errors = StringWriter()
         e.printStackTrace(PrintWriter(errors))
-        e.printStackTrace()
         info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
         info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
         stop = true
@@ -118,8 +104,53 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
     }
 
+    /** this shit runs in separate thread! */
+    private fun mainLoop() {
+        try {
+            var count = 0
+            while (true) {
+                if (this.isValid) {
+                    game.update()
+
+                    if (!game.player.has(Position::class)) {
+                        endGame()
+                        return
+                    }
+
+                    info.write("Repaint count = " + count++, 0, 0)
+                    if (needRepaint) {
+                        update()
+                        needRepaint = false
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            showError(e)
+            printException(e)
+        }
+    }
+
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun update() {
+        updateLog()
+        drawWorld()
+        predict()
+
+        info.write("In game time: " + game.gameTime, 0, 12)
+        world.paintImmediately(0, 0, world.width, world.height)
+        info.paintImmediately(0, 0, info.width, info.height)
+        log.paintImmediately(0, 0, log.width, log.height)
+    }
+
+    private fun updateLog() {
+        log.clear()
+        val messages = game.player[Logger::class]?.log?.takeLast(log.heightInCharacters)
+        messages?.forEachIndexed { index, s ->
+            log.write(s, 0, index)
+        }
+    }
+
+    private fun drawWorld() {
         world.clear()
         priority.forEach { it.fill(-2) }
         val playerPos = game.player[Position::class]!!
@@ -147,12 +178,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 info.writeText("Effects = " + entity.all(Effect::class), 0, 5)
             }
         }
-        predict()
-
-        info.write("In game time: " + game.gameTime, 0, 12)
-        world.paintImmediately(0, 0, world.width, world.height)
-        info.paintImmediately(0, 0, info.width, info.height)
-        log.paintImmediately(0, 0, log.width, log.height)
     }
 
     //TODO : PREDICT RELATIVE TO PLAYER SPEED
@@ -186,6 +211,29 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 }
             fakeEntity.remove(fakePos)
         }
+    }
+
+    private fun endGame() {
+        val message = AsciiPanel(2 * 8, 1 * 8, font)
+        mainPane.add(message)
+        mainPane.moveToFront(message)
+        message.size = message.preferredSize
+        message.location = Point(
+            (mainPane.width - message.width) / 2,
+            (mainPane.height - message.height) / 2
+        )
+        message.defaultBackgroundColor = trueDarkGray
+        message.clear()
+        for (x in 0 until message.widthInCharacters) {
+            for (y in 0 until message.heightInCharacters) {
+                if (x == 0 || x == message.widthInCharacters - 1 || y == 0 || y == message.heightInCharacters - 1) {
+                    message.write(254.toChar(), x, y)
+                }
+            }
+        }
+        state = UiState.End(game)
+        message.writeCenter("You are dead", 2)
+        message.writeCenter("RIP", 4)
     }
 
     private var needRepaint = true
@@ -249,6 +297,13 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                             ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 10))
                     return Normal(game)
                 }
+                return this
+            }
+        }
+
+        class End(game: Game) : UiState(game) {
+            override fun handleChar(char: Char): UiState {
+                if (char == ' ') System.exit(0)
                 return this
             }
         }

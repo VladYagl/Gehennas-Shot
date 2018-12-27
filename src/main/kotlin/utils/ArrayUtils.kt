@@ -1,6 +1,6 @@
 @file:Suppress("FunctionName")
 
-import java.awt.Color
+package utils
 
 inline fun <reified T> Array(width: Int, height: Int, init: () -> T): Array<Array<T>> {
     return Array(width) { Array(height) { init() } }
@@ -48,8 +48,4 @@ operator fun Array<BooleanArray>.get(x: Int, y: Int): Boolean {
 
 operator fun Array<BooleanArray>.set(x: Int, y: Int, a: Boolean) {
     get(x)[y] = a
-}
-
-operator fun Color.times(alpha: Double): Color {
-    return Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
 }

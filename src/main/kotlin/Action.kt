@@ -66,9 +66,8 @@ data class Collide(
     override fun perform(): ActionResult {
 //        entity[Position::class]?.level?.remove(entity)
         val health = victim[Health::class]
-        if (health != null) {
-            health.current -= damage
-        }
+        victim[Logger::class]?.add("You were hit by ${entity.name} for $damage damage")
+        health?.dealDamage(damage)
         entity.clean()
         return end()
     }
@@ -80,6 +79,7 @@ data class ApplyEffect(
     override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
+        entity[Logger::class]?.add("Your start ${effect::class.simpleName}")
         entity.add(effect)
         return end()
     }

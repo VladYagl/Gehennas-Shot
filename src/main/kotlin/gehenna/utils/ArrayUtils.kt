@@ -1,6 +1,6 @@
 @file:Suppress("FunctionName")
 
-package utils
+package gehenna.utils
 
 inline fun <reified T> Array(width: Int, height: Int, init: () -> T): Array<Array<T>> {
     return Array(width) { Array(height) { init() } }

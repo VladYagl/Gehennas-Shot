@@ -1,3 +1,7 @@
+package gehenna
+
+import gehenna.components.*
+import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
 import org.xguzm.pathfinding.grid.NavigationGrid
 import org.xguzm.pathfinding.grid.finders.AStarGridFinder
@@ -5,7 +9,6 @@ import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
-import utils.*
 
 class Level(val width: Int, val height: Int, val factory: EntityFactory) : ILosBoard {
     private val cells = Array(width, height) { HashSet<Entity>() }

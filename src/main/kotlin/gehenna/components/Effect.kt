@@ -1,3 +1,9 @@
+package gehenna.components
+
+import gehenna.Action
+import gehenna.Entity
+import gehenna.Shoot
+
 abstract class Effect : WaitTime() {
     abstract var duration: Long
     abstract val action: Action

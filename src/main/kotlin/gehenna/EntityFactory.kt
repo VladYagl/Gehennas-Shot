@@ -1,5 +1,7 @@
+package gehenna
+
 import com.beust.klaxon.JsonReader
-import com.beust.klaxon.KlaxonException
+import gehenna.components.Component
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
@@ -48,7 +50,7 @@ class EntityFactory {
                             val clazz = components.firstOrNull {
                                 it.simpleName?.toLowerCase() == componentName.toLowerCase()
                             }
-                                ?: throw Exception("In entities.json: Entity [$name] contains unknown component [$componentName]")
+                                ?: throw Exception("In entities.json: gehenna.Entity [$name] contains unknown component [$componentName]")
                             val constructor = clazz.primaryConstructor!!
                             val args = HashMap<KParameter, Any>()
                             reader.beginObject {

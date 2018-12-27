@@ -1,6 +1,9 @@
+package gehenna
+
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
-import utils.*
+import gehenna.components.*
+import gehenna.utils.*
 import java.awt.*
 import java.awt.event.KeyEvent
 import java.io.PrintWriter
@@ -154,16 +157,23 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         world.clear()
         priority.forEach { it.fill(-2) }
         val playerPos = game.player[Position::class]!!
-        game.level.updateFOV(playerPos.x, playerPos.y)
+        val level = playerPos.level
+        level.updateFOV(playerPos.x, playerPos.y)
+        val lowerBound = (playerPos.x - world.widthInCharacters / 2) to (playerPos.y - world.heightInCharacters / 2)
+        val upperBound = (playerPos.x + world.widthInCharacters / 2) to (playerPos.y + world.heightInCharacters / 2)
         for (entity in ComponentManager[Glyph::class, Position::class]) {
             val pos = entity[Position::class]!!
 
             val glyph = entity[Glyph::class]!!
 
-            if (game.level.isVisible(pos.x, pos.y)) {
+            if (level.isVisible(pos.x, pos.y)) {
                 writeGlyph(glyph, pos.x, pos.y)
             } else {
-                val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(game.player, ' ', Int.MIN_VALUE) // TODO: It's hack
+                val mem = level.memory(pos.x, pos.y) ?: Glyph(
+                    game.player,
+                    ' ',
+                    Int.MIN_VALUE
+                ) // TODO: It's hack
 //                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
                 writeGlyph(mem, pos.x, pos.y, Color(96, 32, 32))
             }
@@ -292,9 +302,12 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             override fun handleChar(char: Char): UiState {
                 val dir = getDir(char)
                 if (dir != null) {
-//                    game.player[ThinkUntilSet::class]?.action = Shoot(game.player, dir)
+//                    game.player[gehenna.ThinkUntilSet::class]?.action = gehenna.Shoot(game.player, dir)
                     game.player[ThinkUntilSet::class]?.action =
-                            ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 10))
+                            ApplyEffect(
+                                game.player,
+                                RunAndGun(game.player, dir, 500, time = 10)
+                            )
                     return Normal(game)
                 }
                 return this

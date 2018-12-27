@@ -1,3 +1,8 @@
+package gehenna.components
+
+import gehenna.Entity
+import gehenna.Level
+
 abstract class Component {
     abstract val entity: Entity
 

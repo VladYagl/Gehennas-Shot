@@ -1,5 +1,9 @@
+package gehenna
+
+import gehenna.components.*
+
 class Game(private val factory: EntityFactory) {
-    val level = Level(11 * 8, 8 * 8, factory)
+    val level = Level(15 * 8, 16 * 8, factory)
     val player = factory.newEntity("player")
     var gameTime: Long = 0
 
@@ -8,7 +12,7 @@ class Game(private val factory: EntityFactory) {
         level.spawn(player, 10, 10)
     }
 
-    // TODO: Think about energy randomization / but maybe i don't really need one
+    // TODO: gehenna.Think about energy randomization / but maybe i don't really need one
     fun update() {
         val waiters = ComponentManager.all(WaitTime::class)
         val first = waiters.minBy { it.time }

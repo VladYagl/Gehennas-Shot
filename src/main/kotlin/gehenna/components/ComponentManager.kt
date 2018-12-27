@@ -1,5 +1,7 @@
+package gehenna.components
+
+import gehenna.Entity
 import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.safeCast
 

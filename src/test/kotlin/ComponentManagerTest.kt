@@ -1,5 +1,9 @@
+import gehenna.Entity
+import gehenna.components.ComponentManager
+import gehenna.components.Floor
+import gehenna.components.Glyph
+import gehenna.components.Obstacle
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -15,7 +19,7 @@ class ComponentManagerTest : ManagerTest() {
         @BeforeAll
         @JvmStatic
         fun init() {
-            floor = Entity("Floor")
+            floor = Entity("gehenna.Floor")
             wall = Entity("Wall")
             item = Entity("Sword")
 

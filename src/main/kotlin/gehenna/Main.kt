@@ -1,4 +1,6 @@
-import utils.showError
+package gehenna
+
+import gehenna.utils.showError
 import javax.swing.JFrame
 import javax.swing.UIManager
 

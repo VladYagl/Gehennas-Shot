@@ -1,3 +1,4 @@
+import gehenna.components.ComponentManager
 import org.junit.jupiter.api.BeforeAll
 
 open class ManagerTest {

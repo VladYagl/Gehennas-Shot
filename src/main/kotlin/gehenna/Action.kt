@@ -1,3 +1,7 @@
+package gehenna
+
+import gehenna.components.*
+
 data class ActionResult(val time: Long, val succeeded: Boolean)
 
 abstract class Action {
@@ -50,7 +54,7 @@ data class Shoot(
 
 data class Destroy(private val entity: Entity, override val time: Long = 0) : Action() {
     override fun perform(): ActionResult {
-//        entity[Position::class]?.level?.remove(entity)
+//        entity[gehenna.Position::class]?.level?.remove(entity)
         entity.clean()
         return end()
     }
@@ -64,7 +68,7 @@ data class Collide(
     override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
-//        entity[Position::class]?.level?.remove(entity)
+//        entity[gehenna.Position::class]?.level?.remove(entity)
         val health = victim[Health::class]
         victim[Logger::class]?.add("You were hit by ${entity.name} for $damage damage")
         health?.dealDamage(damage)

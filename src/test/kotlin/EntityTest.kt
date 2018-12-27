@@ -1,3 +1,8 @@
+import gehenna.Entity
+import gehenna.components.ComponentManager
+import gehenna.components.Glyph
+import gehenna.components.Obstacle
+import gehenna.components.Position
 import org.junit.jupiter.api.Test
 import kotlin.test.*
 

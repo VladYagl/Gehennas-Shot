@@ -1,3 +1,12 @@
+package gehenna.components
+
+import gehenna.Action
+import gehenna.ActionResult
+import gehenna.Collide
+import gehenna.Destroy
+import gehenna.Entity
+import gehenna.Move
+import gehenna.Think
 import kotlin.random.Random
 
 abstract class Behaviour : WaitTime() {

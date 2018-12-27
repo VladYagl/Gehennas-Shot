@@ -7,6 +7,7 @@ import gehenna.Destroy
 import gehenna.Entity
 import gehenna.Move
 import gehenna.Think
+import gehenna.utils.*
 import kotlin.random.Random
 
 abstract class Behaviour : WaitTime() {
@@ -40,7 +41,7 @@ data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
             val pos = entity[Position::class]!!
             val next = pos.level.findPath(pos.x, pos.y)?.first()
             return if (next != null) {
-                Move(entity, next.first - pos.x to next.second - pos.y)
+                Move(entity, next.x - pos.x to next.y - pos.y)
             } else {
                 val random = Random.Default
                 Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))

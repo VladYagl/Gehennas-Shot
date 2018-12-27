@@ -3,7 +3,7 @@ package gehenna
 import gehenna.components.*
 
 class Game(private val factory: EntityFactory) {
-    val level = Level(15 * 8, 16 * 8, factory)
+    val level = Level(5 * 8, 6 * 8, factory)
     val player = factory.newEntity("player")
     var gameTime: Long = 0
 
@@ -12,7 +12,7 @@ class Game(private val factory: EntityFactory) {
         level.spawn(player, 10, 10)
     }
 
-    // TODO: gehenna.Think about energy randomization / but maybe i don't really need one
+    // TODO: Think about energy randomization / but maybe i don't really need one
     fun update() {
         val waiters = ComponentManager.all(WaitTime::class)
         val first = waiters.minBy { it.time }
@@ -29,7 +29,7 @@ class Game(private val factory: EntityFactory) {
                 }
             }
 
-            val result = when (first) { // TODO: it's copy pasta!
+            val result = when (first) {
                 is Behaviour -> {
                     first.lastResult = first.action.perform()
                     first.lastResult!!

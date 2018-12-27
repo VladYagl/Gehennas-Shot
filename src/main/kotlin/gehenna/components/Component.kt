@@ -2,6 +2,8 @@ package gehenna.components
 
 import gehenna.Entity
 import gehenna.Level
+import gehenna.utils.*
+import kotlin.test.todo
 
 abstract class Component {
     abstract val entity: Entity
@@ -19,8 +21,13 @@ data class Position(
     val y: Int,
     val level: Level
 ) : Component() {
+    val point: Pair<Int, Int>
+        get() {
+            return x to y
+        }
+
     operator fun plus(dir: Pair<Int, Int>): Pair<Int, Int> {
-        return x + dir.first to y + dir.second
+        return x + dir.x to y + dir.y
     }
 
     fun move(x: Int, y: Int) {
@@ -69,7 +76,7 @@ data class Health(
     fun dealDamage(amount: Int) {
         current -= amount
         if (current <= 0)
-            entity.clean()
+            entity.clean() // FIXME: If player dies his logger is cleared too
     }
 }
 

@@ -11,7 +11,6 @@ import javax.swing.JFrame
 import javax.swing.JLayeredPane
 import java.io.StringWriter
 
-
 class MainFrame : JFrame(), KeyEventDispatcher {
 
     //        private val font = AsciiFont.TAFFER_10x10
@@ -27,6 +26,8 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private var stop = false
 
     private val mainPane = JLayeredPane()
+
+    private var camera = 0 to 0
 
     init {
         title = "Gehenna's Shot"
@@ -100,10 +101,17 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
     }
 
+    private fun inView(x: Int, y: Int): Boolean {
+        return camera.x <= x && camera.y <= y && camera.x + world.widthInCharacters > x && camera.y + world.heightInCharacters > y
+    }
+
     private fun writeGlyph(glyph: Glyph, x: Int, y: Int, color: Color = world.defaultForegroundColor) {
-        if (glyph.priority >= priority[x, y]) {
-            world.write(glyph.char, x, y, color)
-            priority[x, y] = glyph.priority
+        if (inView(x, y)) {
+            val p = (x to y) - camera
+            if (glyph.priority >= priority[p.x, p.y]) {
+                world.write(glyph.char, p.x, p.y, color)
+                priority[p.x, p.y] = glyph.priority
+            }
         }
     }
 
@@ -135,9 +143,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun update() {
+        prepare()
         updateLog()
-        drawWorld()
         predict()
+        drawWorld()
 
         info.write("In game time: " + game.gameTime, 0, 12)
         world.paintImmediately(0, 0, world.width, world.height)
@@ -153,27 +162,50 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
     }
 
-    private fun drawWorld() {
+    private val cameraBound = world.widthInCharacters / 2 - 5 to world.heightInCharacters / 2 - 5
+    private fun moveCamera(playerPos: Pair<Int, Int>) {
+        var x = camera.x
+        var y = camera.y
+        if (playerPos.x < camera.x + cameraBound.x) {
+            x = playerPos.x - cameraBound.x
+        }
+        if (playerPos.y < camera.y + cameraBound.y) {
+            y = playerPos.y - cameraBound.y
+        }
+        val end = camera.x + world.widthInCharacters to camera.y + world.heightInCharacters
+        if (playerPos.x > end.x - cameraBound.x) {
+            x = playerPos.x + cameraBound.x - world.widthInCharacters
+        }
+        if (playerPos.y > end.y - cameraBound.y) {
+            y = playerPos.y + cameraBound.y - world.heightInCharacters
+        }
+
+        camera = x to y
+    }
+
+    private fun prepare() {
         world.clear()
         priority.forEach { it.fill(-2) }
         val playerPos = game.player[Position::class]!!
+        moveCamera(playerPos.point)
         val level = playerPos.level
         level.updateFOV(playerPos.x, playerPos.y)
-        val lowerBound = (playerPos.x - world.widthInCharacters / 2) to (playerPos.y - world.heightInCharacters / 2)
-        val upperBound = (playerPos.x + world.widthInCharacters / 2) to (playerPos.y + world.heightInCharacters / 2)
+    }
+
+    private fun drawWorld() {
         for (entity in ComponentManager[Glyph::class, Position::class]) {
             val pos = entity[Position::class]!!
-
+            if (!inView(pos.x, pos.y)) continue
             val glyph = entity[Glyph::class]!!
 
-            if (level.isVisible(pos.x, pos.y)) {
+            if (pos.level.isVisible(pos.x, pos.y)) {
                 writeGlyph(glyph, pos.x, pos.y)
             } else {
-                val mem = level.memory(pos.x, pos.y) ?: Glyph(
+                val mem = pos.level.memory(pos.x, pos.y) ?: Glyph(
                     game.player,
                     ' ',
                     Int.MIN_VALUE
-                ) // TODO: It's hack
+                ) // FIXME: It's hack
 //                writeGlyph(mem, pos.x, pos.y, world.defaultForegroundColor * 0.25)
                 writeGlyph(mem, pos.x, pos.y, Color(96, 32, 32))
             }
@@ -182,7 +214,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             if (entity == game.player) {
                 info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
                 info.write("Player pos = ${pos.x}, ${pos.y}", 0, 2)
-                info.write("Player pos priority = ${priority[pos.x, pos.y]}", 0, 3)
                 info.writeLine("Player hp = " + entity[Health::class]?.current, 4)
                 info.clear(' ', 0, 5, info.widthInCharacters, 4)
                 info.writeText("Effects = " + entity.all(Effect::class), 0, 5)
@@ -193,10 +224,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     //TODO : PREDICT RELATIVE TO PLAYER SPEED
     private fun predict() {
         for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
+            val realPos = entity[Position::class]!!
+            if (!inView(realPos.x, realPos.y)) continue
             val fakeEntity = Entity("Stub")
             val behaviour = entity[BulletBehaviour::class]!!.copy(entity = fakeEntity)
-            val realPos = entity[Position::class]!!
-            // TODO: Now it actually moves this fake entity through real level, and also adds it to component manager
+            // FIXME: Now it actually moves this fake entity through real level, and also adds it to component manager
             var fakePos = realPos.copy(entity = fakeEntity)
             val glyph = entity[Glyph::class]!!
             val speed = entity[Stats::class]?.speed ?: 100
@@ -213,11 +245,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                         fakeEntity.add(fakePos)
                         if (glyph.priority > priority[x, y] && realPos.level.isVisible(x, y)) {
                             color *= 0.85
-                            world.write(glyph.char, x, y, color)
+                            writeGlyph(glyph, x, y, color)
                             priority[x, y] = glyph.priority
                         }
                     }
-                    time += action.time * 100 / speed // TODO : COPYPASTA!!!
+                    time += action.time * 100 / speed // FIXME : COPYPASTA!!!
                 }
             fakeEntity.remove(fakePos)
         }
@@ -265,60 +297,5 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
         info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 23)
         return false
-    }
-
-    private sealed class UiState(val game: Game) {
-        fun getDir(char: Char): Pair<Int, Int>? {
-            return when (char) {
-                '.', '5' -> 0 to 0
-                'j', '2' -> 0 to +1
-                'k', '8' -> 0 to -1
-                'h', '4' -> -1 to 0
-                'l', '6' -> +1 to 0
-                'y', '7' -> -1 to -1
-                'u', '9' -> +1 to -1
-                'n', '3' -> +1 to +1
-                'b', '1' -> -1 to +1
-                else -> null
-            }
-        }
-
-        abstract fun handleChar(char: Char): UiState
-
-        class Normal(game: Game) : UiState(game) {
-            override fun handleChar(char: Char): UiState {
-                val dir = getDir(char)
-                if (dir != null) {
-                    game.player[ThinkUntilSet::class]?.action = Move(game.player, dir)
-                }
-                return when (char) {
-                    'f' -> Aim(game)
-                    else -> this
-                }
-            }
-        }
-
-        class Aim(game: Game) : UiState(game) {
-            override fun handleChar(char: Char): UiState {
-                val dir = getDir(char)
-                if (dir != null) {
-//                    game.player[gehenna.ThinkUntilSet::class]?.action = gehenna.Shoot(game.player, dir)
-                    game.player[ThinkUntilSet::class]?.action =
-                            ApplyEffect(
-                                game.player,
-                                RunAndGun(game.player, dir, 500, time = 10)
-                            )
-                    return Normal(game)
-                }
-                return this
-            }
-        }
-
-        class End(game: Game) : UiState(game) {
-            override fun handleChar(char: Char): UiState {
-                if (char == ' ') System.exit(0)
-                return this
-            }
-        }
     }
 }

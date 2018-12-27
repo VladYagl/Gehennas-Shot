@@ -12,7 +12,7 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
 
 
-//TODO : THIS DEFINITELY NEEDS SOME TESTING !!!
+//FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
 //TODO : MAKE SEPARATE CLASS FOR ENTITIES HASH MAP
 class EntityFactory {
     private val entities = HashMap<String, List<Pair<KFunction<Component>, HashMap<KParameter, Any>>>>()
@@ -34,6 +34,8 @@ class EntityFactory {
                 .addUrls(ClasspathHelper.forJavaClassPath())
                 .setScanners(SubTypesScanner())
         )
+        //TODO : TRY THIS
+//        val reflections = Reflections("gehenna")
         val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
 
         val stream = (Thread::currentThread)().contextClassLoader.getResourceAsStream("entities.json")

@@ -18,20 +18,14 @@ fun showError(e: Throwable) {
     showMessageDialog(null, errors.toString(), "ERROR", PLAIN_MESSAGE)
 }
 
-operator fun <A : Comparable<C>, B : Comparable<D>, C : Comparable<A>, D : Comparable<B>> Pair<A, B>.compareTo(other: Pair<C, D>): Int {
-    val res = first.compareTo(other.first)
-    return if (res == 0) {
-        second.compareTo(other.second)
-    } else {
-        res
-    }
+operator fun Pair<Int, Int>.minus(other: Pair<Int, Int>): Pair<Int, Int> {
+    return Pair(first - other.first, second - other.second)
 }
 
-operator fun Position.compareTo(other: Pair<Int, Int>): Int {
-    return other.compareTo(x to y)
+operator fun Pair<Int, Int>.plus(other: Pair<Int, Int>): Pair<Int, Int> {
+    return Pair(first + other.first, second + other.second)
 }
 
-operator fun Position.compareTo(other: Position): Int {
-    return other.compareTo(x to y)
-}
+val Pair<Int, Int>.x: Int get() = first
+val Pair<Int, Int>.y: Int get() = second
 

@@ -3,7 +3,6 @@ package gehenna.components
 import gehenna.Entity
 import gehenna.Level
 import gehenna.utils.*
-import kotlin.test.todo
 
 abstract class Component {
     abstract val entity: Entity

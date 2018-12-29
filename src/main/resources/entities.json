@@ -16,6 +16,10 @@
         "health": {
             "max": 100
         },
+        "inventory": {
+            "maxVolume": 200,
+            "items": ["teddyBear", "gun"]
+        },
         "thinkUntilSet": {},
         "logger": {}
     },
@@ -75,5 +79,20 @@
             "priority": 20
         },
         "stairs": {}
+    },
+
+    "teddyBear": {
+        "item": {
+            "volume": 10
+        }
+    },
+
+    "gun": {
+        "gun": {
+            "bullet": "bullet"
+        },
+        "item": {
+            "volume": 50
+        }
     }
 }

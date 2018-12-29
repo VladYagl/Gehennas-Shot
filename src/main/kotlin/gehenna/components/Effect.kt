@@ -10,10 +10,11 @@ abstract class Effect : WaitTime() {
 }
 
 data class RunAndGun(
-    override val entity: Entity,
-    private val dir: Pair<Int, Int>,
-    override var duration: Long,
-    override var time: Long = 100
+        override val entity: Entity,
+        private val dir: Pair<Int, Int>,
+        private val gun: Gun,
+        override var duration: Long,
+        override var time: Long = 100
 ) : Effect() {
-    override val action: Action = Shoot(entity, dir)
+    override val action: Action = Shoot(entity, dir, gun)
 }

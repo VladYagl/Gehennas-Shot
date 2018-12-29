@@ -2,82 +2,121 @@ package gehenna
 
 import com.beust.klaxon.JsonReader
 import gehenna.components.Component
+import gehenna.components.Item
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
 
 
 //FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
-//TODO : MAKE SEPARATE CLASS FOR ENTITIES HASH MAP
+//TODO: Throw proper exceptions of where error happens and why
 class EntityFactory {
-    private val entities = HashMap<String, List<Pair<KFunction<Component>, HashMap<KParameter, Any>>>>()
+    private val entities = HashMap<String, EntityBuilder>()
 
-    fun newEntity(name: String): Entity {
-        val list = entities[name]
-        val entity = Entity(name)
-        list!!.forEach { (constructor, args) ->
+    private val reflections = Reflections(
+            ConfigurationBuilder()
+                    .addUrls(ClasspathHelper.forJavaClassPath())
+                    .setScanners(SubTypesScanner())
+    )
+    //TODO : TRY THIS
+    //val reflections = Reflections("gehenna")
+    private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
+    private val projection = KTypeProjection.invariant(Item::class.createType())
+    private val itemListType = ArrayList::class.createType(listOf(projection))
+
+    private inner class ComponentBuilder(private val constructor: KFunction<Component>, private val args: HashMap<KParameter, Any>) {
+        fun build(entity: Entity): Component {
             args[constructor.parameters[0]] = entity
-            val component = constructor.callBy(args)
-            entity.add(component)
+            return constructor.callBy(
+                    args.mapValues { (parameter, value) ->
+                        if (parameter.type == itemListType) {
+                            @Suppress("UNCHECKED_CAST")
+                            (value as List<String>).map {
+                                newEntity(it)[Item::class] ?: throw Exception("$it is not an Item")
+                            }
+                        } else {
+                            value
+                        }
+                    }
+            )
         }
-        return entity
+    }
+
+    private inner class EntityBuilder(private val components: List<ComponentBuilder>) {
+        fun build(name: String): Entity {
+            val entity = Entity(name)
+            components.forEach { builder ->
+                entity.add(builder.build(entity))
+            }
+            return entity
+        }
+    }
+
+    private fun JsonReader.nextComponent(): ComponentBuilder {
+        val componentName = nextName()
+        val clazz = components.firstOrNull {
+            it.simpleName?.toLowerCase() == componentName.toLowerCase()
+        } ?: throw Exception("In entities.json: contains unknown component [$componentName]")
+        val constructor = clazz.primaryConstructor!!
+        val args = HashMap<KParameter, Any>()
+        beginObject {
+            while (hasNext()) {
+                val argName = nextName()
+                val parameter = constructor.parameters.first {
+                    it.name == argName
+                }
+                val value: Any = when (parameter.type) {
+                    Boolean::class.createType() -> nextBoolean()
+                    Double::class.createType() -> nextDouble()
+                    Int::class.createType() -> nextInt()
+                    String::class.createType() -> nextString()
+                    Char::class.createType() -> nextInt().toChar()
+                    itemListType -> {
+                        val list = ArrayList<String>()
+                        beginArray {
+                            while (hasNext()) {
+                                list.add(nextString())
+                            }
+                        }
+                        list
+                    }
+                    else -> throw Exception("Unkown type: " + parameter.type)
+                }
+                args[parameter] = value
+            }
+        }
+        return ComponentBuilder(constructor, args)
+    }
+
+    private fun JsonReader.nextEntity(): EntityBuilder {
+        val list = ArrayList<ComponentBuilder>()
+        beginObject {
+            while (hasNext()) {
+                list.add(nextComponent())
+            }
+        }
+        return EntityBuilder(list)
     }
 
     init {
-        val reflections = Reflections(
-            ConfigurationBuilder()
-                .addUrls(ClasspathHelper.forJavaClassPath())
-                .setScanners(SubTypesScanner())
-        )
-        //TODO : TRY THIS
-//        val reflections = Reflections("gehenna")
-        val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
-
         val stream = (Thread::currentThread)().contextClassLoader.getResourceAsStream("entities.json")
-        //TODO: Throw proper exceptions of where error happens and why
-        //TODO: WTF REFACTOR THIS SHIT | SPLIT ON CLASSES | EXCEPTIONS | TESTS | JUST DO IT
         JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
                 while (reader.hasNext()) {
                     val name = reader.nextName()
-                    val list = ArrayList<Pair<KFunction<Component>, HashMap<KParameter, Any>>>()
-                    reader.beginObject {
-                        while (reader.hasNext()) {
-                            val componentName = reader.nextName()
-                            val clazz = components.firstOrNull {
-                                it.simpleName?.toLowerCase() == componentName.toLowerCase()
-                            }
-                                ?: throw Exception("In entities.json: gehenna.Entity [$name] contains unknown component [$componentName]")
-                            val constructor = clazz.primaryConstructor!!
-                            val args = HashMap<KParameter, Any>()
-                            reader.beginObject {
-                                while (reader.hasNext()) {
-                                    val argName = reader.nextName()
-                                    val parameter = constructor.parameters.first {
-                                        it.name == argName
-                                    }
-                                    val value: Any = when (parameter.type) {
-                                        Boolean::class.createType() -> reader.nextBoolean()
-                                        Double::class.createType() -> reader.nextDouble()
-                                        Int::class.createType() -> reader.nextInt()
-                                        String::class.createType() -> reader.nextString()
-                                        Char::class.createType() -> reader.nextInt().toChar()
-                                        else -> throw Exception("Unkown type: " + parameter.type)
-                                    }
-                                    args[parameter] = value
-                                }
-                            }
-                            list.add(constructor to args)
-                        }
-                    }
-                    entities[name] = list
+                    entities[name] = reader.nextEntity()
                 }
             }
         }
+    }
+
+    fun newEntity(name: String): Entity {
+        return entities[name]!!.build(name)
     }
 }

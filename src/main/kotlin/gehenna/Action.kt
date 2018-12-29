@@ -9,6 +9,8 @@ abstract class Action {
     abstract fun perform(): ActionResult
 
     protected fun end(): ActionResult = ActionResult(time, true)
+
+    protected fun fail(): ActionResult = ActionResult(0, false)
 }
 
 data class Think(override val time: Long = 0) : Action() {
@@ -16,9 +18,9 @@ data class Think(override val time: Long = 0) : Action() {
 }
 
 data class Move(
-    private val entity: Entity,
-    val dir: Pair<Int, Int>,
-    override val time: Long = 100
+        private val entity: Entity,
+        val dir: Pair<Int, Int>,
+        override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
         val (x, y) = dir
@@ -29,7 +31,7 @@ data class Move(
             val newx = pos.x + x
             val newy = pos.y + y
             if (pos.level.isBlocked(newx, newy)) {
-                ActionResult(0, false)
+                fail()
             } else {
                 pos.move(newx, newy)
                 end()
@@ -39,13 +41,14 @@ data class Move(
 }
 
 data class Shoot(
-    private val entity: Entity,
-    private val dir: Pair<Int, Int>,
-    override val time: Long = 100
+        private val entity: Entity,
+        private val dir: Pair<Int, Int>,
+        private val gun: Gun,
+        override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
         val pos = entity[Position::class]!!
-        val bullet = pos.level.factory.newEntity("bullet")
+        val bullet = pos.level.factory.newEntity(gun.bullet)
         pos.level.spawn(bullet, pos.x, pos.y)
         bullet.add(BulletBehaviour(bullet, dir))
         return end()
@@ -54,7 +57,6 @@ data class Shoot(
 
 data class Destroy(private val entity: Entity, override val time: Long = 0) : Action() {
     override fun perform(): ActionResult {
-//        entity[gehenna.Position::class]?.level?.remove(entity)
         entity.clean()
         return end()
     }
@@ -62,13 +64,12 @@ data class Destroy(private val entity: Entity, override val time: Long = 0) : Ac
 
 //TODO: Maybe components should handle this logic
 data class Collide(
-    private val entity: Entity,
-    private val victim: Entity,
-    private val damage: Int,
-    override val time: Long = 100
+        private val entity: Entity,
+        private val victim: Entity,
+        private val damage: Int,
+        override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
-//        entity[gehenna.Position::class]?.level?.remove(entity)
         val health = victim[Health::class]
         victim[Logger::class]?.add("You were hit by ${entity.name} for $damage damage")
         health?.dealDamage(damage)
@@ -78,9 +79,9 @@ data class Collide(
 }
 
 data class ApplyEffect(
-    private val entity: Entity,
-    private val effect: Effect,
-    override val time: Long = 100
+        private val entity: Entity,
+        private val effect: Effect,
+        override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
         entity[Logger::class]?.add("Your start ${effect::class.simpleName}")
@@ -93,8 +94,7 @@ data class ApplyEffect(
 data class ClimbStairs(private val entity: Entity, override val time: Long = 100) : Action() {
     override fun perform(): ActionResult {
         val pos = entity[Position::class]!!
-        val stairs = pos.neighbors.firstOrNull { it.has(Stairs::class) }?.get(Stairs::class)
-            ?: return ActionResult(0, false)
+        val stairs = pos.neighbors.firstOrNull { it.has(Stairs::class) }?.get(Stairs::class) ?: return fail()
         if (stairs.pos == null) {
             val depth = if (pos.level is DungeonLevel) pos.level.depth + 1 else -1
             val level = DungeonLevel(5 * 8, 6 * 8, pos.level.factory, depth)

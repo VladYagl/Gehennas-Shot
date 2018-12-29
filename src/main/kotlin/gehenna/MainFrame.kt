@@ -7,19 +7,21 @@ import gehenna.utils.*
 import java.awt.*
 import java.awt.event.KeyEvent
 import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.JFrame
 import javax.swing.JLayeredPane
-import java.io.StringWriter
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
     //        private val font = AsciiFont.TAFFER_10x10
-    private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
+    //TODO: FONT settings in json
+//    private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
+    private val font = AsciiFont("Nice_curses_12x12.png", 12, 12)
     private val trueDarkGray = Color(32, 32, 32)
 
-    private val world: AsciiPanel = AsciiPanel(11 * 8, 8 * 8, font)
-    private val info: AsciiPanel = AsciiPanel(5 * 8, 9 * 8, font)
-    private val log: AsciiPanel = AsciiPanel(11 * 8, 1 * 8, font)
+    private val world: AsciiPanel = AsciiPanel(11 * 6, 7 * 6, font)
+    private val info: AsciiPanel = AsciiPanel(5 * 6, 8 * 6, font)
+    private val log: AsciiPanel = AsciiPanel(11 * 6, 1 * 6, font)
 
     private val factory = EntityFactory()
     private val game = Game(factory)
@@ -205,14 +207,16 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private fun updateInfo() {
         val glyph = game.player[Glyph::class]!!
         val pos = game.player[Position::class]!!
+        val storage = game.player[Inventory::class]!!
         info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
         info.write("Player pos = ${pos.x}, ${pos.y}", 0, 2)
         info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
         info.clear(' ', 0, 5, info.widthInCharacters, 4)
         info.writeText("Effects = " + game.player.all(Effect::class), 0, 5)
+        info.writeText("Inventory = " + storage.all(), 0, 8)
 
         if (pos.level is DungeonLevel) {
-            info.writeText("Level: " + pos.level.depth, 0, 6)
+            info.writeText("Level: " + pos.level.depth, 0, 19)
         }
     }
 

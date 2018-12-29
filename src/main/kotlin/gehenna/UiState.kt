@@ -1,7 +1,6 @@
 package gehenna
 
-import gehenna.components.RunAndGun
-import gehenna.components.ThinkUntilSet
+import gehenna.components.*
 
 sealed class UiState(val game: Game) {
     fun getDir(char: Char): Pair<Int, Int>? {
@@ -32,7 +31,15 @@ sealed class UiState(val game: Game) {
                 action(Move(game.player, dir))
             }
             return when (char) {
-                'f' -> Aim(game)
+                'f' -> {
+                    val inventory = game.player[Inventory::class]!!
+                    val gun = inventory.all().mapNotNull { it.entity[Gun::class] }.firstOrNull()
+                    if (gun == null) {
+                        game.player[Logger::class]!!.add("You don't have any guns!")
+                        return Normal(game)
+                    }
+                    Aim(game, gun)
+                }
                 '>', '<' -> {
                     action(ClimbStairs(game.player))
                     this
@@ -42,11 +49,11 @@ sealed class UiState(val game: Game) {
         }
     }
 
-    class Aim(game: Game) : UiState(game) {
+    class Aim(game: Game, private val gun: Gun) : UiState(game) {
         override fun handleChar(char: Char): UiState {
             val dir = getDir(char)
             if (dir != null) {
-                action(ApplyEffect(game.player, RunAndGun(game.player, dir, 500, time = 10)))
+                action(ApplyEffect(game.player, RunAndGun(game.player, dir, gun, 500, time = 10)))
                 return Normal(game)
             }
             return this

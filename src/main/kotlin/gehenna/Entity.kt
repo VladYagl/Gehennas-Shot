@@ -44,7 +44,7 @@ data class Entity(val name: String = "gehenna.Entity", val id: String = UUID.ran
     }
 
     override fun toString(): String {
-        return "gehenna.Entity($name)"
+        return name
     }
 }
 

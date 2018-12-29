@@ -5,7 +5,10 @@ import asciiPanel.AsciiPanel
 import gehenna.components.*
 import gehenna.utils.*
 import java.awt.*
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.KeyEvent
+import java.io.InputStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.JFrame
@@ -15,11 +18,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     //        private val font = AsciiFont.TAFFER_10x10
     //TODO: FONT settings in json
-//    private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
-    private val font = AsciiFont("Dullard_Exponent_12x12.png", 12, 12)
+    private val worldFont = AsciiFont("tilesets/Bisasam_16x16.png", 16, 16)
+    private val font = AsciiFont("tilesets/Dullard_Exponent_12x12.png", 12, 12)
     private val trueDarkGray = Color(32, 32, 32)
 
-    private val world: AsciiPanel = AsciiPanel(11 * 6, 7 * 6, font)
+    private val world: AsciiPanel = AsciiPanel(8 * 6 + 1, 5 * 6 + 1, worldFont)
     private val info: AsciiPanel = AsciiPanel(5 * 6, 8 * 6, font)
     private val log: AsciiPanel = AsciiPanel(11 * 6, 1 * 6, font)
 
@@ -36,13 +39,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         isResizable = false
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
 
-        add(mainPane)
-        mainPane.layout = null
-
-        mainPane.add(log)
-        mainPane.add(world)
-        mainPane.add(info)
-
         log.size = log.preferredSize
         world.size = world.preferredSize
         info.size = info.preferredSize
@@ -51,6 +47,12 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         world.location = Point(0, log.height + 1)
         info.location = Point(log.width + 1, 0)
 
+        add(mainPane)
+        mainPane.layout = null
+        mainPane.add(log)
+        mainPane.add(world)
+        mainPane.add(info)
+
         world.defaultBackgroundColor = trueDarkGray
         info.defaultBackgroundColor = trueDarkGray
         log.defaultBackgroundColor = trueDarkGray
@@ -58,16 +60,26 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         world.clear()
         info.clear()
         log.clear()
-        world.repaint()
-        info.repaint()
-        log.repaint()
 
         mainPane.size = Dimension(log.width + info.width, info.height + 39)
         size = mainPane.preferredSize
 
+        factory.loadJson(streamResource("data/entities.json"))
+        factory.loadJson(streamResource("data/items.json"))
+        game.init()
+
         game.player[Logger::class]?.add("Welcome to Gehenna's Shot")
         game.player[Logger::class]?.add("   Suffer bitch,   love you " + 3.toChar())
-        Thread { mainLoop() }.start()
+        addComponentListener(object : ComponentAdapter() {
+            override fun componentShown(e: ComponentEvent?) {
+                Thread { mainLoop() }.start()
+            }
+        })
+
+    }
+
+    private fun streamResource(name: String): InputStream {
+        return (Thread::currentThread)().contextClassLoader.getResourceAsStream(name)!!
     }
 
     private fun printException(e: Throwable) {
@@ -107,10 +119,18 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         return camera.x <= x && camera.y <= y && camera.x + world.widthInCharacters > x && camera.y + world.heightInCharacters > y
     }
 
+    private fun viewPoint(x: Int, y: Int): Pair<Int, Int> {
+        return (x to y) - camera
+    }
+
+    private fun levelPos(x: Int, y: Int): Pair<Int, Int> {
+        return (x to y) + camera
+    }
+
     private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
     private fun writeGlyph(glyph: Glyph, x: Int, y: Int, color: Color = world.defaultForegroundColor) {
         if (inView(x, y)) {
-            val p = (x to y) - camera
+            val p = viewPoint(x, y)
             if (glyph.priority > priority[p.x, p.y]) {
                 world.write(glyph.char, p.x, p.y, color)
                 priority[p.x, p.y] = glyph.priority
@@ -134,7 +154,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                     info.write("Repaint count = " + count++, 0, 0)
                     if (needRepaint) {
                         update()
-                        needRepaint = false
                     }
                 }
             }
@@ -153,6 +172,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         world.paintImmediately(0, 0, world.width, world.height)
         info.paintImmediately(0, 0, info.width, info.height)
         log.paintImmediately(0, 0, log.width, log.height)
+        needRepaint = false
     }
 
     private fun updateLog() {
@@ -194,9 +214,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
         for (x in 0 until world.widthInCharacters) {
             for (y in 0 until world.heightInCharacters) {
-                if (priority[x, y] == -2 && x < level.width && y < level.height) {
-                    level.memory(x, y)?.let {
-                        writeGlyph(it, x, y, Color(96, 32, 32))
+                val pos = levelPos(x, y)
+                if (priority[x, y] == -2 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
+                    level.memory(pos.x, pos.y)?.let {
+                        writeGlyph(it, pos.x, pos.y, Color(96, 32, 32))
                     }
                 }
             }

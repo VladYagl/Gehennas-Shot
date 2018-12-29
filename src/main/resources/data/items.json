@@ -1,0 +1,31 @@
+{
+    "teddyBear": {
+        "item": {
+            "volume": 10
+        },
+        "glyph": {
+            "char": 234
+        }
+    },
+
+    "Death Grips - The Money Store": {
+        "item": {
+            "volume": 3
+        },
+        "glyph": {
+            "char": 9
+        }
+    },
+
+    "gun": {
+        "gun": {
+            "bullet": "bullet"
+        },
+        "item": {
+            "volume": 50
+        },
+        "glyph": {
+            "char": 41
+        }
+    }
+}

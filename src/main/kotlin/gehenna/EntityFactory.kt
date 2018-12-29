@@ -7,6 +7,7 @@ import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
+import java.io.InputStream
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KTypeProjection
@@ -58,12 +59,22 @@ class EntityFactory {
         }
     }
 
+    private fun JsonReader.nextStringList(): List<String> {
+        val list = ArrayList<String>()
+        beginArray {
+            while (hasNext()) {
+                list.add(nextString())
+            }
+        }
+        return list
+    }
+
     private fun JsonReader.nextComponent(): ComponentBuilder {
         val componentName = nextName()
         val clazz = components.firstOrNull {
             it.simpleName?.toLowerCase() == componentName.toLowerCase()
         } ?: throw Exception("In entities.json: contains unknown component [$componentName]")
-        val constructor = clazz.primaryConstructor!!
+        val constructor = clazz.primaryConstructor ?: throw Exception("class $clazz don't have suitable constructor")
         val args = HashMap<KParameter, Any>()
         beginObject {
             while (hasNext()) {
@@ -77,15 +88,7 @@ class EntityFactory {
                     Int::class.createType() -> nextInt()
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
-                    itemListType -> {
-                        val list = ArrayList<String>()
-                        beginArray {
-                            while (hasNext()) {
-                                list.add(nextString())
-                            }
-                        }
-                        list
-                    }
+                    itemListType -> nextStringList()
                     else -> throw Exception("Unkown type: " + parameter.type)
                 }
                 args[parameter] = value
@@ -104,8 +107,7 @@ class EntityFactory {
         return EntityBuilder(list)
     }
 
-    init {
-        val stream = (Thread::currentThread)().contextClassLoader.getResourceAsStream("entities.json")
+    fun loadJson(stream: InputStream) {
         JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
                 while (reader.hasNext()) {
@@ -117,6 +119,6 @@ class EntityFactory {
     }
 
     fun newEntity(name: String): Entity {
-        return entities[name]!!.build(name)
+        return entities[name]?.build(name) ?: throw Exception("no such entity: $name")
     }
 }

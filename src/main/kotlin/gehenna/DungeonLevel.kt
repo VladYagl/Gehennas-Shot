@@ -2,7 +2,9 @@ package gehenna
 
 import gehenna.components.Floor
 import gehenna.components.Obstacle
-import gehenna.utils.*
+import gehenna.utils.get
+import gehenna.utils.x
+import gehenna.utils.y
 import kotlin.random.Random
 
 class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0) :
@@ -49,5 +51,8 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
         )
 
 //        spawn(factory.newEntity("stairs"), 2, 2)
+
+        spawn(factory.newEntity("teddyBear"), 1, 1)
+        spawn(factory.newEntity("gun"), 1, 1)
     }
 }

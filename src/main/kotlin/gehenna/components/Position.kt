@@ -24,7 +24,7 @@ data class Position(
         level.move(entity, x, y)
     }
 
-    val neighbors: HashSet<Entity> get() = level[x, y]
+    val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
 
     override fun onRemove() {
         level.remove(this)

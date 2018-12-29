@@ -18,7 +18,9 @@
         },
         "inventory": {
             "maxVolume": 200,
-            "items": ["teddyBear", "gun"]
+            "items": [
+                "Death Grips - The Money Store"
+            ]
         },
         "thinkUntilSet": {},
         "logger": {}
@@ -45,7 +47,7 @@
 
     "bullet": {
         "glyph": {
-            "char": 167,
+            "char": 7,
             "priority": 80,
             "memorable": false
         },
@@ -84,6 +86,18 @@
     "teddyBear": {
         "item": {
             "volume": 10
+        },
+        "glyph": {
+            "char": 14
+        }
+    },
+
+    "Death Grips - The Money Store": {
+        "item": {
+            "volume": 3
+        },
+        "glyph": {
+            "char": 9
         }
     },
 
@@ -93,6 +107,9 @@
         },
         "item": {
             "volume": 50
+        },
+        "glyph": {
+            "char": 41
         }
     }
 }

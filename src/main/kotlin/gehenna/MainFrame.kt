@@ -16,7 +16,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     //        private val font = AsciiFont.TAFFER_10x10
     //TODO: FONT settings in json
 //    private val font = AsciiFont("Bisasam_16x16.png", 16, 16)
-    private val font = AsciiFont("Nice_curses_12x12.png", 12, 12)
+    private val font = AsciiFont("Dullard_Exponent_12x12.png", 12, 12)
     private val trueDarkGray = Color(32, 32, 32)
 
     private val world: AsciiPanel = AsciiPanel(11 * 6, 7 * 6, font)
@@ -150,7 +150,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         predict()
         updateInfo()
 
-        info.write("In game time: " + game.gameTime, 0, 12)
         world.paintImmediately(0, 0, world.width, world.height)
         info.paintImmediately(0, 0, info.width, info.height)
         log.paintImmediately(0, 0, log.width, log.height)
@@ -205,18 +204,28 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     }
 
     private fun updateInfo() {
+        info.clear(' ', 0, 1, info.widthInCharacters, 19)
+        info.write("In game time: " + game.gameTime, 0, 1)
         val glyph = game.player[Glyph::class]!!
         val pos = game.player[Position::class]!!
         val storage = game.player[Inventory::class]!!
-        info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 1)
-        info.write("Player pos = ${pos.x}, ${pos.y}", 0, 2)
+        info.write("Player glyph = ${glyph.char}|${glyph.priority}", 0, 2)
+        info.write("Player pos = ${pos.x}, ${pos.y}", 0, 3)
         info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
-        info.clear(' ', 0, 5, info.widthInCharacters, 4)
         info.writeText("Effects = " + game.player.all(Effect::class), 0, 5)
-        info.writeText("Inventory = " + storage.all(), 0, 8)
+        info.writeCenter("Inventory", 8, Color.white, Color.darkGray)
+        storage.all().forEachIndexed { index, item ->
+            info.write(item.entity.toString(), 0, 9 + index)
+        }
 
         if (pos.level is DungeonLevel) {
             info.writeText("Level: " + pos.level.depth, 0, 19)
+        }
+
+        info.clear(' ', 0, 30, info.widthInCharacters, info.heightInCharacters - 30)
+        info.writeCenter("Objects", 30, Color.white, Color.darkGray)
+        pos.neighbors.forEachIndexed { index, entity ->
+            info.writeText(entity.toString(), 0, 31 + index)
         }
     }
 
@@ -262,8 +271,8 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         mainPane.moveToFront(message)
         message.size = message.preferredSize
         message.location = Point(
-            (mainPane.width - message.width) / 2,
-            (mainPane.height - message.height) / 2
+                (mainPane.width - message.width) / 2,
+                (mainPane.height - message.height) / 2
         )
         message.defaultBackgroundColor = trueDarkGray
         message.clear()

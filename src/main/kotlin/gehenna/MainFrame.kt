@@ -11,20 +11,28 @@ import java.awt.event.KeyEvent
 import java.io.InputStream
 import java.io.PrintWriter
 import java.io.StringWriter
+import javax.swing.BoxLayout
 import javax.swing.JFrame
 import javax.swing.JLayeredPane
+import javax.swing.JSeparator
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
-    //        private val font = AsciiFont.TAFFER_10x10
     //TODO: FONT settings in json
     private val worldFont = AsciiFont("tilesets/Bisasam_16x16.png", 16, 16)
-    private val font = AsciiFont("tilesets/Dullard_Exponent_12x12.png", 12, 12)
+    //    private val font = AsciiFont.CP437_12x12
+    private val font = AsciiFont("tilesets/Curses_640x300diag.png", 8, 12)
     private val trueDarkGray = Color(32, 32, 32)
 
-    private val world: AsciiPanel = AsciiPanel(8 * 6 + 1, 5 * 6 + 1, worldFont)
-    private val info: AsciiPanel = AsciiPanel(5 * 6, 8 * 6, font)
-    private val log: AsciiPanel = AsciiPanel(11 * 6, 1 * 6, font)
+//    private val world: AsciiPanel = AsciiPanel(1, 1, worldFont)
+//    private val info: AsciiPanel = AsciiPanel(5 * 6, 8 * 6, font)
+//    private val log: AsciiPanel = AsciiPanel(11 * 6, 1 * 6, font)
+
+    private lateinit var world: AsciiPanel
+    private lateinit var info: AsciiPanel
+    private lateinit var log: AsciiPanel
+    private val logHeight = 8
+    private val infoWidth = 30
 
     private val factory = EntityFactory()
     private val game = Game(factory)
@@ -34,29 +42,37 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private var camera = 0 to 0
 
+    private fun preparePanels() {
+        val logWidth = width - infoWidth * font.width
+        val worldHeight = height - logHeight * font.height
+        log = AsciiPanel(logWidth / font.width, logHeight, font)
+        info = AsciiPanel(infoWidth, height / font.height, font)
+        world = AsciiPanel(logWidth / worldFont.width, worldHeight / worldFont.height, worldFont)
+
+        add(mainPane)
+        val smallPane = JLayeredPane()
+        smallPane.layout = BoxLayout(smallPane, BoxLayout.PAGE_AXIS)
+        mainPane.layout = BoxLayout(mainPane, BoxLayout.LINE_AXIS)
+        mainPane.add(smallPane)
+        smallPane.add(log)
+        smallPane.add(JSeparator())
+        smallPane.add(world)
+        mainPane.add(JSeparator(JSeparator.VERTICAL))
+        mainPane.add(info)
+    }
+
     init {
         title = "Gehenna's Shot"
         isResizable = false
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
 
-        log.size = log.preferredSize
-        world.size = world.preferredSize
-        info.size = info.preferredSize
-
-        log.location = Point(0, 0)
-        world.location = Point(0, log.height + 1)
-        info.location = Point(log.width + 1, 0)
-
-        add(mainPane)
-        mainPane.layout = null
-        mainPane.add(log)
-        mainPane.add(world)
-        mainPane.add(info)
+        size = Dimension(1200, 600)
+        preparePanels()
 
         world.defaultBackgroundColor = trueDarkGray
         info.defaultBackgroundColor = trueDarkGray
         log.defaultBackgroundColor = trueDarkGray
-
+        contentPane.background = trueDarkGray
         world.clear()
         info.clear()
         log.clear()
@@ -75,7 +91,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 Thread { mainLoop() }.start()
             }
         })
-
     }
 
     private fun streamResource(name: String): InputStream {
@@ -142,6 +157,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private fun mainLoop() {
         try {
             var count = 0
+            var repaintCount = 0
             while (true) {
                 if (this.isValid) {
                     game.update()
@@ -151,8 +167,9 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                         return
                     }
 
-                    info.write("Repaint count = " + count++, 0, 0)
+                    count++
                     if (needRepaint) {
+                        info.write("Repaint = ${repaintCount++} loop = $count", 0, 0)
                         update()
                     }
                 }
@@ -274,10 +291,9 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                         fakeEntity.remove(fakePos)
                         fakePos = Position(fakeEntity, x, y, fakePos.level)
                         fakeEntity.add(fakePos)
-                        if (glyph.priority > priority[x, y] && realPos.level.isVisible(x, y)) {
+                        if (realPos.level.isVisible(x, y)) {
                             color *= 0.85
                             writeGlyph(glyph, x, y, color)
-                            priority[x, y] = glyph.priority
                         }
                     }
                     time += action.time * 100 / speed // FIXME : COPYPASTA!!!

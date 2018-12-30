@@ -7,8 +7,7 @@ import gehenna.utils.x
 import gehenna.utils.y
 import kotlin.random.Random
 
-class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0) :
-    Level(width, height, factory) {
+class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0) : Level(width, height, factory) {
 
     private fun wall(x: Int, y: Int) {
         spawn(factory.newEntity("wall"), x, y)
@@ -45,14 +44,18 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
 //            room.y + 1 + Random.nextInt(size.y - 3)
 //        )
         spawn(
-            factory.newEntity("stairs"),
-            room.x + 1 + Random.nextInt(size.x - 3),
-            room.y + 1 + Random.nextInt(size.y - 3)
+                factory.newEntity("stairs"),
+                room.x + 1 + Random.nextInt(size.x - 3),
+                room.y + 1 + Random.nextInt(size.y - 3)
         )
 
 //        spawn(factory.newEntity("stairs"), 2, 2)
 
-        spawn(factory.newEntity("teddyBear"), 1, 1)
+        spawn(factory.newEntity("teddy bear"), 1, 1)
         spawn(factory.newEntity("gun"), 1, 1)
+    }
+
+    override fun toString(): String {
+        return "dungeon level #$depth"
     }
 }

@@ -1,7 +1,8 @@
-package gehenna
+package gehenna.ui
 
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
+import gehenna.*
 import gehenna.components.*
 import gehenna.utils.*
 import java.awt.*
@@ -24,10 +25,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     private val font = AsciiFont("tilesets/Curses_640x300diag.png", 8, 12)
     private val trueDarkGray = Color(32, 32, 32)
 
-//    private val world: AsciiPanel = AsciiPanel(1, 1, worldFont)
-//    private val info: AsciiPanel = AsciiPanel(5 * 6, 8 * 6, font)
-//    private val log: AsciiPanel = AsciiPanel(11 * 6, 1 * 6, font)
-
+    private val mainPane = JLayeredPane()
     private lateinit var world: AsciiPanel
     private lateinit var info: AsciiPanel
     private lateinit var log: AsciiPanel
@@ -36,34 +34,38 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private val factory = EntityFactory()
     private val game = Game(factory)
+    private var needRepaint = true
     private var stop = false
 
-    private val mainPane = JLayeredPane()
-
-    private var camera = 0 to 0
-
     private fun preparePanels() {
-        val logWidth = width - infoWidth * font.width
-        val worldHeight = height - logHeight * font.height
+        val logWidth = width - (infoWidth + 1) * font.width
+        val worldHeight = height - (logHeight + 1) * font.height
         log = AsciiPanel(logWidth / font.width, logHeight, font)
         info = AsciiPanel(infoWidth, height / font.height, font)
         world = AsciiPanel(logWidth / worldFont.width, worldHeight / worldFont.height, worldFont)
 
         add(mainPane)
-        val smallPane = JLayeredPane()
-        smallPane.layout = BoxLayout(smallPane, BoxLayout.PAGE_AXIS)
-        mainPane.layout = BoxLayout(mainPane, BoxLayout.LINE_AXIS)
-        mainPane.add(smallPane)
-        smallPane.add(log)
-        smallPane.add(JSeparator())
-        smallPane.add(world)
-        mainPane.add(JSeparator(JSeparator.VERTICAL))
-        mainPane.add(info)
+        mainPane.layout = null
+        val verticalPane = JLayeredPane()
+        val horizontalPane = JLayeredPane()
+        verticalPane.layout = BoxLayout(verticalPane, BoxLayout.PAGE_AXIS)
+        horizontalPane.layout = BoxLayout(horizontalPane, BoxLayout.LINE_AXIS)
+        horizontalPane.add(verticalPane)
+        verticalPane.add(log)
+        verticalPane.add(JSeparator())
+        verticalPane.add(world)
+        horizontalPane.add(JSeparator(JSeparator.VERTICAL))
+        horizontalPane.add(info)
+        horizontalPane.size = horizontalPane.preferredSize
+        horizontalPane.location = Point(0, 0)
+        mainPane.add(horizontalPane)
+        mainPane.preferredSize = horizontalPane.preferredSize
+        pack()
     }
 
     init {
         title = "Gehenna's Shot"
-        isResizable = false
+//        isResizable = false
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
 
         size = Dimension(1200, 600)
@@ -76,9 +78,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         world.clear()
         info.clear()
         log.clear()
-
-        mainPane.size = Dimension(log.width + info.width, info.height + 39)
-        size = mainPane.preferredSize
 
         factory.loadJson(streamResource("data/entities.json"))
         factory.loadJson(streamResource("data/items.json"))
@@ -102,7 +101,6 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         e.printStackTrace(PrintWriter(errors))
         info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
         info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
-        stop = true
     }
 
     private fun AsciiPanel.clearLine(y: Int) {
@@ -159,19 +157,17 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             var count = 0
             var repaintCount = 0
             while (true) {
-                if (this.isValid) {
-                    game.update()
+                game.update()
 
-                    if (!game.player.has(Position::class)) {
-                        endGame()
-                        return
-                    }
+                if (!game.player.has(Position::class)) {
+                    endGame()
+                    return
+                }
 
-                    count++
-                    if (needRepaint) {
-                        info.write("Repaint = ${repaintCount++} loop = $count", 0, 0)
-                        update()
-                    }
+                count++
+                if (needRepaint) {
+                    info.write("Repaint = ${repaintCount++} loop = $count", 0, 0)
+                    update()
                 }
             }
         } catch (e: Throwable) {
@@ -186,9 +182,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         predict()
         updateInfo()
 
-        world.paintImmediately(0, 0, world.width, world.height)
-        info.paintImmediately(0, 0, info.width, info.height)
-        log.paintImmediately(0, 0, log.width, log.height)
+        world.repaint()
+        info.repaint()
+        log.repaint()
+        mainPane.repaint()
         needRepaint = false
     }
 
@@ -200,6 +197,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         }
     }
 
+    private var camera = 0 to 0
     private val cameraBound = world.widthInCharacters / 2 - 5 to world.heightInCharacters / 2 - 5
     private fun moveCamera(playerPos: Pair<Int, Int>) {
         var x = camera.x
@@ -265,6 +263,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         pos.neighbors.forEachIndexed { index, entity ->
             info.writeText(entity.toString(), 0, 31 + index)
         }
+        info.writeText("Window size: ${size.width}x${size.height}", 0, 40)
+        info.writeText("world size: ${world.width}x${world.height}", 0, 41)
+        info.writeText("info size: ${info.width}x${info.height}", 0, 42)
+        info.writeText("log size: ${log.width}x${log.height}", 0, 43)
     }
 
     private fun predict() {
@@ -303,6 +305,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     }
 
     private fun endGame() {
+        //TODO: move it inside manager???
         val message = AsciiPanel(2 * 8, 1 * 8, font)
         mainPane.add(message)
         mainPane.moveToFront(message)
@@ -320,29 +323,38 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 }
             }
         }
-        state = UiState.End(game)
+        state = End(context)
         message.writeCenter("You are dead", 2)
         message.writeCenter("RIP", 4)
     }
 
-    private var needRepaint = true
-    private var state: UiState = UiState.Normal(game)
+    private val context = UiContext(game, mainPane, font)
+    private var state: UiState = Normal(context)
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
-        needRepaint = true
-        info.writeCenter("Last keys", 20, Color.white, Color.darkGray)
-        when (e.id) {
-            KeyEvent.KEY_TYPED -> {
-                info.writeLine("Last typed: ${e.keyChar}", 21)
-                state = state.handleChar(e.keyChar)
-            }
-            KeyEvent.KEY_PRESSED -> {
-                info.writeLine("Last pressed: ${e.keyCode}", 22)
-                when (e.keyCode) {
-                    KeyEvent.VK_ESCAPE -> System.exit(0)
+        try {
+            needRepaint = true
+            info.writeCenter("Last keys", 20, Color.white, Color.darkGray)
+            when (e.id) {
+                KeyEvent.KEY_TYPED -> {
+                    when (e.keyChar) {
+                        'Q' -> System.exit(0)
+                    }
+                    info.writeLine("Last typed: ${e.keyChar}", 21)
+                    state = state.handleChar(e.keyChar)
+                }
+                KeyEvent.KEY_PRESSED -> {
+                    info.writeLine("Last pressed: ${e.keyCode}", 22)
+                    when (e.keyCode) {
+                        //KeyEvent.VK_ESCAPE -> System.exit(0)
+                    }
+                    state = state.handleKey(e.keyCode)
                 }
             }
+            info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 23)
+        } catch (e: Throwable) {
+            showError(e)
+            printException(e)
         }
-        info.write("Escape code: ${KeyEvent.VK_ESCAPE}", 0, 23)
         return false
     }
 }

@@ -1,10 +1,10 @@
 {
-    "teddyBear": {
+    "teddy bear": {
         "item": {
             "volume": 10
         },
         "glyph": {
-            "char": 234
+            "char": 145
         }
     },
 
@@ -13,7 +13,7 @@
             "volume": 3
         },
         "glyph": {
-            "char": 9
+            "char": 11
         }
     },
 
@@ -25,7 +25,7 @@
             "volume": 50
         },
         "glyph": {
-            "char": 41
+            "char": 243
         }
     }
 }

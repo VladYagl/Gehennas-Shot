@@ -33,6 +33,9 @@ data class Move(
             if (pos.level.isBlocked(newx, newy)) {
                 fail()
             } else {
+                pos.level[newx, newy].firstOrNull { it.has(BulletBehaviour::class) }?.let { bullet ->
+                    entity[Logger::class]?.add("You've perfectly dodged ${bullet.name}")
+                }
                 pos.move(newx, newy)
                 end()
             }
@@ -104,6 +107,7 @@ data class ClimbStairs(private val entity: Entity, override val time: Long = 100
         val destination = stairs.pos!!
         pos.level.remove(entity)
         destination.level.spawn(entity, destination.x, destination.y)
+        entity[Logger::class]?.add("You climbed stairs to " + stairs.pos!!.level)
         return end()
     }
 }

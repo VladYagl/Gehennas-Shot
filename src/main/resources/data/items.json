@@ -17,6 +17,15 @@
         }
     },
 
+    "BROCKHAMPTON - SATURATION II": {
+        "item": {
+            "volume": 3
+        },
+        "glyph": {
+            "char": 11
+        }
+    },
+
     "gun": {
         "gun": {
             "bullet": "bullet"

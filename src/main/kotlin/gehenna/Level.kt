@@ -1,50 +1,38 @@
 package gehenna
 
-import gehenna.components.*
+import gehenna.components.Floor
+import gehenna.components.Glyph
+import gehenna.components.Obstacle
+import gehenna.components.Position
 import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
 import org.xguzm.pathfinding.grid.NavigationGrid
 import org.xguzm.pathfinding.grid.finders.AStarGridFinder
-import rlforj.los.ILosBoard
-import rlforj.los.PrecisePermissive
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
+import rlforj.los.ILosBoard
+import rlforj.los.PrecisePermissive
 
 open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     protected val cells = Array(width, height) { HashSet<Entity>() }
 
     //fov
     private val transparent = DoubleArray(width, height) { 0.0 }
-    private val fov = FovBoard()
+    private val fov = GlyphFov()
     private var memory = Array(width, height) { null as Glyph? }
     private val fovAlgorithm = PrecisePermissive()
 
     //path find
     private val navGrid = NavigationGrid(Array(width, height) { GridCell() }, true)
     private val pathFinderOptions = GridFinderOptions(
-        true,
-        false,
-        ChebyshevDistance(),
-        false,
-        1.0F,
-        1.0F
+            true,
+            false,
+            ChebyshevDistance(),
+            false,
+            1.0F,
+            1.0F
     )
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
-
-    @Deprecated("DEBUG") // TODO!!!
-    fun findPath(x: Int, y: Int): List<Pair<Int, Int>>? {
-        var pos: Position? = null
-        cells.forEach { row ->
-            row.forEach { entities ->
-                entities.forEach {
-                    if (it.name == "player") {
-                        pos = it[Position::class]
-                    }
-                }
-            }
-        }
-        return findPath(x, y, pos!!.x, pos!!.y)
-    }
 
     fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Pair<Int, Int>>? {
         return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
@@ -97,26 +85,29 @@ open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
         return memory[x, y]
     }
 
-    fun visitFOV(x: Int, y: Int, visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }) {
+    fun visitVisibleGlyphs(x: Int, y: Int, visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }) {
         fov.visitor = visitor
         fov.clear()
         fovAlgorithm.visitFieldOfView(fov, x, y, 25)
     }
 
+    fun visitFov(x: Int, y: Int, visitor: (Entity, Int, Int) -> Unit) {
+        //TODO: this should be from entity which can see, not from x,y || something like that
+        fovAlgorithm.visitFieldOfView(EntityFov(visitor), x, y, 25)
+    }
+
     private fun update(x: Int, y: Int) {
         navGrid.setWalkable(x, y,
-            cells[x, y].any { it.has(Floor::class) } &&
-                    cells[x, y].none { it[Obstacle::class]?.blockPath == true })
+                cells[x, y].any { it.has(Floor::class) } &&
+                        cells[x, y].none { it[Obstacle::class]?.blockPath == true })
         transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
     }
 
-    private inner class FovBoard : ILosBoard {
-        private var board = BooleanArray(width, height) { false }
+    private abstract inner class FovBoard : ILosBoard {
+        protected var board = BooleanArray(width, height) { false }
         operator fun get(x: Int, y: Int): Boolean {
             return board[x, y]
         }
-
-        var visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }
 
         override fun contains(x: Int, y: Int): Boolean {
             return (x in 0 until width) && (y in 0 until height)
@@ -124,17 +115,33 @@ open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
 
         override fun isObstacle(x: Int, y: Int): Boolean = transparent[x, y] == 1.0
 
-        override fun visit(x: Int, y: Int) {
+        final override fun visit(x: Int, y: Int) {
             board[x, y] = true
+            visitImpl(x, y)
+        }
+
+        abstract fun visitImpl(x: Int, y: Int)
+
+        fun clear() {
+            board.fill(false)
+        }
+    }
+
+    private inner class GlyphFov : FovBoard() {
+        var visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }
+
+        override fun visitImpl(x: Int, y: Int) {
             val glyph = cells[x, y].maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
             if (glyph != null && glyph.memorable) {
                 memory[x, y] = glyph
             }
             cells[x, y].forEach { it[Glyph::class]?.let { glyph -> visitor(glyph, x, y) } }
         }
+    }
 
-        fun clear() {
-            board.fill(false)
+    private inner class EntityFov(private val visitor: (Entity, Int, Int) -> Unit) : FovBoard() {
+        override fun visitImpl(x: Int, y: Int) {
+            cells[x, y].forEach { visitor(it, x, y) }
         }
     }
 }

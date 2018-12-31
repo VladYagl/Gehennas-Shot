@@ -1,13 +1,8 @@
 package gehenna.components
 
-import gehenna.Action
-import gehenna.ActionResult
-import gehenna.Collide
-import gehenna.Destroy
-import gehenna.Entity
-import gehenna.Move
-import gehenna.Think
-import gehenna.utils.*
+import gehenna.*
+import gehenna.utils.x
+import gehenna.utils.y
 import kotlin.random.Random
 
 abstract class Behaviour : WaitTime() {
@@ -33,26 +28,37 @@ data class RandomBehaviour(override val entity: Entity) : Behaviour() {
 }
 
 data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
+    private var lastTarget: Position? = null
     override val action: Action
         get() {
             if (lastResult?.succeeded == false) {
                 return Move(entity, 0 to 0, 1000)
             }
             val pos = entity[Position::class]!!
-            val next = pos.level.findPath(pos.x, pos.y)?.first()
+            pos.visitFov { entity, x, y ->
+                if (entity.name == "player") {
+                    lastTarget = entity[Position::class]
+                }
+            }
+            val random = Random.Default
+            if (lastTarget == null) return Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
+            if (lastTarget!!.x == pos.x) {
+                if (lastTarget!!.y > pos.y) {
+                    return Shoot(entity, 0 to 1, entity[Inventory::class]!!.all().mapNotNull { it.entity[Gun::class] }.first())
+                }
+            }
+            val next = pos.level.findPath(pos.x, pos.y, lastTarget!!.x, lastTarget!!.y)?.firstOrNull()
             return if (next != null) {
                 Move(entity, next.x - pos.x to next.y - pos.y)
             } else {
-                val random = Random.Default
                 Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
             }
         }
 }
 
-
 //TODO: try some player seeking behaviour
 data class BulletBehaviour(override val entity: Entity, private var dir: Pair<Int, Int>, override var time: Long = 0) :
-    Behaviour() {
+        Behaviour() {
     override val action: Action
         get() {
             if (lastResult?.succeeded == false) {

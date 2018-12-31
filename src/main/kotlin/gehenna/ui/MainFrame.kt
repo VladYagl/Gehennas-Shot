@@ -152,12 +152,15 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     }
 
     /** this shit runs in separate thread! */
+    private var time = 0L
+
     private fun mainLoop() {
         try {
             var count = 0
             var repaintCount = 0
             while (true) {
                 game.update()
+                //needRepaint = needRepaint || game.time > time
 
                 if (!game.player.has(Position::class)) {
                     endGame()
@@ -166,7 +169,8 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
                 count++
                 if (needRepaint) {
-                    info.write("Repaint = ${repaintCount++} loop = $count", 0, 0)
+                    time = game.time
+                    info.write("Paint=${repaintCount++} loop=$count", 0, 0)
                     update()
                 }
             }
@@ -220,12 +224,14 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     }
 
     private fun drawWorld() {
-        world.clear()
+        //TODO: Try drawing whole level and then moving it
+        //TODO: Animations
+//        world.clear()
         priority.forEach { it.fill(-2) }
         val playerPos = game.player[Position::class]!!
         val level = playerPos.level
         moveCamera(playerPos.point)
-        level.visitFOV(playerPos.x, playerPos.y) { glyph, x, y -> writeGlyph(glyph, x, y) }
+        level.visitVisibleGlyphs(playerPos.x, playerPos.y) { glyph, x, y -> writeGlyph(glyph, x, y) }
 
         for (x in 0 until world.widthInCharacters) {
             for (y in 0 until world.heightInCharacters) {
@@ -233,7 +239,9 @@ class MainFrame : JFrame(), KeyEventDispatcher {
                 if (priority[x, y] == -2 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
                     level.memory(pos.x, pos.y)?.let {
                         writeGlyph(it, pos.x, pos.y, Color(96, 32, 32))
-                    }
+                    } ?: writeGlyph(Glyph(game.player, ' ', -1), pos.x, pos.y)
+                } else {
+                    writeGlyph(Glyph(game.player, ' ', -1), pos.x, pos.y)
                 }
             }
         }
@@ -241,7 +249,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private fun updateInfo() {
         info.clear(' ', 0, 1, info.widthInCharacters, 19)
-        info.write("In game time: " + game.gameTime, 0, 1)
+        info.write("In game time: " + game.time, 0, 1)
         val glyph = game.player[Glyph::class]!!
         val pos = game.player[Position::class]!!
         val storage = game.player[Inventory::class]!!

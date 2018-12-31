@@ -34,7 +34,15 @@
         },
         "obstacle": {
             "blockView": false,
-            "blockMove": true
+            "blockMove": true,
+            "blockPath": false
+        },
+        "inventory": {
+            "maxVolume": 200,
+            "items": [
+                "gun",
+                "BROCKHAMPTON - SATURATION II"
+            ]
         },
         "stats": {
             "speed": 100

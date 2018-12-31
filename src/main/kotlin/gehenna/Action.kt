@@ -53,7 +53,7 @@ data class Shoot(
         val pos = entity[Position::class]!!
         val bullet = pos.level.factory.newEntity(gun.bullet)
         pos.level.spawn(bullet, pos.x, pos.y)
-        bullet.add(BulletBehaviour(bullet, dir))
+        bullet.add(BulletBehaviour(bullet, dir, 95))
         return end()
     }
 }
@@ -107,7 +107,7 @@ data class ClimbStairs(private val entity: Entity, override val time: Long = 100
         val destination = stairs.pos!!
         pos.level.remove(entity)
         destination.level.spawn(entity, destination.x, destination.y)
-        entity[Logger::class]?.add("You climbed stairs to " + stairs.pos!!.level)
+        entity[Logger::class]?.add("You've climbed stairs to " + stairs.pos!!.level)
         return end()
     }
 }

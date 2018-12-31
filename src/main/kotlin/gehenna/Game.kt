@@ -5,7 +5,7 @@ import gehenna.components.*
 class Game(private val factory: EntityFactory) {
     lateinit var player: Entity
         private set
-    var gameTime: Long = 0
+    var time: Long = 0
 
     fun init() {
         player = factory.newEntity("player")
@@ -20,7 +20,7 @@ class Game(private val factory: EntityFactory) {
         val first = waiters.minBy { it.time }
         if (first != null) {
             val time = first.time
-            gameTime += time
+            this.time += time
             waiters.forEach {
                 it.time -= time
                 if (it is Effect) {

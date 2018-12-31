@@ -2,7 +2,6 @@ package gehenna.ui
 
 import gehenna.ApplyEffect
 import gehenna.ClimbStairs
-import gehenna.Entity
 import gehenna.Move
 import gehenna.components.*
 import java.awt.event.KeyEvent
@@ -70,7 +69,10 @@ abstract class Select<T>(protected val context: UiContext, private val items: Li
     }
 
     abstract fun onAccept(items: List<T>): UiState
-    open fun onCancel(): UiState = Normal(context)
+    open fun onCancel(): UiState {
+        context.log.add("Never mind")
+        return Normal(context)
+    }
 }
 
 class Normal(private val context: UiContext) : UiState() {
@@ -91,7 +93,7 @@ class Normal(private val context: UiContext) : UiState() {
             }
             ',', 'g' -> {
                 val pos = context.game.player[Position::class]!!
-                val items = pos.neighbors.filter { it.has(Item::class) }
+                val items = pos.neighbors.mapNotNull { it[Item::class] }
                 if (items.isEmpty()) {
                     context.log.add("There is no items to pickup(((")
                     return this
@@ -111,11 +113,25 @@ class Normal(private val context: UiContext) : UiState() {
 }
 
 class Aim(private val context: UiContext, private val gun: Gun) : UiState() {
+    init {
+        context.log.add("Fire in which direction?")
+    }
+
     override fun handleChar(char: Char): UiState {
         val dir = getDir(char)
         if (dir != null) {
-            context.action(ApplyEffect(context.game.player, RunAndGun(context.game.player, dir, gun, 500, time = 10)))
+            context.action(ApplyEffect(context.game.player, RunAndGun(context.game.player, dir, gun, 500)))
             return Normal(context)
+        }
+        return this
+    }
+
+    override fun handleKey(keyCode: Int): UiState {
+        when (keyCode) {
+            KeyEvent.VK_ESCAPE -> {
+                context.log.add("Never mind")
+                return Normal(context)
+            }
         }
         return this
     }
@@ -129,12 +145,12 @@ class End(private val context: UiContext) : UiState() {
 }
 
 //TODO: Why it's not an action??
-class Pickup(context: UiContext, items: List<Entity>) : Select<Entity>(context, items, "Pick up what?") {
-    override fun onAccept(items: List<Entity>): UiState {
+class Pickup(context: UiContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
+    override fun onAccept(items: List<Item>): UiState {
         val inventory = context.game.player[Inventory::class]!!
-        items.forEach { entity ->
-            entity.remove(entity[Position::class]!!)
-            inventory.add(entity[Item::class]!!)
+        items.forEach { item ->
+            item.entity.remove(item.entity[Position::class]!!)
+            inventory.add(item)
         }
         return Normal(context)
     }

@@ -38,11 +38,12 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
 
         room(room.x, room.y, size.x, size.y)
         remove(cells[room.x + size.x - 1, room.y + Random.nextInt(size.y - 1)].find { it.has(Obstacle::class) }!!)
-//        spawn(
-//            factory.newEntity("bandit"),
-//            room.x + 1 + Random.nextInt(size.x - 3),
-//            room.y + 1 + Random.nextInt(size.y - 3)
-//        )
+
+        spawn(
+                factory.newEntity("bandit"),
+                room.x + 1 + Random.nextInt(size.x - 3),
+                room.y + 1 + Random.nextInt(size.y - 3)
+        )
         spawn(
                 factory.newEntity("stairs"),
                 room.x + 1 + Random.nextInt(size.x - 3),

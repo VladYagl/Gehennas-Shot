@@ -1,13 +1,10 @@
 package gehenna.level
 
-import gehenna.Entity
-import gehenna.EntityFactory
-import gehenna.Move
+import gehenna.*
 import gehenna.components.ComponentManager
 import gehenna.components.Position
 import gehenna.components.PredictableBehaviour
 import gehenna.components.Stats
-import gehenna.scaleTime
 import gehenna.utils.Point
 import java.lang.Exception
 
@@ -28,12 +25,18 @@ abstract class Level(width: Int, height: Int, val factory: EntityFactory) : FovL
         val prediction = ArrayList<Point>()
         while (time < duration) {
             val action = fakeBehaviour.action
-            if (action is Move) {
-                val (x, y) = fakePos + action.dir
-                prediction.add(x to y)
-                fakeEntity.remove(fakePos)
-                fakePos = Position(fakeEntity, x, y, fakePos.level)
-                fakeEntity.add(fakePos)
+            when (action) {
+                is Move, is Collide -> {
+                    val (x, y) = when (action) {
+                        is Move -> fakePos + action.dir
+                        is Collide -> action.victim[Position::class]!!.point
+                        else -> throw Exception("concurrent meme")
+                    }
+                    prediction.add(x to y)
+                    fakeEntity.remove(fakePos)
+                    fakePos = Position(fakeEntity, x, y, fakePos.level)
+                    fakeEntity.add(fakePos)
+                }
             }
             time += scaleTime(action.time, speed)
         }
@@ -45,7 +48,7 @@ abstract class Level(width: Int, height: Int, val factory: EntityFactory) : FovL
     fun dangerZone(duration: Long): HashSet<Point> {
         val zone = HashSet<Point>()
         ComponentManager.all(PredictableBehaviour::class).forEach {
-            it.entity[Position::class]?.let {pos ->
+            it.entity[Position::class]?.let { pos ->
                 if (pos.level == this) {
                     zone.addAll(predict(it, duration))
                 }

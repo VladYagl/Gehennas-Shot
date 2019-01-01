@@ -160,7 +160,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
             var repaintCount = 0
             while (true) {
                 game.update()
-                //needRepaint = needRepaint || game.time > time
+                needRepaint = needRepaint || game.time > time
 
                 if (!game.player.has(Position::class)) {
                     endGame()

@@ -49,6 +49,7 @@ class Game(private val factory: EntityFactory) {
     }
 
     fun log(action: Action, behaviour: Behaviour) {
+        //todo: all this sould be managed though action result + animations
         val log = player[Logger::class]!!
         behaviour.entity[Position::class]?.let { pos ->
             val playerPos = player[Position::class]!!

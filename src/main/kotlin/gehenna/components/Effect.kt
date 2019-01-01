@@ -15,7 +15,7 @@ data class RunAndGun(
         private val dir: Point,
         private val gun: Gun,
         override var duration: Long,
-        override var time: Long = 99
+        override var time: Long = 1
 ) : Effect() {
     override val action: Action = Shoot(entity, dir, gun)
 }

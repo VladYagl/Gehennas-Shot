@@ -53,9 +53,9 @@ data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
 
     override val action: Action
         get() {
-//            if (lastResult?.succeeded == false) {
-//                return Move(entity, 0 to 0, 1000)
-//            }
+            if (lastResult?.succeeded == false) {
+                return randomMove()
+            }
             findTarget()
             return dodge() ?: target?.let { shoot(it) ?: goto(it) ?: randomMove() } ?: randomMove()
         }

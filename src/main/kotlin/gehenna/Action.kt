@@ -59,7 +59,7 @@ data class Shoot(
         val pos = entity[Position::class]!!
         val bullet = pos.level.factory.newEntity(gun.bullet)
         pos.level.spawn(bullet, pos.x, pos.y)
-        bullet.add(BulletBehaviour(bullet, dir, 0))
+        bullet.add(BulletBehaviour(bullet, dir, 80))
         return end()
     }
 }

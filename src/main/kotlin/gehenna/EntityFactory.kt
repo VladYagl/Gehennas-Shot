@@ -122,3 +122,4 @@ class EntityFactory {
         return entities[name]?.build(name) ?: throw Exception("no such entity: $name")
     }
 }
+

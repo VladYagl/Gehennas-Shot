@@ -1,0 +1,24 @@
+{
+    "backgroundColor": {
+        "r": 32,
+        "g": 32,
+        "b": 32
+    },
+
+    "font": {
+        "file": "tilesets/Curses_640x300diag.png",
+        "width": 8,
+        "height": 12
+    },
+    "worldFont": {
+        "file": "tilesets/Bisasam_16x16.png",
+        "width": 16,
+        "height": 16
+    },
+
+    "width": 1600,
+    "height": 850,
+
+    "infoWidth": 60,
+    "logHeight": 8
+}

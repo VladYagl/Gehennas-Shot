@@ -19,18 +19,17 @@ import javax.swing.JSeparator
 
 class MainFrame : JFrame(), KeyEventDispatcher {
 
-    //TODO: FONT settings in json
-    private val worldFont = AsciiFont("tilesets/Bisasam_16x16.png", 16, 16)
-    //    private val font = AsciiFont.CP437_12x12
-    private val font = AsciiFont("tilesets/Curses_640x300diag.png", 8, 12)
-    private val trueDarkGray = Color(32, 32, 32)
+    private val settings = loadSettings(streamResource("data/settings.json"))!!
+    private val worldFont = settings.worldFont
+    private val font = settings.font
+    private val trueDarkGray = settings.backgroundColor
 
     private val mainPane = JLayeredPane()
     private lateinit var world: AsciiPanel
     private lateinit var info: AsciiPanel
     private lateinit var log: AsciiPanel
-    private val logHeight = 8
-    private val infoWidth = 30
+    private val logHeight = settings.logHeight
+    private val infoWidth = settings.infoWidth
 
     private val factory = EntityFactory()
     private val game = Game(factory)
@@ -65,10 +64,10 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     init {
         title = "Gehenna's Shot"
-//        isResizable = false
+        //isResizable = false
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
 
-        size = Dimension(1200, 600)
+        size = Dimension(settings.width, settings.height)
         preparePanels()
 
         world.defaultBackgroundColor = trueDarkGray
@@ -279,6 +278,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private fun predict() {
         //TODO : PREDICT RELATIVE TO PLAYER SPEED
+        //TODO : not only bullets are predictable
         for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
             val realPos = entity[Position::class]!!
             if (realPos.level != game.player[Position::class]!!.level) continue

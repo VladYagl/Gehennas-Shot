@@ -1,10 +1,11 @@
 package gehenna.ui
 
-import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
 import gehenna.*
 import gehenna.components.*
+import gehenna.level.DungeonLevel
 import gehenna.utils.*
+import gehenna.utils.Point
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -56,7 +57,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         horizontalPane.add(JSeparator(JSeparator.VERTICAL))
         horizontalPane.add(info)
         horizontalPane.size = horizontalPane.preferredSize
-        horizontalPane.location = Point(0, 0)
+        horizontalPane.location = java.awt.Point(0, 0)
         mainPane.add(horizontalPane)
         mainPane.preferredSize = horizontalPane.preferredSize
         pack()
@@ -131,11 +132,11 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         return camera.x <= x && camera.y <= y && camera.x + world.widthInCharacters > x && camera.y + world.heightInCharacters > y
     }
 
-    private fun viewPoint(x: Int, y: Int): Pair<Int, Int> {
+    private fun viewPoint(x: Int, y: Int): Point {
         return (x to y) - camera
     }
 
-    private fun levelPos(x: Int, y: Int): Pair<Int, Int> {
+    private fun levelPos(x: Int, y: Int): Point {
         return (x to y) + camera
     }
 
@@ -202,7 +203,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
 
     private var camera = 0 to 0
     private val cameraBound = world.widthInCharacters / 2 - 5 to world.heightInCharacters / 2 - 5
-    private fun moveCamera(playerPos: Pair<Int, Int>) {
+    private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
         if (playerPos.x < camera.x + cameraBound.x) {
@@ -277,38 +278,24 @@ class MainFrame : JFrame(), KeyEventDispatcher {
     }
 
     private fun predict() {
-        //TODO : PREDICT RELATIVE TO PLAYER SPEED
-        //TODO : not only bullets are predictable
-        for (entity in ComponentManager[BulletBehaviour::class, Glyph::class, Position::class]) {
-            val realPos = entity[Position::class]!!
-            if (realPos.level != game.player[Position::class]!!.level) continue
-            if (!inView(realPos.x, realPos.y)) continue
-            val fakeEntity = Entity("Stub")
-            val behaviour = entity[BulletBehaviour::class]!!.copy(entity = fakeEntity)
-            // FIXME: Now it actually moves this fake entity through real level, and also adds it to component manager
-            // FIXME: Though I'm not performing it's actions, so in theory it can't break anything
-            var fakePos = realPos.copy(entity = fakeEntity)
-            val glyph = entity[Glyph::class]!!
-            val speed = entity[Stats::class]?.speed ?: 100
+        val playerPos = game.player[Position::class]!!
+        val stats = game.player[Stats::class]!!
+        val level = playerPos.level
+        val behaviours = ArrayList<PredictableBehaviour>()
+        level.visitFov(playerPos.x, playerPos.y) { entity, _, _ ->
+            entity.all(PredictableBehaviour::class).firstOrNull()?.let { behaviours.add(it) }
+        }
+        behaviours.forEach {
+            val glyph = it.entity[Glyph::class]!!
             var color = world.defaultForegroundColor * 0.5
-            fakeEntity.add(fakePos)
-            var time = behaviour.time
-            if (fakePos.level.isVisible(fakePos.x, fakePos.y))
-                while (time < 100) {
-                    val action = behaviour.action
-                    if (action is Move) {
-                        val (x, y) = fakePos + action.dir
-                        fakeEntity.remove(fakePos)
-                        fakePos = Position(fakeEntity, x, y, fakePos.level)
-                        fakeEntity.add(fakePos)
-                        if (realPos.level.isVisible(x, y)) {
-                            color *= 0.85
-                            writeGlyph(glyph, x, y, color)
-                        }
-                    }
-                    time += action.time * 100 / speed // FIXME : COPYPASTA!!!
+            val prediction = level.predict(it, stats.speed.toLong())
+            prediction.forEach { (x, y) ->
+                if (level.isVisible(x, y) && inView(x, y)) {
+                    color *= 0.85
+                    writeGlyph(glyph, x, y, color)
                 }
-            fakeEntity.remove(fakePos)
+            }
+
         }
     }
 
@@ -318,7 +305,7 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         mainPane.add(message)
         mainPane.moveToFront(message)
         message.size = message.preferredSize
-        message.location = Point(
+        message.location = java.awt.Point(
                 (mainPane.width - message.width) / 2,
                 (mainPane.height - message.height) / 2
         )

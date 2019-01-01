@@ -1,11 +1,12 @@
-package gehenna
+package gehenna.level
 
+import gehenna.EntityFactory
 import gehenna.components.Floor
 import gehenna.components.Obstacle
 import gehenna.utils.get
+import gehenna.utils.random
 import gehenna.utils.x
 import gehenna.utils.y
-import kotlin.random.Random
 
 class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0) : Level(width, height, factory) {
 
@@ -33,21 +34,21 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
     fun init() {
         room(0, 0, width, height)
 
-        val room = Random.nextInt(width - 5) to Random.nextInt(height - 5)
-        val size = Random.nextInt(width - room.x - 5) + 4 to Random.nextInt(height - room.y - 5) + 4
+        val room = random.nextInt(width - 5) to random.nextInt(height - 5)
+        val size = random.nextInt(width - room.x - 5) + 4 to random.nextInt(height - room.y - 5) + 4
 
         room(room.x, room.y, size.x, size.y)
-        remove(cells[room.x + size.x - 1, room.y + Random.nextInt(size.y - 1)].find { it.has(Obstacle::class) }!!)
+        remove(cells[room.x + size.x - 1, room.y + random.nextInt(size.y - 1)].find { it.has(Obstacle::class) }!!)
 
         spawn(
                 factory.newEntity("bandit"),
-                room.x + 1 + Random.nextInt(size.x - 3),
-                room.y + 1 + Random.nextInt(size.y - 3)
+                room.x + 1 + random.nextInt(size.x - 3),
+                room.y + 1 + random.nextInt(size.y - 3)
         )
         spawn(
                 factory.newEntity("stairs"),
-                room.x + 1 + Random.nextInt(size.x - 3),
-                room.y + 1 + Random.nextInt(size.y - 3)
+                room.x + 1 + random.nextInt(size.x - 3),
+                room.y + 1 + random.nextInt(size.y - 3)
         )
 
 //        spawn(factory.newEntity("stairs"), 2, 2)

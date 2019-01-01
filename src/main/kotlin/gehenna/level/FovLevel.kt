@@ -1,9 +1,9 @@
-package gehenna
+package gehenna.level
 
+import gehenna.Entity
 import gehenna.components.Floor
 import gehenna.components.Glyph
 import gehenna.components.Obstacle
-import gehenna.components.Position
 import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
 import org.xguzm.pathfinding.grid.NavigationGrid
@@ -13,9 +13,7 @@ import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
 import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
 
-open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
-    protected val cells = Array(width, height) { HashSet<Entity>() }
-
+abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     //fov
     private val transparent = DoubleArray(width, height) { 0.0 }
     private val fov = GlyphFov()
@@ -34,47 +32,8 @@ open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
     )
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 
-    fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Pair<Int, Int>>? {
+    fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Point>? {
         return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
-    }
-
-    operator fun get(x: Int, y: Int): HashSet<Entity> {
-        return cells[x, y]
-    }
-
-    fun spawn(entity: Entity, x: Int, y: Int) {
-        val pos = Position(entity, x, y, this)
-        entity.add(pos)
-    }
-
-    fun spawn(pos: Position) {
-        cells[pos.x, pos.y].add(pos.entity)
-        update(pos.x, pos.y)
-    }
-
-    fun remove(entity: Entity) {
-        val pos = entity[Position::class]!!
-        //cells[pos.x, pos.y].remove(entity)
-        entity.remove(pos)
-        //update(pos.x, pos.y)
-    }
-
-    fun remove(pos: Position) {
-        cells[pos.x, pos.y].remove(pos.entity)
-        update(pos.x, pos.y)
-    }
-
-    fun move(entity: Entity, x: Int, y: Int) {
-        remove(entity)
-        spawn(entity, x, y)
-    }
-
-    fun obstacle(x: Int, y: Int): Entity? {
-        return cells[x][y].firstOrNull { it[Obstacle::class]?.blockMove ?: false }
-    }
-
-    fun isBlocked(x: Int, y: Int): Boolean {
-        return cells[x, y].any { it[Obstacle::class]?.blockMove ?: false }
     }
 
     fun isVisible(x: Int, y: Int): Boolean {
@@ -96,7 +55,7 @@ open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
         fovAlgorithm.visitFieldOfView(EntityFov(visitor), x, y, 25)
     }
 
-    private fun update(x: Int, y: Int) {
+    override fun update(x: Int, y: Int) {
         navGrid.setWalkable(x, y,
                 cells[x, y].any { it.has(Floor::class) } &&
                         cells[x, y].none { it[Obstacle::class]?.blockPath == true })
@@ -145,5 +104,3 @@ open class Level(val width: Int, val height: Int, val factory: EntityFactory) {
         }
     }
 }
-
-

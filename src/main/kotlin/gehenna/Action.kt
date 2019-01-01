@@ -1,8 +1,14 @@
 package gehenna
 
 import gehenna.components.*
+import gehenna.level.DungeonLevel
+import gehenna.utils.Point
 
 data class ActionResult(val time: Long, val succeeded: Boolean)
+
+fun scaleTime(time: Long, speed: Int): Long {
+    return time * 100 / speed
+}
 
 abstract class Action {
     abstract val time: Long
@@ -19,7 +25,7 @@ data class Think(override val time: Long = 0) : Action() {
 
 data class Move(
         private val entity: Entity,
-        val dir: Pair<Int, Int>,
+        val dir: Point,
         override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
@@ -45,7 +51,7 @@ data class Move(
 
 data class Shoot(
         private val entity: Entity,
-        private val dir: Pair<Int, Int>,
+        private val dir: Point,
         private val gun: Gun,
         override val time: Long = 100
 ) : Action() {
@@ -53,7 +59,7 @@ data class Shoot(
         val pos = entity[Position::class]!!
         val bullet = pos.level.factory.newEntity(gun.bullet)
         pos.level.spawn(bullet, pos.x, pos.y)
-        bullet.add(BulletBehaviour(bullet, dir, 95))
+        bullet.add(BulletBehaviour(bullet, dir, 0))
         return end()
     }
 }
@@ -67,9 +73,9 @@ data class Destroy(private val entity: Entity, override val time: Long = 0) : Ac
 
 //TODO: Maybe components should handle this logic
 data class Collide(
-        private val entity: Entity,
-        private val victim: Entity,
-        private val damage: Int,
+        val entity: Entity,
+        val victim: Entity,
+        val damage: Int,
         override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {

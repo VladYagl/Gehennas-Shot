@@ -1,6 +1,7 @@
 package gehenna
 
 import gehenna.components.*
+import gehenna.level.DungeonLevel
 
 class Game(private val factory: EntityFactory) {
     lateinit var player: Entity
@@ -33,7 +34,9 @@ class Game(private val factory: EntityFactory) {
 
             val result = when (first) {
                 is Behaviour -> {
-                    first.lastResult = first.action.perform()
+                    val action = first.action
+                    log(action, first)
+                    first.lastResult = action.perform()
                     first.lastResult!!
                 }
 
@@ -41,7 +44,22 @@ class Game(private val factory: EntityFactory) {
 
                 else -> throw Exception("Unknown waiter: $first of type: ${first::class}")
             }
-            first.time += result.time * 100 / (first.entity[Stats::class]?.speed ?: 100)
+            first.time += scaleTime(result.time, first.entity[Stats::class]?.speed ?: 100)
+        }
+    }
+
+    fun log(action: Action, behaviour: Behaviour) {
+        val log = player[Logger::class]!!
+        behaviour.entity[Position::class]?.let { pos ->
+            val playerPos = player[Position::class]!!
+            if (pos.level == playerPos.level) {
+                if (playerPos.level.isVisible(pos.x, pos.y)) {
+                    when (action) {
+                        is Collide -> if (action.victim != player)
+                            log.add("${action.victim} were hit by ${action.entity} for ${action.damage} damage")
+                    }
+                }
+            }
         }
     }
 }

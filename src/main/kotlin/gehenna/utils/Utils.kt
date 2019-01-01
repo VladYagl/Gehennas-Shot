@@ -6,6 +6,9 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.JOptionPane.PLAIN_MESSAGE
 import javax.swing.JOptionPane.showMessageDialog
+import kotlin.concurrent.fixedRateTimer
+import kotlin.math.sign
+import kotlin.random.Random
 
 operator fun Color.times(alpha: Double): Color {
     return Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
@@ -18,14 +21,29 @@ fun showError(e: Throwable) {
     showMessageDialog(null, errors.toString(), "ERROR", PLAIN_MESSAGE)
 }
 
-operator fun Pair<Int, Int>.minus(other: Pair<Int, Int>): Pair<Int, Int> {
+typealias Point = Pair<Int, Int>
+
+operator fun Point.minus(other: Point): Point {
     return Pair(first - other.first, second - other.second)
 }
 
-operator fun Pair<Int, Int>.plus(other: Pair<Int, Int>): Pair<Int, Int> {
+operator fun Point.plus(other: Point): Point {
     return Pair(first + other.first, second + other.second)
 }
 
-val Pair<Int, Int>.x: Int get() = first
-val Pair<Int, Int>.y: Int get() = second
+val Point.x: Int get() = first
+val Point.y: Int get() = second
+
+val Point.dir: Point get() = x.sign to y.sign
+
+val random = Random.Default
+val directions = listOf(
+        -1 to -1,
+        -1 to 0,
+        -1 to 1,
+        0 to 1,
+        0 to -1,
+        1 to -1,
+        1 to 1
+)
 

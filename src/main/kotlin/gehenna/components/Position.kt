@@ -1,7 +1,8 @@
 package gehenna.components
 
 import gehenna.Entity
-import gehenna.Level
+import gehenna.level.Level
+import gehenna.utils.Point
 import gehenna.utils.x
 import gehenna.utils.y
 
@@ -11,12 +12,12 @@ data class Position(
         val y: Int,
         val level: Level
 ) : Component() {
-    val point: Pair<Int, Int>
+    val point: Point
         get() {
             return x to y
         }
 
-    operator fun plus(dir: Pair<Int, Int>): Pair<Int, Int> {
+    operator fun plus(dir: Point): Point {
         return x + dir.x to y + dir.y
     }
 

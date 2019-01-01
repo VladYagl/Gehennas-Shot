@@ -4,6 +4,7 @@ import gehenna.ApplyEffect
 import gehenna.ClimbStairs
 import gehenna.Move
 import gehenna.components.*
+import gehenna.utils.Point
 import java.awt.event.KeyEvent
 
 abstract class UiState {
@@ -11,7 +12,7 @@ abstract class UiState {
     open fun handleKey(keyCode: Int): UiState = this
 }
 
-private fun getDir(char: Char): Pair<Int, Int>? {
+private fun getDir(char: Char): Point? {
     return when (char) {
         '.', '5' -> 0 to 0
         'j', '2' -> 0 to +1

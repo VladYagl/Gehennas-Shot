@@ -4,6 +4,11 @@
         "g": 32,
         "b": 32
     },
+    "foregroundColor": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+    },
 
     "font": {
         "file": "tilesets/Curses_640x300diag.png",

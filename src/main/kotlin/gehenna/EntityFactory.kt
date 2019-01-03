@@ -4,9 +4,6 @@ import com.beust.klaxon.JsonReader
 import gehenna.components.Component
 import gehenna.components.Item
 import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
-import org.reflections.util.ClasspathHelper
-import org.reflections.util.ConfigurationBuilder
 import java.io.InputStream
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -20,13 +17,13 @@ import kotlin.reflect.full.primaryConstructor
 class EntityFactory {
     private val entities = HashMap<String, EntityBuilder>()
 
-    private val reflections = Reflections(
-            ConfigurationBuilder()
-                    .addUrls(ClasspathHelper.forJavaClassPath())
-                    .setScanners(SubTypesScanner())
-    )
+//    private val reflections = Reflections(
+//            ConfigurationBuilder()
+//                    .addUrls(ClasspathHelper.forJavaClassPath())
+//                    .setScanners(SubTypesScanner())
+//    )
     //TODO : TRY THIS
-    //val reflections = Reflections("gehenna")
+    val reflections = Reflections("gehenna")
     private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
     private val projection = KTypeProjection.invariant(Item::class.createType())
     private val itemListType = ArrayList::class.createType(listOf(projection))

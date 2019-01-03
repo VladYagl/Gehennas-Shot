@@ -4,65 +4,50 @@ import gehenna.ApplyEffect
 import gehenna.ClimbStairs
 import gehenna.Move
 import gehenna.components.*
-import gehenna.utils.Point
-import java.awt.event.KeyEvent
 
 abstract class State {
-    open fun handleChar(char: Char): State = this
-    open fun handleKey(keyCode: Int): State = this
-}
+    open fun handleInput(input: Input): State = this
 
-private fun getDir(char: Char): Point? {
-    return when (char) {
-        '.', '5' -> 0 to 0
-        'j', '2' -> 0 to +1
-        'k', '8' -> 0 to -1
-        'h', '4' -> -1 to 0
-        'l', '6' -> +1 to 0
-        'y', '7' -> -1 to -1
-        'u', '9' -> +1 to -1
-        'n', '3' -> +1 to +1
-        'b', '1' -> -1 to +1
-        else -> null
+    companion object {
+        fun create(context: Context): State = Normal(context)
     }
 }
 
-abstract class Select<T>(protected val context: Context, private val items: List<T>, title: String) : State() {
+private abstract class Select<T>(protected val context: Context, private val items: List<T>, title: String) : State() {
     private val select = BooleanArray(items.size) { false }
     private val window = context.newWindow(100, 30)
 
     private fun updateItem(index: Int) {
-        window.write("   ${if (select[index]) '+' else '-'} ${'a' + index}: ${items[index]}", 0, 1 + index)
+        window.writeLine("   ${if (select[index]) '+' else '-'} ${'a' + index}: ${items[index]}", 1 + index)
     }
 
     init {
-        window.write(title, 0, 0)
+        window.writeLine(title, 0)
         for (i in 0 until items.size) {
             updateItem(i)
         }
-        window.repaint()
+//        window.repaint()
     }
 
-    override fun handleChar(char: Char): State {
-        if (char in 'a'..'z') {
-            val index = char - 'a'
-            if (index < select.size) {
-                select[index] = !select[index]
-                updateItem(index)
-                window.repaint()
+    override fun handleInput(input: Input): State {
+        return when (input) {
+            is Input.Char -> {
+                if (input.char in 'a'..'z') {
+                    val index = input.char - 'a'
+                    if (index < select.size) {
+                        select[index] = !select[index]
+                        updateItem(index)
+//                        window.repaint()
+                    }
+                }
+                this
             }
-        }
-        return this
-    }
-
-    override fun handleKey(keyCode: Int): State {
-        return when (keyCode) {
-            KeyEvent.VK_ENTER, KeyEvent.VK_SPACE -> {
-                context.pane.remove(window.parent)
-                return onAccept(items.filterIndexed { index, _ -> select[index] })
+            is Input.Accept -> {
+                context.removeWindow(window)
+                onAccept(items.filterIndexed { index, _ -> select[index] })
             }
-            KeyEvent.VK_ESCAPE, KeyEvent.VK_CAPS_LOCK -> {
-                context.pane.remove(window.parent)
+            is Input.Cancel -> {
+                context.removeWindow(window)
                 onCancel()
             }
             else -> this
@@ -76,14 +61,15 @@ abstract class Select<T>(protected val context: Context, private val items: List
     }
 }
 
-class Normal(private val context: Context) : State() {
-    override fun handleChar(char: Char): State {
-        val dir = getDir(char)
-        if (dir != null) {
-            context.action(Move(context.game.player, dir))
-        }
-        return when (char) {
-            'f' -> {
+private class Normal(private val context: Context) : State() {
+
+    override fun handleInput(input: Input): State {
+        return when (input) {
+            is Input.Direction -> {
+                context.action(Move(context.game.player, input.dir))
+                this
+            }
+            Input.Fire -> {
                 val inventory = context.game.player[Inventory::class]!!
                 val gun = inventory.all().mapNotNull { it.entity[Gun::class] }.firstOrNull()
                 if (gun == null) {
@@ -92,7 +78,7 @@ class Normal(private val context: Context) : State() {
                 }
                 Aim(context, gun)
             }
-            ',', 'g' -> {
+            Input.Pickup -> {
                 val pos = context.game.player[Position::class]!!
                 val items = pos.neighbors.mapNotNull { it[Item::class] }
                 if (items.isEmpty()) {
@@ -101,10 +87,10 @@ class Normal(private val context: Context) : State() {
                 }
                 Pickup(context, items)
             }
-            'd' -> {
+            Input.Drop -> {
                 Drop(context)
             }
-            '>', '<' -> {
+            Input.ClimbStairs -> {
                 context.action(ClimbStairs(context.game.player))
                 this
             }
@@ -113,40 +99,35 @@ class Normal(private val context: Context) : State() {
     }
 }
 
-class Aim(private val context: Context, private val gun: Gun) : State() {
+private class Aim(private val context: Context, private val gun: Gun) : State() {
     init {
         context.log.add("Fire in which direction?")
     }
 
-    override fun handleChar(char: Char): State {
-        val dir = getDir(char)
-        if (dir != null) {
-            context.action(ApplyEffect(context.game.player, RunAndGun(context.game.player, dir, gun, 500)))
-            return Normal(context)
-        }
-        return this
-    }
-
-    override fun handleKey(keyCode: Int): State {
-        when (keyCode) {
-            KeyEvent.VK_ESCAPE -> {
-                context.log.add("Never mind")
-                return Normal(context)
+    override fun handleInput(input: Input): State {
+        return when (input) {
+            is Input.Direction -> {
+                context.action(ApplyEffect(context.game.player, RunAndGun(context.game.player, input.dir, gun, 500)))
+                Normal(context)
             }
+            is Input.Cancel -> {
+                context.log.add("Never mind")
+                Normal(context)
+            }
+            else -> this
         }
-        return this
     }
 }
 
 class End(private val context: Context) : State() {
-    override fun handleChar(char: Char): State {
-        if (char == ' ') System.exit(0)
+    override fun handleInput(input: Input): State {
+        if (input == Input.Accept) System.exit(0)
         return this
     }
 }
 
 //TODO: Why it's not an action??
-class Pickup(context: Context, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
+private class Pickup(context: Context, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
     override fun onAccept(items: List<Item>): State {
         val inventory = context.game.player[Inventory::class]!!
         items.forEach { item ->
@@ -157,7 +138,7 @@ class Pickup(context: Context, items: List<Item>) : Select<Item>(context, items,
     }
 }
 
-class Drop(context: Context) : Select<Item>(context, context.game.player[Inventory::class]!!.all(), "Drop what?") {
+private class Drop(context: Context) : Select<Item>(context, context.game.player[Inventory::class]!!.all(), "Drop what?") {
     override fun onAccept(items: List<Item>): State {
         val pos = context.game.player[Position::class]!!
         val inventory = context.game.player[Inventory::class]!!

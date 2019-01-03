@@ -13,7 +13,7 @@ import javax.swing.BorderFactory
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 
-class UiContext(val game: Game, val pane: JLayeredPane, val font: AsciiFont) {
+class Context(val game: Game, val pane: JLayeredPane, val font: AsciiFont) {
     val log = game.player[Logger::class]!!
 
     fun action(value: Action) {

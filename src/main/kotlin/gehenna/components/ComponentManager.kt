@@ -5,6 +5,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.safeCast
 
+//TODO DOES I REALLY NEED THIS SHIT
+//TODO DO PROFILING AGAIN AND AFTER ZIRCON
 object ComponentManager {
     private val components = HashMap<KClass<out Component>, HashSet<Entity>>()
 

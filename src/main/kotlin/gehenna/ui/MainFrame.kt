@@ -1,12 +1,16 @@
 package gehenna.ui
 
 import asciiPanel.AsciiPanel
-import gehenna.*
+import gehenna.EntityFactory
+import gehenna.Game
 import gehenna.components.*
 import gehenna.level.DungeonLevel
+import gehenna.loadSettings
 import gehenna.utils.*
-import gehenna.utils.Point
-import java.awt.*
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.KeyEventDispatcher
+import java.awt.KeyboardFocusManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.KeyEvent
@@ -323,8 +327,8 @@ class MainFrame : JFrame(), KeyEventDispatcher {
         message.writeCenter("RIP", 4)
     }
 
-    private val context = UiContext(game, mainPane, font)
-    private var state: UiState = Normal(context)
+    private val context = Context(game, mainPane, font)
+    private var state: State = Normal(context)
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         try {
             needRepaint = true

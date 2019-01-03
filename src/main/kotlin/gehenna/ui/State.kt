@@ -7,9 +7,9 @@ import gehenna.components.*
 import gehenna.utils.Point
 import java.awt.event.KeyEvent
 
-abstract class UiState {
-    open fun handleChar(char: Char): UiState = this
-    open fun handleKey(keyCode: Int): UiState = this
+abstract class State {
+    open fun handleChar(char: Char): State = this
+    open fun handleKey(keyCode: Int): State = this
 }
 
 private fun getDir(char: Char): Point? {
@@ -27,7 +27,7 @@ private fun getDir(char: Char): Point? {
     }
 }
 
-abstract class Select<T>(protected val context: UiContext, private val items: List<T>, title: String) : UiState() {
+abstract class Select<T>(protected val context: Context, private val items: List<T>, title: String) : State() {
     private val select = BooleanArray(items.size) { false }
     private val window = context.newWindow(100, 30)
 
@@ -43,7 +43,7 @@ abstract class Select<T>(protected val context: UiContext, private val items: Li
         window.repaint()
     }
 
-    override fun handleChar(char: Char): UiState {
+    override fun handleChar(char: Char): State {
         if (char in 'a'..'z') {
             val index = char - 'a'
             if (index < select.size) {
@@ -55,7 +55,7 @@ abstract class Select<T>(protected val context: UiContext, private val items: Li
         return this
     }
 
-    override fun handleKey(keyCode: Int): UiState {
+    override fun handleKey(keyCode: Int): State {
         return when (keyCode) {
             KeyEvent.VK_ENTER, KeyEvent.VK_SPACE -> {
                 context.pane.remove(window.parent)
@@ -69,15 +69,15 @@ abstract class Select<T>(protected val context: UiContext, private val items: Li
         }
     }
 
-    abstract fun onAccept(items: List<T>): UiState
-    open fun onCancel(): UiState {
+    abstract fun onAccept(items: List<T>): State
+    open fun onCancel(): State {
         context.log.add("Never mind")
         return Normal(context)
     }
 }
 
-class Normal(private val context: UiContext) : UiState() {
-    override fun handleChar(char: Char): UiState {
+class Normal(private val context: Context) : State() {
+    override fun handleChar(char: Char): State {
         val dir = getDir(char)
         if (dir != null) {
             context.action(Move(context.game.player, dir))
@@ -113,12 +113,12 @@ class Normal(private val context: UiContext) : UiState() {
     }
 }
 
-class Aim(private val context: UiContext, private val gun: Gun) : UiState() {
+class Aim(private val context: Context, private val gun: Gun) : State() {
     init {
         context.log.add("Fire in which direction?")
     }
 
-    override fun handleChar(char: Char): UiState {
+    override fun handleChar(char: Char): State {
         val dir = getDir(char)
         if (dir != null) {
             context.action(ApplyEffect(context.game.player, RunAndGun(context.game.player, dir, gun, 500)))
@@ -127,7 +127,7 @@ class Aim(private val context: UiContext, private val gun: Gun) : UiState() {
         return this
     }
 
-    override fun handleKey(keyCode: Int): UiState {
+    override fun handleKey(keyCode: Int): State {
         when (keyCode) {
             KeyEvent.VK_ESCAPE -> {
                 context.log.add("Never mind")
@@ -138,16 +138,16 @@ class Aim(private val context: UiContext, private val gun: Gun) : UiState() {
     }
 }
 
-class End(private val context: UiContext) : UiState() {
-    override fun handleChar(char: Char): UiState {
+class End(private val context: Context) : State() {
+    override fun handleChar(char: Char): State {
         if (char == ' ') System.exit(0)
         return this
     }
 }
 
 //TODO: Why it's not an action??
-class Pickup(context: UiContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
-    override fun onAccept(items: List<Item>): UiState {
+class Pickup(context: Context, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
+    override fun onAccept(items: List<Item>): State {
         val inventory = context.game.player[Inventory::class]!!
         items.forEach { item ->
             item.entity.remove(item.entity[Position::class]!!)
@@ -157,8 +157,8 @@ class Pickup(context: UiContext, items: List<Item>) : Select<Item>(context, item
     }
 }
 
-class Drop(context: UiContext) : Select<Item>(context, context.game.player[Inventory::class]!!.all(), "Drop what?") {
-    override fun onAccept(items: List<Item>): UiState {
+class Drop(context: Context) : Select<Item>(context, context.game.player[Inventory::class]!!.all(), "Drop what?") {
+    override fun onAccept(items: List<Item>): State {
         val pos = context.game.player[Position::class]!!
         val inventory = context.game.player[Inventory::class]!!
         items.forEach { item ->

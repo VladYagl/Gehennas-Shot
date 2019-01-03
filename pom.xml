@@ -130,6 +130,22 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.hexworks.zircon</groupId>
+            <artifactId>zircon.core-jvm</artifactId>
+            <version>2018.12.25-XMAS</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hexworks.zircon</groupId>
+            <artifactId>zircon.jvm.swing</artifactId>
+            <version>2018.12.25-XMAS</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.xaguzman</groupId>
             <artifactId>pathfinding</artifactId>
             <version>0.2.6</version>

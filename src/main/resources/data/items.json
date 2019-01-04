@@ -26,8 +26,8 @@
         }
     },
 
-    "gun": {
-        "gun": {
+    "pistol": {
+        "pistol": {
             "bullet": "bullet"
         },
         "item": {

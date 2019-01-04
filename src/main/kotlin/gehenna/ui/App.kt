@@ -1,7 +1,7 @@
 package gehenna.ui
 
-import gehenna.EntityFactory
 import gehenna.Game
+import gehenna.JsonFactory
 import gehenna.Settings
 import gehenna.components.*
 import gehenna.components.behaviour.PredictableBehaviour
@@ -11,7 +11,7 @@ import gehenna.utils.*
 import java.awt.Color
 
 class App(private val ui: UI, private val settings: Settings) {
-    private val factory = EntityFactory()
+    private val factory = JsonFactory()
     private val game = Game(factory)
     private val context: Context
     private var state: State
@@ -24,7 +24,8 @@ class App(private val ui: UI, private val settings: Settings) {
             var count = 0
             var repaintCount = 0
             while (true) {
-                count++
+                if (settings.drawEachUpdate) needRepaint = needRepaint || game.time > time + settings.updateStep
+                if (game.isPlayerNext()) needRepaint = true
                 if (needRepaint) { // fixme - when not updating by game time it has weird stops???
                     time = game.time
                     ui.info.writeLine("Paint=${repaintCount++} loop=$count", 0)
@@ -33,7 +34,7 @@ class App(private val ui: UI, private val settings: Settings) {
                 }
 
                 game.update()
-                if (settings.drawEachUpdate) needRepaint = needRepaint || game.time > time + settings.updateStep
+                count++
 
                 if (!game.player.has(Position::class)) {
                     state = End(context)

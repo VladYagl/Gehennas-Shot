@@ -4,7 +4,6 @@ import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.Entity
 import gehenna.actions.Action
 import gehenna.actions.Move
-import gehenna.actions.Shoot
 import gehenna.components.*
 import gehenna.utils.*
 import java.lang.Math.abs
@@ -32,14 +31,16 @@ data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
     }
 
     private fun shoot(target: Position): Action? {
-        return entity[Inventory::class]?.all()?.firstNotNullResult { it.entity[Gun::class] }?.let { gun ->
-            if (target == target.entity[Position::class]) {
-                val diff = target.point - pos.point
-                if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
-                    Shoot(entity, diff.dir, gun)
-                } else null
-            } else null
-        }
+        return entity[Inventory::class]?.all()
+                ?.firstNotNullResult { it.entity.all(Gun::class).firstOrNull() }
+                ?.let { gun ->
+                    if (target == target.entity[Position::class]) {
+                        val diff = target.point - pos.point
+                        if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
+                            gun.fire(entity, diff.dir)
+                        } else null
+                    } else null
+                }
     }
 
     private fun goto(target: Position): Action? {

@@ -12,10 +12,16 @@ abstract class PredictableBehaviour : Behaviour() {
 }
 
 data class ThinkUntilSet(override val entity: Entity) : Behaviour() {
-    private val channel = Channel<Action>(Channel.CONFLATED)
+        private val channel = Channel<Action>(Channel.CONFLATED)
     override var action: Action
         get() = runBlocking { channel.receive() }
         set(value) = runBlocking { channel.send(value) }
+//    override var action: Action = Think()
+//        get() {
+//            val res = field
+//            field = Think()
+//            return res
+//        }
 }
 
 data class RandomBehaviour(override val entity: Entity) : Behaviour() {

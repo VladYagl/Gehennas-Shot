@@ -43,12 +43,11 @@ data class Move(
 data class Shoot(
         private val entity: Entity,
         private val dir: Point,
-        private val gun: Gun,
+        private val bullet: Entity,
         override val time: Long = 100
 ) : Action() {
     override fun perform(): ActionResult {
         val pos = entity[Position::class]!!
-        val bullet = pos.level.factory.newEntity(gun.bullet)
         pos.level.spawn(bullet, pos.x, pos.y)
         bullet.add(BulletBehaviour(bullet, dir, 80))
         return end()

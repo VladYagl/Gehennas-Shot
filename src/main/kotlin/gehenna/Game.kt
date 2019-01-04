@@ -3,6 +3,7 @@ package gehenna
 import gehenna.actions.scaleTime
 import gehenna.components.*
 import gehenna.components.behaviour.Behaviour
+import gehenna.components.behaviour.ThinkUntilSet
 import gehenna.level.DungeonLevel
 
 class Game(private val factory: EntityFactory) {
@@ -15,16 +16,18 @@ class Game(private val factory: EntityFactory) {
         val level = DungeonLevel(5 * 8, 6 * 8, factory)
         level.init()
         level.spawn(player, 10, 10)
+        ComponentManager.update()
     }
+
+    fun isPlayerNext(): Boolean = ComponentManager.waiters().firstOrNull() == player[ThinkUntilSet::class]
 
     // TODO: Think about energy randomization / but maybe i don't really need one
     fun update() {
-        val waiters = ComponentManager.all(WaitTime::class)
-        val first = waiters.minBy { it.time }
+        val first = ComponentManager.waiters().firstOrNull()
         if (first != null) {
             val time = first.time
             this.time += time
-            waiters.forEach {
+            ComponentManager.waiters().forEach {
                 it.time -= time
                 if (it is Effect) {
                     it.duration -= time
@@ -45,6 +48,7 @@ class Game(private val factory: EntityFactory) {
                 else -> throw Exception("Unknown waiter: $first of type: ${first::class}")
             }
             first.time += scaleTime(result.time, first.entity[Stats::class]?.speed ?: 100)
+            ComponentManager.update()
             result.logEntries.forEach { entry ->
                 if (player.has(entry.sense)) {
                     when (entry.sense) {

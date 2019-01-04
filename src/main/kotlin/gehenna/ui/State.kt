@@ -1,9 +1,11 @@
 package gehenna.ui
 
-import gehenna.actions.ApplyEffect
 import gehenna.actions.ClimbStairs
 import gehenna.actions.Move
-import gehenna.components.*
+import gehenna.components.Gun
+import gehenna.components.Inventory
+import gehenna.components.Item
+import gehenna.components.Position
 
 abstract class State {
     open fun handleInput(input: Input): State = this
@@ -71,7 +73,7 @@ private class Normal(private val context: Context) : State() {
             }
             Input.Fire -> {
                 val inventory = context.game.player[Inventory::class]!!
-                val gun = inventory.all().mapNotNull { it.entity[Gun::class] }.firstOrNull()
+                val gun = inventory.all().mapNotNull { it.entity.all(Gun::class).firstOrNull() }.firstOrNull()
                 if (gun == null) {
                     context.log.add("You don't have any guns!")
                     return this
@@ -107,7 +109,7 @@ private class Aim(private val context: Context, private val gun: Gun) : State() 
     override fun handleInput(input: Input): State {
         return when (input) {
             is Input.Direction -> {
-                context.action(ApplyEffect(context.game.player, RunAndGun(context.game.player, input.dir, gun, 500)))
+                context.action(gun.fire(context.game.player, input.dir))
                 Normal(context)
             }
             is Input.Cancel -> {

@@ -23,7 +23,7 @@ data class Stats(
         val speed: Int = 100
 ) : Component()
 
-abstract class WaitTime(open var time: Long = 0) : Component()
+abstract class WaitTime(open var time: Long = 0) : Component() // TODO: let it manage ComponentManager??
 
 data class Health(
         override val entity: Entity,
@@ -75,8 +75,6 @@ data class Inventory(
         return items.toList()
     }
 }
-
-data class Gun(override val entity: Entity, val bullet: String = "bullet") : Component()
 
 sealed class Senses : Component() {
     abstract fun visitFov(visitor: (Entity, Int, Int) -> Unit)

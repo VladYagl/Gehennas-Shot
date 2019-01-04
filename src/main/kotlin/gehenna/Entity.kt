@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
 
 //FIXME : CANT HAVE SAME COMPONENT TYPE TWICE
-data class Entity(val name: String = "gehenna.Entity", val id: String = UUID.randomUUID().toString()) {
+data class Entity(val name: String = "gehenna.Entity", val factory: EntityFactory, val id: String = UUID.randomUUID().toString()) {
     private val components = HashMap<KClass<out Component>, Component>()
 
     operator fun <T : Component> get(clazz: KClass<T>): T? {

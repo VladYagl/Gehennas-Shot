@@ -1,22 +1,22 @@
 package gehenna.level
 
-import gehenna.*
+import gehenna.Entity
+import gehenna.EntityFactory
 import gehenna.actions.Collide
 import gehenna.actions.Move
 import gehenna.actions.scaleTime
 import gehenna.components.ComponentManager
 import gehenna.components.Position
-import gehenna.components.behaviour.PredictableBehaviour
 import gehenna.components.Stats
+import gehenna.components.behaviour.PredictableBehaviour
 import gehenna.utils.Point
-import java.lang.Exception
 
 abstract class Level(width: Int, height: Int, val factory: EntityFactory) : FovLevel(width, height) {
 
     fun predict(realBehaviour: PredictableBehaviour, duration: Long): ArrayList<Point> {
         // FIXME: Now it actually moves this fake entity through real level, and also adds it to component manager
         // FIXME: Though I'm not performing it's actions, so in theory it can't break anything
-        val fakeEntity = Entity("stub")
+        val fakeEntity = Entity("stub", factory)
         val fakeBehaviour = realBehaviour.copy(entity = fakeEntity)
         val realEntity = realBehaviour.entity
         val realPos = realEntity[Position::class]!!
@@ -50,7 +50,7 @@ abstract class Level(width: Int, height: Int, val factory: EntityFactory) : FovL
 
     fun dangerZone(duration: Long): HashSet<Point> {
         val zone = HashSet<Point>()
-        ComponentManager.all(PredictableBehaviour::class).forEach {
+        ComponentManager.predictables().forEach {
             it.entity[Position::class]?.let { pos ->
                 if (pos.level == this) {
                     zone.addAll(predict(it, duration))

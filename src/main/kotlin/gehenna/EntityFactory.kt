@@ -12,9 +12,13 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
 
 
+interface EntityFactory {
+    fun newEntity(name: String): Entity
+}
+
 //FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
 //TODO: Throw proper exceptions of where error happens and why
-class EntityFactory {
+class JsonFactory : EntityFactory {
     private val entities = HashMap<String, EntityBuilder>()
 
     private val reflections = Reflections("gehenna.components")
@@ -42,7 +46,7 @@ class EntityFactory {
 
     private inner class EntityBuilder(private val components: List<ComponentBuilder>) {
         fun build(name: String): Entity {
-            val entity = Entity(name)
+            val entity = Entity(name, this@JsonFactory)
             components.forEach { builder ->
                 entity.add(builder.build(entity))
             }
@@ -109,7 +113,7 @@ class EntityFactory {
         }
     }
 
-    fun newEntity(name: String): Entity {
+    override fun newEntity(name: String): Entity {
         return entities[name]?.build(name) ?: throw Exception("no such entity: $name")
     }
 }

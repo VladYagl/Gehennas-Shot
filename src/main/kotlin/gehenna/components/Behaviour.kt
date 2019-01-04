@@ -1,7 +1,12 @@
 package gehenna.components
 
-import gehenna.*
+import gehenna.Action
+import gehenna.ActionResult
+import gehenna.Entity
+import gehenna.Move
 import gehenna.utils.random
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 
 abstract class Behaviour : WaitTime() {
     abstract val action: Action
@@ -13,12 +18,10 @@ abstract class PredictableBehaviour : Behaviour() {
 }
 
 data class ThinkUntilSet(override val entity: Entity) : Behaviour() {
-    override var action: Action = Think()
-        get() {
-            val res = field
-            field = Think()
-            return res
-        }
+    private val channel = Channel<Action>(Channel.CONFLATED)
+    override var action: Action
+        get() = runBlocking { channel.receive() }
+        set(value) = runBlocking { channel.send(value) }
 }
 
 data class RandomBehaviour(override val entity: Entity) : Behaviour() {

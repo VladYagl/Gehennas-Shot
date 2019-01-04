@@ -6,6 +6,8 @@ import gehenna.loadSettings
 import gehenna.streamResource
 import gehenna.utils.Point
 import gehenna.utils.showError
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -55,7 +57,6 @@ class GehennaPanel(width: Int, height: Int, font: AsciiFont) : AsciiPanel(width,
     override fun putChar(char: Char, x: Int, y: Int, fg: Color?, bg: Color?) {
         write(char, x, y, fg ?: defaultForegroundColor, bg ?: defaultBackgroundColor)
     }
-
 }
 
 class MainFrame : JFrame(), UI, KeyEventDispatcher {
@@ -116,10 +117,12 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         info.clear()
         log.clear()
 
-        app = App(this, settings)
+        app = App(this, settings) // TODO move this out of main frame
         addComponentListener(object : ComponentAdapter() {
             override fun componentShown(e: ComponentEvent?) {
-                Thread { app.mainLoop() }.start()
+                GlobalScope.launch {
+                    app.mainLoop()
+                }
             }
         })
     }
@@ -129,6 +132,10 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         e.printStackTrace(PrintWriter(errors))
         info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
         info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
+    }
+
+    private fun JComponent.paintImmediately() {
+        paintImmediately(0, 0, width, height)
     }
 
     override fun update() {
@@ -191,6 +198,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     override fun removeWindow(window: Window) {
         if (window is GehennaPanel) {
             mainPane.remove(window.parent)
+            mainPane.repaint()
         } else {
             throw Exception("MainFrame can't remove $window")
         }

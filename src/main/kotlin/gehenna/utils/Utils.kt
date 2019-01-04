@@ -1,12 +1,10 @@
 package gehenna.utils
 
-import gehenna.components.Position
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.JOptionPane.PLAIN_MESSAGE
 import javax.swing.JOptionPane.showMessageDialog
-import kotlin.concurrent.fixedRateTimer
 import kotlin.math.sign
 import kotlin.random.Random
 

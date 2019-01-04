@@ -16,7 +16,9 @@ class Settings {
     val worldFont = AsciiFont("tilesets/Bisasam_16x16.png", 16, 16)
     val font = AsciiFont("tilesets/Curses_640x300diag.png", 8, 12)
     val backgroundColor = Color(32, 32, 32)
-    val foregroundColor = Color(255, 255, 255)
+
+    val drawEachUpdate = true
+    val updateStep = 25
 
     fun toJson(): String {
         return klaxon.toJsonString(this)

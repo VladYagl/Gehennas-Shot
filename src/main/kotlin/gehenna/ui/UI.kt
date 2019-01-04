@@ -9,7 +9,7 @@ enum class Alignment {
 interface Window {
     fun writeLine(line: String, y: Int, alignment: Alignment = Alignment.left, fg: Color? = null, bg: Color? = null)
     fun putChar(char: Char, x: Int, y: Int, fg: Color? = null, bg: Color? = null)
-//    fun repaint()
+    fun repaint()
 }
 
 interface UI {

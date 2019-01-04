@@ -17,13 +17,7 @@ import kotlin.reflect.full.primaryConstructor
 class EntityFactory {
     private val entities = HashMap<String, EntityBuilder>()
 
-//    private val reflections = Reflections(
-//            ConfigurationBuilder()
-//                    .addUrls(ClasspathHelper.forJavaClassPath())
-//                    .setScanners(SubTypesScanner())
-//    )
-    //TODO : TRY THIS
-    val reflections = Reflections("gehenna")
+    private val reflections = Reflections("gehenna.components")
     private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
     private val projection = KTypeProjection.invariant(Item::class.createType())
     private val itemListType = ArrayList::class.createType(listOf(projection))

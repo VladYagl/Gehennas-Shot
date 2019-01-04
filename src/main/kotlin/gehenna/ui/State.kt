@@ -26,7 +26,7 @@ private abstract class Select<T>(protected val context: Context, private val ite
         for (i in 0 until items.size) {
             updateItem(i)
         }
-//        window.repaint()
+        window.repaint()
     }
 
     override fun handleInput(input: Input): State {
@@ -37,7 +37,7 @@ private abstract class Select<T>(protected val context: Context, private val ite
                     if (index < select.size) {
                         select[index] = !select[index]
                         updateItem(index)
-//                        window.repaint()
+                        window.repaint()
                     }
                 }
                 this

@@ -23,20 +23,21 @@ class App(private val ui: UI, private val settings: Settings) {
             var count = 0
             var repaintCount = 0
             while (true) {
+                count++
+                if (needRepaint) { // fixme - when not updating by game time it has weird stops???
+                    time = game.time
+                    ui.info.writeLine("Paint=${repaintCount++} loop=$count", 0)
+                    update()
+                    ui.update()
+                }
+
                 game.update()
-                needRepaint = needRepaint || game.time > time
+                if (settings.drawEachUpdate) needRepaint = needRepaint || game.time > time + settings.updateStep
 
                 if (!game.player.has(Position::class)) {
                     state = End(context)
                     ui.endGame()
                     return
-                }
-
-                count++
-                if (needRepaint) {
-                    time = game.time
-                    ui.info.writeLine("Paint=${repaintCount++} loop=$count", 0)
-                    update()
                 }
             }
         } catch (e: Throwable) {
@@ -51,7 +52,6 @@ class App(private val ui: UI, private val settings: Settings) {
         predict()
         updateInfo()
 
-        ui.update()
         needRepaint = false
     }
 
@@ -134,7 +134,7 @@ class App(private val ui: UI, private val settings: Settings) {
         //TODO: Try drawing whole level and then moving it
         //TODO: Animations
 //        world.clear()
-        priority.forEach { it.fill(-2) }
+        priority.forEach { it.fill(-100) }
         val playerPos = game.player[Position::class]!!
         val level = playerPos.level
         moveCamera(playerPos.point)
@@ -146,9 +146,9 @@ class App(private val ui: UI, private val settings: Settings) {
                 if (priority[x, y] == -2 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
                     level.memory(pos.x, pos.y)?.let {
                         putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
-                    } ?: putGlyph(Glyph(game.player, ' ', -1), pos.x, pos.y)
+                    } ?: putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
                 } else {
-                    putGlyph(Glyph(game.player, ' ', -1), pos.x, pos.y)
+                    putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
                 }
             }
         }
@@ -188,7 +188,7 @@ class App(private val ui: UI, private val settings: Settings) {
     }
 
     fun onInput(input: Input) {
-        needRepaint = true
         state = state.handleInput(input)
+        needRepaint = true
     }
 }

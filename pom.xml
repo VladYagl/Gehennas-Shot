@@ -130,22 +130,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.hexworks.zircon</groupId>
-            <artifactId>zircon.core-jvm</artifactId>
-            <version>2018.12.25-XMAS</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.hexworks.zircon</groupId>
-            <artifactId>zircon.jvm.swing</artifactId>
-            <version>2018.12.25-XMAS</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.xaguzman</groupId>
             <artifactId>pathfinding</artifactId>
             <version>0.2.6</version>
@@ -165,7 +149,7 @@
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>klaxon</artifactId>
-            <version>4.0.2</version>
+            <version>5.0.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jetbrains.kotlin</groupId>
@@ -201,6 +185,11 @@
             <artifactId>kotlin-test</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

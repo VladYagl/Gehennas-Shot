@@ -109,7 +109,7 @@ private class Aim(private val context: Context, private val gun: Gun) : State() 
     override fun handleInput(input: Input): State {
         return when (input) {
             is Input.Direction -> {
-                context.action(gun.fire(context.game.player, input.dir))
+                context.action(gun.fire(context.game.player, input.dir) ?: return Normal(context))
                 Normal(context)
             }
             is Input.Cancel -> {

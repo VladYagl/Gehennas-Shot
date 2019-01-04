@@ -34,8 +34,10 @@ data class Health(
 
     fun dealDamage(amount: Int) {
         current -= amount
-        if (current <= 0)
+        if (current <= 0) {
+            entity[Inventory::class]?.dropAll()
             entity.clean() // FIXME: If player dies his logger is cleared too
+        }
     }
 }
 
@@ -73,6 +75,14 @@ data class Inventory(
 
     fun all(): List<Item> {
         return items.toList()
+    }
+
+    fun dropAll() {
+        entity[Position::class]?.let { pos ->
+            items.forEach { item ->
+                pos.level.spawn(item.entity, pos.x, pos.y)
+            }
+        }
     }
 }
 

@@ -36,5 +36,17 @@
         "glyph": {
             "char": 243
         }
+    },
+
+    "rifle": {
+        "rifle": {
+            "bullet": "bullet"
+        },
+        "item": {
+            "volume": 50
+        },
+        "glyph": {
+            "char": 243
+        }
     }
 }

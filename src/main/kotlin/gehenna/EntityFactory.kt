@@ -81,6 +81,7 @@ class JsonFactory : EntityFactory {
                     Boolean::class.createType() -> nextBoolean()
                     Double::class.createType() -> nextDouble()
                     Int::class.createType() -> nextInt()
+                    Long::class.createType() -> nextLong()
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
                     itemListType -> nextStringList()

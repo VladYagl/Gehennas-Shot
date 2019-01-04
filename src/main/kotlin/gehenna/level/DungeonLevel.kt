@@ -54,7 +54,7 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
 //        spawn(factory.newEntity("stairs"), 2, 2)
 
         spawn(factory.newEntity("teddy bear"), 1, 1)
-        spawn(factory.newEntity("pistol"), 1, 1)
+        spawn(factory.newEntity("rifle"), 1, 1)
     }
 
     override fun toString(): String {

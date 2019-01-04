@@ -51,7 +51,7 @@
             "speed": 100
         },
         "health": {
-            "max": 100
+            "max": 10
         },
         "sight": {
             "range": 25
@@ -67,6 +67,9 @@
         },
         "stats": {
             "speed": 475
+        },
+        "destroyTimer": {
+            "time": 10000
         }
     },
 
@@ -86,7 +89,8 @@
             "char": 46,
             "priority": -1
         },
-        "floor": {}
+        "floor": {
+        }
     },
 
     "stairs": {

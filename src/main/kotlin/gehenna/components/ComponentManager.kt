@@ -28,7 +28,7 @@ object ComponentManager {
     }
 
     fun waiters(): List<WaitTime> {
-        return waiters
+        return waiters.toList()
     }
 
     fun predictables(): Set<PredictableBehaviour> {

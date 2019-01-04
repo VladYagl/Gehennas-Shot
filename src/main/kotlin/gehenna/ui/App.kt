@@ -4,6 +4,7 @@ import gehenna.EntityFactory
 import gehenna.Game
 import gehenna.Settings
 import gehenna.components.*
+import gehenna.components.behaviour.PredictableBehaviour
 import gehenna.level.DungeonLevel
 import gehenna.streamResource
 import gehenna.utils.*
@@ -138,7 +139,7 @@ class App(private val ui: UI, private val settings: Settings) {
         val playerPos = game.player[Position::class]!!
         val level = playerPos.level
         moveCamera(playerPos.point)
-        level.visitVisibleGlyphs(playerPos.x, playerPos.y) { glyph, x, y -> putGlyph(glyph, x, y) }
+        level.visitVisibleGlyphs(playerPos.x, playerPos.y, 25) { glyph, x, y -> putGlyph(glyph, x, y) }
 
         for (x in 0 until ui.worldWidth) {
             for (y in 0 until ui.worldHeight) {
@@ -159,7 +160,8 @@ class App(private val ui: UI, private val settings: Settings) {
         val stats = game.player[Stats::class]!!
         val level = playerPos.level
         val behaviours = ArrayList<PredictableBehaviour>()
-        level.visitFov(playerPos.x, playerPos.y) { entity, _, _ ->
+        level.visitFov(playerPos.x, playerPos.y, 25) { entity, _, _ ->
+            //TODO -> Sense
             entity.all(PredictableBehaviour::class).firstOrNull()?.let { behaviours.add(it) }
         }
         behaviours.forEach {

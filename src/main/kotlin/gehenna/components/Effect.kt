@@ -1,8 +1,8 @@
 package gehenna.components
 
-import gehenna.Action
+import gehenna.actions.Action
 import gehenna.Entity
-import gehenna.Shoot
+import gehenna.actions.Shoot
 import gehenna.utils.Point
 
 abstract class Effect : WaitTime() {

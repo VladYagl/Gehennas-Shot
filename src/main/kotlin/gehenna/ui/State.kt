@@ -1,8 +1,8 @@
 package gehenna.ui
 
-import gehenna.ApplyEffect
-import gehenna.ClimbStairs
-import gehenna.Move
+import gehenna.actions.ApplyEffect
+import gehenna.actions.ClimbStairs
+import gehenna.actions.Move
 import gehenna.components.*
 
 abstract class State {

@@ -1,9 +1,12 @@
 package gehenna.level
 
 import gehenna.*
+import gehenna.actions.Collide
+import gehenna.actions.Move
+import gehenna.actions.scaleTime
 import gehenna.components.ComponentManager
 import gehenna.components.Position
-import gehenna.components.PredictableBehaviour
+import gehenna.components.behaviour.PredictableBehaviour
 import gehenna.components.Stats
 import gehenna.utils.Point
 import java.lang.Exception

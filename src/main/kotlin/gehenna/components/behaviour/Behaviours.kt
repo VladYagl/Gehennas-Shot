@@ -1,17 +1,11 @@
-package gehenna.components
+package gehenna.components.behaviour
 
-import gehenna.Action
-import gehenna.ActionResult
 import gehenna.Entity
-import gehenna.Move
+import gehenna.actions.Action
+import gehenna.actions.Move
 import gehenna.utils.random
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
-
-abstract class Behaviour : WaitTime() {
-    abstract val action: Action
-    var lastResult: ActionResult? = null
-}
 
 abstract class PredictableBehaviour : Behaviour() {
     abstract fun copy(entity: Entity): Behaviour

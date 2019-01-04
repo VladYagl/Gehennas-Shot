@@ -25,10 +25,6 @@ data class Position(
         level.move(entity, x, y)
     }
 
-    fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
-        level.visitFov(x, y, visitor)
-    }
-
     val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
 
     override fun onRemove() {

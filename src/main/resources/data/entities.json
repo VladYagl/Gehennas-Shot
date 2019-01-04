@@ -22,6 +22,9 @@
                 "Death Grips - The Money Store"
             ]
         },
+        "sight": {
+            "range": 25
+        },
         "thinkUntilSet": {},
         "logger": {}
     },
@@ -49,6 +52,9 @@
         },
         "health": {
             "max": 100
+        },
+        "sight": {
+            "range": 25
         },
         "MonsterBehaviour": {}
     },

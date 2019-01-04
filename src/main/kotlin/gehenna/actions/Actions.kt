@@ -1,22 +1,13 @@
-package gehenna
+package gehenna.actions
 
+import gehenna.Entity
 import gehenna.components.*
+import gehenna.components.behaviour.BulletBehaviour
 import gehenna.level.DungeonLevel
 import gehenna.utils.Point
 
-data class ActionResult(val time: Long, val succeeded: Boolean)
-
 fun scaleTime(time: Long, speed: Int): Long {
     return time * 100 / speed
-}
-
-abstract class Action {
-    abstract val time: Long
-    abstract fun perform(): ActionResult
-
-    protected fun end(): ActionResult = ActionResult(time, true)
-
-    protected fun fail(): ActionResult = ActionResult(0, false)
 }
 
 data class Think(override val time: Long = 0) : Action() {
@@ -81,6 +72,7 @@ data class Collide(
     override fun perform(): ActionResult {
         val health = victim[Health::class]
         victim[Logger::class]?.add("You were hit by ${entity.name} for $damage damage")
+                ?: log("$victim were hit by $entity for $damage damage", victim[Position::class])
         health?.dealDamage(damage)
         entity.clean()
         return end()

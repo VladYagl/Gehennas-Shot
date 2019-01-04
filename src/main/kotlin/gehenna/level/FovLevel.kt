@@ -44,15 +44,15 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
         return memory[x, y]
     }
 
-    fun visitVisibleGlyphs(x: Int, y: Int, visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }) {
+    fun visitVisibleGlyphs(x: Int, y: Int, range: Int, visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }) {
         fov.visitor = visitor
         fov.clear()
-        fovAlgorithm.visitFieldOfView(fov, x, y, 25)
+        fovAlgorithm.visitFieldOfView(fov, x, y, range)
     }
 
-    fun visitFov(x: Int, y: Int, visitor: (Entity, Int, Int) -> Unit) {
+    fun visitFov(x: Int, y: Int, range: Int, visitor: (Entity, Int, Int) -> Unit) {
         //TODO: this should be from entity which can see, not from x,y || something like that
-        fovAlgorithm.visitFieldOfView(EntityFov(visitor), x, y, 25)
+        fovAlgorithm.visitFieldOfView(EntityFov(visitor), x, y, range)
     }
 
     override fun update(x: Int, y: Int) {

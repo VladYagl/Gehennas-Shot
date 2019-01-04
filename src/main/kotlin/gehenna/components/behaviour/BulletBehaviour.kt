@@ -1,6 +1,12 @@
-package gehenna.components
+package gehenna.components.behaviour
 
 import gehenna.*
+import gehenna.actions.Action
+import gehenna.actions.Collide
+import gehenna.actions.Destroy
+import gehenna.actions.Move
+import gehenna.components.Health
+import gehenna.components.Position
 import gehenna.utils.Point
 
 //TODO: try some player seeking behaviour

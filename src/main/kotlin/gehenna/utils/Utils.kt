@@ -36,12 +36,22 @@ val Point.dir: Point get() = x.sign to y.sign
 
 val random = Random.Default
 val directions = listOf(
-        -1 to -1,
-        -1 to 0,
-        -1 to 1,
+        1 to 0,
+        1 to 1,
         0 to 1,
+        -1 to 1,
+        -1 to 0,
+        -1 to -1,
         0 to -1,
-        1 to -1,
-        1 to 1
+        1 to -1
 )
+
+fun turnLeft(dir: Point): Pair<Int, Int> {
+    return directions[(directions.indexOf(dir) + 1) % directions.size]
+}
+
+fun turnRight(dir: Point): Pair<Int, Int> {
+    return directions[(directions.indexOf(dir) + directions.size - 1) % directions.size]
+}
+
 

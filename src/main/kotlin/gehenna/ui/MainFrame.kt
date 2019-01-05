@@ -57,6 +57,13 @@ class GehennaPanel(width: Int, height: Int, font: AsciiFont) : AsciiPanel(width,
     override fun putChar(char: Char, x: Int, y: Int, fg: Color?, bg: Color?) {
         write(char, x, y, fg ?: defaultForegroundColor, bg ?: defaultBackgroundColor)
     }
+
+    fun forceRepaint() {
+        withEachTile { x, y, data ->
+            data.foregroundColor = Color(data.foregroundColor.rgb - 1)
+        }
+        repaint()
+    }
 }
 
 class MainFrame : JFrame(), UI, KeyEventDispatcher {
@@ -228,6 +235,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
                     getDir(e.keyChar)?.let { dir -> app.onInput(Input.Direction(dir)) }
                     when (e.keyChar) {
                         'Q' -> System.exit(0)
+                        'r' -> forceRepaint()
                         'f' -> app.onInput(Input.Fire)
                         ',', 'g' -> app.onInput(Input.Pickup)
                         'd' -> app.onInput(Input.Drop)
@@ -248,5 +256,12 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
             printException(e)
         }
         return false
+    }
+
+    private fun forceRepaint() {
+        world.forceRepaint()
+        info.forceRepaint()
+        log.forceRepaint()
+        mainPane.repaint()
     }
 }

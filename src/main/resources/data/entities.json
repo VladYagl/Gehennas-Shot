@@ -19,7 +19,7 @@
         "inventory": {
             "maxVolume": 200,
             "items": [
-                "Death Grips - The Money Store"
+                "death_grips_2"
             ]
         },
         "trueSight": {},
@@ -44,8 +44,14 @@
         "inventory": {
             "maxVolume": 200,
             "items": [
-                "pistol",
-                "BROCKHAMPTON - SATURATION II"
+                "pistol"
+            ]
+        },
+        "chooseOneItem": {
+            "items": [
+                "brockhampton_1",
+                "brockhampton_2",
+                "brockhampton_3"
             ]
         },
         "stats": {

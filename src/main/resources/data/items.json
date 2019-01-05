@@ -1,5 +1,6 @@
 {
-    "teddy bear": {
+    "toy": {
+        "name": "teddy bear",
         "item": {
             "volume": 10
         },
@@ -8,22 +9,33 @@
         }
     },
 
-    "Death Grips - The Money Store": {
+    "album": {
         "item": {
             "volume": 3
         },
         "glyph": {
-            "char": 11
+            "char": 168
         }
     },
 
-    "BROCKHAMPTON - SATURATION II": {
-        "item": {
-            "volume": 3
-        },
-        "glyph": {
-            "char": 11
-        }
+    "death_grips_2": {
+        "name": "Death Grips - The Money Store",
+        "super": "album"
+    },
+
+    "brockhampton_1": {
+        "name": "BROCKHAMPTON - SATURATION",
+        "super": "album"
+    },
+
+    "brockhampton_2": {
+        "name": "BROCKHAMPTON - SATURATION II",
+        "super": "album"
+    },
+
+    "brockhampton_3": {
+        "name": "BROCKHAMPTON - SATURATION III",
+        "super": "album"
     },
 
     "pistol": {

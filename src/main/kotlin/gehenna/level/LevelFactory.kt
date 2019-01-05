@@ -12,6 +12,11 @@ import java.io.InputStream
 class LevelFactory(private val factory: Factory<Entity>) : JsonFactory<LevelPart> {
     private val levels = HashMap<String, LevelPart>()
 
+    private data class LevelConfig(
+            val rows: List<String>,
+            val charMap: HashMap<Char, String>
+    )
+
     private fun JsonReader.nextPart(): LevelPart {
         //fixme: this shit is messy
         val entities = ArrayList<Pair<Point, String>>()

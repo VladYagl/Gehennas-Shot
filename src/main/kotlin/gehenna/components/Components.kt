@@ -2,6 +2,8 @@ package gehenna.components
 
 import gehenna.Entity
 import gehenna.level.FovLevel
+import gehenna.utils.choose
+import gehenna.utils.random
 import gehenna.utils.until
 
 data class Glyph(
@@ -83,6 +85,16 @@ data class Inventory(
                 pos.level.spawn(item.entity, pos.x, pos.y)
             }
         }
+    }
+}
+
+data class ChooseOneItem(
+        override val entity: Entity,
+        private val items: ArrayList<Item> = ArrayList()
+) : Component() {
+    override fun onAdd() {
+        entity[Inventory::class]?.add(random.choose(items))
+        entity.remove(this)
     }
 }
 

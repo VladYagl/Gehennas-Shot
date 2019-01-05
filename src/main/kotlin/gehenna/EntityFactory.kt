@@ -40,16 +40,15 @@ class EntityFactory : JsonFactory<Entity> {
         }
     }
 
-    private inner class EntityBuilder(private val components: List<ComponentBuilder>) {
-        fun build(name: String) = Entity(name, this@EntityFactory).also { entity ->
+    private inner class EntityBuilder(val components: List<ComponentBuilder>, val customName: String? = null) {
+        fun build(name: String) = Entity(customName ?: name, this@EntityFactory).also { entity ->
             components.forEach { builder ->
                 entity.add(builder.build(entity))
             }
         }
     }
 
-    private fun JsonReader.nextComponent(): ComponentBuilder {
-        val componentName = nextName()
+    private fun JsonReader.nextComponent(componentName: String): ComponentBuilder {
         val clazz = components.firstOrNull {
             it.simpleName?.toLowerCase() == componentName.toLowerCase()
         } ?: throw Exception("In entities.json: contains unknown component [$componentName]")
@@ -79,12 +78,22 @@ class EntityFactory : JsonFactory<Entity> {
 
     private fun JsonReader.nextEntity(): EntityBuilder {
         val list = ArrayList<ComponentBuilder>()
+        var entityName: String? = null
         beginObject {
             while (hasNext()) {
-                list.add(nextComponent())
+                val name = nextName()
+                when (name) {
+                    "name" -> entityName = nextString()
+                    "super" -> {
+                        val parent = nextString()
+                        list.addAll(entities[parent]?.components
+                                ?: throw Exception("No supper entity: $parent"))
+                    }
+                    else -> list.add(nextComponent(name))
+                }
             }
         }
-        return EntityBuilder(list)
+        return EntityBuilder(list, entityName)
     }
 
     override fun loadJson(stream: InputStream) {

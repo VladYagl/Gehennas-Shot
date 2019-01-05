@@ -16,7 +16,7 @@
             "#": "wall",
             ">": "stairsDown",
             "@": "bandit",
-            "%": "teddy bear"
+            "%": "toy"
         }
     }
 }

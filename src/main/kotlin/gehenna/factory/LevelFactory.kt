@@ -1,10 +1,8 @@
-package gehenna.level
+package gehenna.factory
 
 import com.beust.klaxon.JsonReader
 import com.beust.klaxon.Klaxon
-import gehenna.Entity
-import gehenna.Factory
-import gehenna.JsonFactory
+import gehenna.core.Entity
 import gehenna.utils.Point
 import java.io.InputStream
 

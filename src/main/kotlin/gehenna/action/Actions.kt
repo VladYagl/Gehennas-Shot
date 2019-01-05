@@ -1,8 +1,10 @@
-package gehenna.actions
+package gehenna.action
 
-import gehenna.Entity
-import gehenna.components.*
-import gehenna.components.behaviour.BulletBehaviour
+import gehenna.core.Entity
+import gehenna.component.*
+import gehenna.component.behaviour.BulletBehaviour
+import gehenna.core.Action
+import gehenna.core.ActionResult
 import gehenna.level.DungeonLevel
 import gehenna.utils.Point
 
@@ -61,7 +63,7 @@ data class Destroy(private val entity: Entity, override val time: Long = 0) : Ac
     }
 }
 
-//TODO: Maybe components should handle this logic
+//TODO: Maybe component should handle this logic
 data class Collide(
         val entity: Entity,
         val victim: Entity,

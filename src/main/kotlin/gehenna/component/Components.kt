@@ -1,6 +1,7 @@
-package gehenna.components
+package gehenna.component
 
-import gehenna.Entity
+import gehenna.core.Component
+import gehenna.core.Entity
 import gehenna.level.FovLevel
 import gehenna.utils.choose
 import gehenna.utils.random

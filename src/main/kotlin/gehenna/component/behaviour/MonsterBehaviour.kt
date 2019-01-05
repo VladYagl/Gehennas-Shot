@@ -1,10 +1,10 @@
-package gehenna.components.behaviour
+package gehenna.component.behaviour
 
 import com.beust.klaxon.internal.firstNotNullResult
-import gehenna.Entity
-import gehenna.actions.Action
-import gehenna.actions.Move
-import gehenna.components.*
+import gehenna.core.Entity
+import gehenna.core.Action
+import gehenna.action.Move
+import gehenna.component.*
 import gehenna.utils.*
 import java.lang.Math.abs
 
@@ -67,7 +67,12 @@ data class MonsterBehaviour(override val entity: Entity, override var time: Long
         } else null
     }
 
-    private fun randomMove(): Action = Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
+    private fun safeRandom(): Action? {
+        val dirs = directions.plus(0 to 0).filter { pos.point + it !in dangerZone }
+        return if (dirs.isNotEmpty()) Move(entity, random.choose(dirs)) else null
+    }
+
+    private fun randomMove(): Action = safeRandom() ?: Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
 
     override val action: Action
         get() {

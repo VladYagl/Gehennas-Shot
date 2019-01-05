@@ -1,6 +1,7 @@
-package gehenna.components
+package gehenna.component
 
-import gehenna.Entity
+import gehenna.core.Component
+import gehenna.core.Entity
 import gehenna.level.Level
 import gehenna.utils.Point
 import gehenna.utils.x

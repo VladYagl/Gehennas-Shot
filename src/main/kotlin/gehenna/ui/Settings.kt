@@ -1,4 +1,4 @@
-package gehenna
+package gehenna.ui
 
 import asciiPanel.AsciiFont
 import com.beust.klaxon.Converter

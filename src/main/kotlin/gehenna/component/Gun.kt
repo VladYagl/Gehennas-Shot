@@ -1,9 +1,10 @@
-package gehenna.components
+package gehenna.component
 
-import gehenna.Entity
-import gehenna.actions.Action
-import gehenna.actions.ApplyEffect
-import gehenna.actions.Shoot
+import gehenna.core.Entity
+import gehenna.core.Action
+import gehenna.action.ApplyEffect
+import gehenna.action.Shoot
+import gehenna.core.Component
 import gehenna.utils.Point
 
 abstract class Gun : Component() {

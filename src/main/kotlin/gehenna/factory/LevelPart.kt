@@ -1,7 +1,7 @@
-package gehenna.level
+package gehenna.factory
 
-import gehenna.Entity
-import gehenna.Factory
+import gehenna.core.Entity
+import gehenna.level.BasicLevel
 import gehenna.utils.*
 
 interface LevelPart {

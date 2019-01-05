@@ -1,4 +1,4 @@
-package gehenna
+package gehenna.factory
 
 import java.io.InputStream
 

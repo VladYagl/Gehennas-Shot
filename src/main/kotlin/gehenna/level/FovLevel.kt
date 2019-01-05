@@ -1,9 +1,9 @@
 package gehenna.level
 
-import gehenna.Entity
-import gehenna.components.Floor
-import gehenna.components.Glyph
-import gehenna.components.Obstacle
+import gehenna.core.Entity
+import gehenna.component.Floor
+import gehenna.component.Glyph
+import gehenna.component.Obstacle
 import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
 import org.xguzm.pathfinding.grid.NavigationGrid

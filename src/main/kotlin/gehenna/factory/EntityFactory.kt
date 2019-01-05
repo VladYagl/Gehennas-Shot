@@ -1,8 +1,9 @@
-package gehenna
+package gehenna.factory
 
 import com.beust.klaxon.JsonReader
-import gehenna.components.Component
-import gehenna.components.Item
+import gehenna.core.Entity
+import gehenna.core.Component
+import gehenna.component.Item
 import gehenna.utils.nextStringList
 import org.reflections.Reflections
 import java.io.InputStream
@@ -17,7 +18,7 @@ import kotlin.reflect.full.primaryConstructor
 class EntityFactory : JsonFactory<Entity> {
     private val entities = HashMap<String, EntityBuilder>()
 
-    private val reflections = Reflections("gehenna.components")
+    private val reflections = Reflections("gehenna.component")
     private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
     private val projection = KTypeProjection.invariant(Item::class.createType())
     private val itemListType = ArrayList::class.createType(listOf(projection))

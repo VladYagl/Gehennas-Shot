@@ -1,8 +1,8 @@
-package gehenna.components.behaviour
+package gehenna.component.behaviour
 
-import gehenna.Entity
-import gehenna.actions.Action
-import gehenna.actions.Move
+import gehenna.core.Entity
+import gehenna.core.Action
+import gehenna.action.Move
 import gehenna.utils.random
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking

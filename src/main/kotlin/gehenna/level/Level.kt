@@ -1,21 +1,21 @@
 package gehenna.level
 
-import gehenna.Entity
-import gehenna.Factory
-import gehenna.actions.Collide
-import gehenna.actions.Move
-import gehenna.actions.scaleTime
-import gehenna.components.ComponentManager
-import gehenna.components.Position
-import gehenna.components.Stats
-import gehenna.components.behaviour.PredictableBehaviour
+import gehenna.core.Entity
+import gehenna.factory.Factory
+import gehenna.action.Collide
+import gehenna.action.Move
+import gehenna.action.scaleTime
+import gehenna.core.ComponentManager
+import gehenna.component.Position
+import gehenna.component.Stats
+import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.utils.Point
 
 abstract class Level(width: Int, height: Int, val factory: Factory<Entity>) : FovLevel(width, height) {
 
     fun predict(realBehaviour: PredictableBehaviour, duration: Long): ArrayList<Point> {
         // FIXME: Now it actually moves this fake entity through real level, and also adds it to component manager
-        // FIXME: Though I'm not performing it's actions, so in theory it can't break anything
+        // FIXME: Though I'm not performing it's action, so in theory it can't break anything
         val fakeEntity = Entity("stub", factory)
         val fakeBehaviour = realBehaviour.copy(entity = fakeEntity)
         val realEntity = realBehaviour.entity

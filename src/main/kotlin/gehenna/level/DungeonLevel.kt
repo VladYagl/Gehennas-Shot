@@ -1,10 +1,11 @@
 package gehenna.level
 
-import gehenna.Entity
-import gehenna.Factory
-import gehenna.components.Floor
-import gehenna.components.Position
-import gehenna.components.Stairs
+import gehenna.core.Entity
+import gehenna.factory.Factory
+import gehenna.component.Floor
+import gehenna.component.Position
+import gehenna.component.Stairs
+import gehenna.factory.LevelPart
 import gehenna.utils.get
 import gehenna.utils.until
 
@@ -45,7 +46,7 @@ class DungeonLevel(width: Int, height: Int, factory: Factory<Entity>, val levelF
             spawn(stairs, 2, 2)
             stairsUp = stairs[Stairs::class]
         }
-       
+
 //        spawn(factory.newEntity("stairs"), 2, 2)
 //        spawn(factory.new("rifle"), 1, 1)
     }

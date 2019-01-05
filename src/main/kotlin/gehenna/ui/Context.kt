@@ -1,9 +1,9 @@
 package gehenna.ui
 
-import gehenna.actions.Action
-import gehenna.Game
-import gehenna.components.Logger
-import gehenna.components.behaviour.ThinkUntilSet
+import gehenna.core.Action
+import gehenna.core.Game
+import gehenna.component.Logger
+import gehenna.component.behaviour.ThinkUntilSet
 
 class Context(val game: Game, val ui: UI) {
     val log = game.player[Logger::class]!!

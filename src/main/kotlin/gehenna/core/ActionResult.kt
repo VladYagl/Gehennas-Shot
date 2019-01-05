@@ -1,7 +1,7 @@
-package gehenna.actions
+package gehenna.core
 
-import gehenna.components.Position
-import gehenna.components.Senses
+import gehenna.component.Position
+import gehenna.component.Senses
 import kotlin.reflect.KClass
 
 typealias Sense = KClass<out Senses>

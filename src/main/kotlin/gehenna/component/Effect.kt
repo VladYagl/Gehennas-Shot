@@ -1,8 +1,8 @@
-package gehenna.components
+package gehenna.component
 
-import gehenna.Entity
-import gehenna.actions.Action
-import gehenna.actions.Destroy
+import gehenna.core.Entity
+import gehenna.core.Action
+import gehenna.action.Destroy
 import gehenna.utils.Point
 
 abstract class Effect : WaitTime() {

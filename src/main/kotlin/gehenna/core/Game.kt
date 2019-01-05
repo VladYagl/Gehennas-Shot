@@ -1,11 +1,15 @@
-package gehenna
+package gehenna.core
 
-import gehenna.actions.scaleTime
-import gehenna.components.*
-import gehenna.components.behaviour.Behaviour
-import gehenna.components.behaviour.ThinkUntilSet
+import gehenna.action.scaleTime
+import gehenna.component.Effect
+import gehenna.component.Logger
+import gehenna.component.Senses
+import gehenna.component.Stats
+import gehenna.component.behaviour.Behaviour
+import gehenna.component.behaviour.ThinkUntilSet
+import gehenna.factory.Factory
+import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevel
-import gehenna.level.LevelPart
 
 class Game(private val factory: Factory<Entity>, private val levelFactory: Factory<LevelPart>) {
     lateinit var player: Entity

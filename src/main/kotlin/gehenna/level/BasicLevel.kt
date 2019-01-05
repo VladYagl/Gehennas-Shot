@@ -1,8 +1,8 @@
 package gehenna.level
 
-import gehenna.Entity
-import gehenna.components.Obstacle
-import gehenna.components.Position
+import gehenna.core.Entity
+import gehenna.component.Obstacle
+import gehenna.component.Position
 import gehenna.utils.Array
 import gehenna.utils.*
 

@@ -1,13 +1,11 @@
 package gehenna.ui
 
-import gehenna.EntityFactory
-import gehenna.Game
-import gehenna.Settings
-import gehenna.components.*
-import gehenna.components.behaviour.PredictableBehaviour
+import gehenna.factory.EntityFactory
+import gehenna.core.Game
+import gehenna.component.*
+import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.level.DungeonLevel
-import gehenna.level.LevelFactory
-import gehenna.streamResource
+import gehenna.factory.LevelFactory
 import gehenna.utils.*
 import java.awt.Color
 

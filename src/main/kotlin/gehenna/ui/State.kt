@@ -1,11 +1,11 @@
 package gehenna.ui
 
-import gehenna.actions.ClimbStairs
-import gehenna.actions.Move
-import gehenna.components.Gun
-import gehenna.components.Inventory
-import gehenna.components.Item
-import gehenna.components.Position
+import gehenna.action.ClimbStairs
+import gehenna.action.Move
+import gehenna.component.Gun
+import gehenna.component.Inventory
+import gehenna.component.Item
+import gehenna.component.Position
 
 abstract class State {
     open fun handleInput(input: Input): State = this

@@ -59,7 +59,7 @@ class GehennaPanel(width: Int, height: Int, font: AsciiFont) : AsciiPanel(width,
     }
 
     fun forceRepaint() {
-        withEachTile { x, y, data ->
+        withEachTile { _, _, data ->
             data.foregroundColor = Color(data.foregroundColor.rgb - 1)
         }
         repaint()

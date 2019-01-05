@@ -135,17 +135,23 @@ class App(private val ui: UI, private val settings: Settings) {
     private fun drawWorld() {
         //TODO: Try drawing whole level and then moving it
         //TODO: Animations
-//        world.clear()
         priority.forEach { it.fill(-100) }
         val playerPos = game.player[Position::class]!!
         val level = playerPos.level
         moveCamera(playerPos.point)
-        level.visitVisibleGlyphs(playerPos.x, playerPos.y, 25) { glyph, x, y -> putGlyph(glyph, x, y) }
+        game.player.all(Senses::class).forEach { sense ->
+            sense.visitFov { entity, x, y ->
+                entity[Glyph::class]?.let { glyph ->
+                    if (glyph.memorable) level.remember(x, y, glyph)
+                    putGlyph(glyph, x, y)
+                }
+            }
+        }
 
         for (x in 0 until ui.worldWidth) {
             for (y in 0 until ui.worldHeight) {
                 val pos = levelPos(x, y)
-                if (priority[x, y] == -2 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
+                if (priority[x, y] == -100 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
                     level.memory(pos.x, pos.y)?.let {
                         putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
                     } ?: putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
@@ -161,16 +167,15 @@ class App(private val ui: UI, private val settings: Settings) {
         val stats = game.player[Stats::class]!!
         val level = playerPos.level
         val behaviours = ArrayList<PredictableBehaviour>()
-        level.visitFov(playerPos.x, playerPos.y, 25) { entity, _, _ ->
-            //TODO -> Sense
+        val fov = game.player[Senses.Sight::class]?.visitFov { entity, _, _ ->
             entity.all(PredictableBehaviour::class).firstOrNull()?.let { behaviours.add(it) }
-        }
+        }!!
         behaviours.forEach {
             val glyph = it.entity[Glyph::class]!!
             var color = Color.white * 0.5 // TODO : DEFAULT COLOR
             val prediction = level.predict(it, stats.speed.toLong())
             prediction.forEach { (x, y) ->
-                if (level.isVisible(x, y) && inView(x, y)) {
+                if (fov.isVisible(x, y) && inView(x, y)) {
                     color *= 0.85
                     putGlyph(glyph, x, y, color)
                 }

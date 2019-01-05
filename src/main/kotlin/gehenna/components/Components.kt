@@ -1,6 +1,7 @@
 package gehenna.components
 
 import gehenna.Entity
+import gehenna.level.FovLevel
 
 data class Glyph(
         override val entity: Entity,
@@ -87,17 +88,19 @@ data class Inventory(
 }
 
 sealed class Senses : Component() {
-    abstract fun visitFov(visitor: (Entity, Int, Int) -> Unit)
+    abstract fun visitFov(visitor: (Entity, Int, Int) -> Unit): FovLevel.FovBoard?
 
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
+        override fun visitFov(visitor: (Entity, Int, Int) -> Unit): FovLevel.FovBoard? {
             val pos = entity[Position::class]
-            pos?.level?.visitFov(pos.x, pos.y, range, visitor)
+            return pos?.level?.visitFov(pos.x, pos.y, range, visitor)
         }
     }
 
     data class Hearing(override val entity: Entity) : Senses() {
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {} // TODO
+        override fun visitFov(visitor: (Entity, Int, Int) -> Unit): FovLevel.FovBoard? {
+            throw NotImplementedError()
+        } // TODO
     }
 }
 

@@ -25,7 +25,7 @@ private abstract class Select<T>(protected val context: Context, private val ite
 
     init {
         window.writeLine(title, 0)
-        for (i in 0 until items.size) {
+        repeat(items.size) { i ->
             updateItem(i)
         }
         window.repaint()

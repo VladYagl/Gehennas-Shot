@@ -16,7 +16,6 @@ import rlforj.los.PrecisePermissive
 abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     //fov
     private val transparent = DoubleArray(width, height) { 0.0 }
-    private val fov = GlyphFov()
     private var memory = Array(width, height) { null as Glyph? }
     private val fovAlgorithm = PrecisePermissive()
 
@@ -36,23 +35,18 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
         return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
     }
 
-    fun isVisible(x: Int, y: Int): Boolean {
-        return fov[x, y]
-    }
-
     fun memory(x: Int, y: Int): Glyph? {
         return memory[x, y]
     }
 
-    fun visitVisibleGlyphs(x: Int, y: Int, range: Int, visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }) {
-        fov.visitor = visitor
-        fov.clear()
-        fovAlgorithm.visitFieldOfView(fov, x, y, range)
+    fun remember(x: Int, y: Int, glyph: Glyph) {
+        if (glyph.priority > memory[x, y]?.priority ?: Int.MIN_VALUE) memory[x, y] = glyph
     }
 
-    fun visitFov(x: Int, y: Int, range: Int, visitor: (Entity, Int, Int) -> Unit) {
-        //TODO: this should be from entity which can see, not from x,y || something like that
-        fovAlgorithm.visitFieldOfView(EntityFov(visitor), x, y, range)
+    fun visitFov(x: Int, y: Int, range: Int, visitor: (Entity, Int, Int) -> Unit): FovBoard {
+        val fov = EntityFov(visitor)
+        fovAlgorithm.visitFieldOfView(fov, x, y, range)
+        return fov
     }
 
     override fun update(x: Int, y: Int) {
@@ -62,7 +56,7 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
         transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
     }
 
-    private abstract inner class FovBoard : ILosBoard {
+    abstract inner class FovBoard : ILosBoard {
         protected var board = BooleanArray(width, height) { false }
         operator fun get(x: Int, y: Int): Boolean {
             return board[x, y]
@@ -84,18 +78,8 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
         fun clear() {
             board.fill(false)
         }
-    }
 
-    private inner class GlyphFov : FovBoard() {
-        var visitor: (Glyph, Int, Int) -> Unit = { _, _, _ -> }
-
-        override fun visitImpl(x: Int, y: Int) {
-            val glyph = cells[x, y].maxBy { it[Glyph::class]?.priority ?: Int.MIN_VALUE }?.get(Glyph::class)
-            if (glyph != null && glyph.memorable) {
-                memory[x, y] = glyph
-            }
-            cells[x, y].forEach { it[Glyph::class]?.let { glyph -> visitor(glyph, x, y) } }
-        }
+        fun isVisible(x: Int, y: Int) = board[x, y]
     }
 
     private inner class EntityFov(private val visitor: (Entity, Int, Int) -> Unit) : FovBoard() {

@@ -49,12 +49,13 @@ class Game(private val factory: EntityFactory) {
             }
             first.time += scaleTime(result.time, first.entity[Stats::class]?.speed ?: 100)
             ComponentManager.update()
-            val fov = player[Senses.Sight::class]?.visitFov { _, _, _ -> }
+            val sight = player[Senses.Sight::class]
+            sight?.visitFov { _, _, _ -> }
             result.logEntries.forEach { entry ->
                 if (player.has(entry.sense)) {
                     when (entry.sense) {
                         Senses.Sight::class -> {
-                            if (fov?.isVisible(entry.position!!.x, entry.position.y) == true) {
+                            if (sight?.isVisible(entry.position!!.x, entry.position.y) == true) {
                                 player[Logger::class]?.add(entry.text)
                             }
                         }

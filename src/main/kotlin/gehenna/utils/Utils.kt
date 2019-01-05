@@ -54,4 +54,28 @@ fun turnRight(dir: Point): Pair<Int, Int> {
     return directions[(directions.indexOf(dir) + directions.size - 1) % directions.size]
 }
 
+operator fun <T, S> Iterable<T>.times(other: Iterable<S>): List<Pair<T, S>> {
+    return cartesianProduct(other) { first, second -> first to second }
+}
+
+fun <T, S, V> Iterable<T>.cartesianProduct(other: Iterable<S>, transformer: (first: T, second: S) -> V): List<V> {
+    return flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
+}
+
+infix fun Point.until(to: Point): List<Point> {
+    return (x until to.x) * (y until to.y)
+}
+
+operator fun Point.rangeTo(to: Point): List<Point> {
+    return (x..to.x) * (y..to.y)
+}
+
+fun range(end: Point): List<Point> {
+    return (0 to 0) until end
+}
+
+fun range(x: Int, y: Int): List<Point> {
+    return (0 to 0) until (x to y)
+}
+
 

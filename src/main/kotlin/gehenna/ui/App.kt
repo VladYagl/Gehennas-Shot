@@ -148,16 +148,14 @@ class App(private val ui: UI, private val settings: Settings) {
             }
         }
 
-        for (x in 0 until ui.worldWidth) {
-            for (y in 0 until ui.worldHeight) {
-                val pos = levelPos(x, y)
-                if (priority[x, y] == -100 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
-                    level.memory(pos.x, pos.y)?.let {
-                        putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
-                    } ?: putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
-                } else {
-                    putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
-                }
+        for ((x, y) in range(ui.worldWidth, ui.worldHeight)) {
+            val pos = levelPos(x, y)
+            if (priority[x, y] == -100 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
+                level.memory(pos.x, pos.y)?.let {
+                    putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
+                } ?: putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
+            } else {
+                putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
             }
         }
     }
@@ -167,15 +165,16 @@ class App(private val ui: UI, private val settings: Settings) {
         val stats = game.player[Stats::class]!!
         val level = playerPos.level
         val behaviours = ArrayList<PredictableBehaviour>()
-        val fov = game.player[Senses.Sight::class]?.visitFov { entity, _, _ ->
+        val sight = game.player[Senses.Sight::class]!!
+        sight.visitFov { entity, _, _ ->
             entity.all(PredictableBehaviour::class).firstOrNull()?.let { behaviours.add(it) }
-        }!!
+        }
         behaviours.forEach {
             val glyph = it.entity[Glyph::class]!!
             var color = Color.white * 0.5 // TODO : DEFAULT COLOR
             val prediction = level.predict(it, stats.speed.toLong())
             prediction.forEach { (x, y) ->
-                if (fov.isVisible(x, y) && inView(x, y)) {
+                if (sight.isVisible(x, y) && inView(x, y)) {
                     color *= 0.85
                     putGlyph(glyph, x, y, color)
                 }

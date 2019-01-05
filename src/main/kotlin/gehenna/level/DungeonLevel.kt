@@ -3,10 +3,7 @@ package gehenna.level
 import gehenna.EntityFactory
 import gehenna.components.Floor
 import gehenna.components.Obstacle
-import gehenna.utils.get
-import gehenna.utils.random
-import gehenna.utils.x
-import gehenna.utils.y
+import gehenna.utils.*
 
 class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0) : Level(width, height, factory) {
 
@@ -19,14 +16,12 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
     }
 
     private fun room(x1: Int, y1: Int, width: Int, height: Int) {
-        for (x in x1 until x1 + width) {
-            for (y in y1 until y1 + height) {
-                if (cells[x, y].none { it.has(Floor::class) }) {
-                    floor(x, y)
-                }
-                if (x == x1 || x == x1 + width - 1 || y == y1 || y == y1 + height - 1) {
-                    wall(x, y)
-                }
+        for ((x, y) in (x1 to y1) until (x1 + width to y1 + height)) {
+            if (cells[x, y].none { it.has(Floor::class) }) {
+                floor(x, y)
+            }
+            if (x == x1 || x == x1 + width - 1 || y == y1 || y == y1 + height - 1) {
+                wall(x, y)
             }
         }
     }

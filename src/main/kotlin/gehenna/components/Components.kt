@@ -2,6 +2,7 @@ package gehenna.components
 
 import gehenna.Entity
 import gehenna.level.FovLevel
+import gehenna.utils.until
 
 data class Glyph(
         override val entity: Entity,
@@ -88,19 +89,33 @@ data class Inventory(
 }
 
 sealed class Senses : Component() {
-    abstract fun visitFov(visitor: (Entity, Int, Int) -> Unit): FovLevel.FovBoard?
+    abstract fun visitFov(visitor: (Entity, Int, Int) -> Unit)
+    abstract fun isVisible(x: Int, y: Int): Boolean
 
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit): FovLevel.FovBoard? {
+        private var fov: FovLevel.FovBoard? = null
+        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
             val pos = entity[Position::class]
-            return pos?.level?.visitFov(pos.x, pos.y, range, visitor)
+            fov = pos?.level?.visitFov(pos.x, pos.y, range, visitor)
+        }
+
+        override fun isVisible(x: Int, y: Int) = fov?.isVisible(x, y) ?: false
+    }
+
+    data class TrueSight(override val entity: Entity) : Senses() {
+        override fun isVisible(x: Int, y: Int): Boolean = true
+
+        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
+            entity[Position::class]?.let { pos ->
+                for ((x, y) in (0 to 0) until (pos.level.width to pos.level.height)) {
+                    pos.level[x, y].forEach { entity -> visitor(entity, x, y) }
+                }
+            }
         }
     }
 
     data class Hearing(override val entity: Entity) : Senses() {
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit): FovLevel.FovBoard? {
-            throw NotImplementedError()
-        } // TODO
+        override fun isVisible(x: Int, y: Int): Boolean = false
+        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {} // TODO
     }
 }
-

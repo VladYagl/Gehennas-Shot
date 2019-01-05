@@ -5,6 +5,7 @@ import asciiPanel.AsciiPanel
 import gehenna.loadSettings
 import gehenna.streamResource
 import gehenna.utils.Point
+import gehenna.utils.range
 import gehenna.utils.showError
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -171,11 +172,9 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         )
         message.defaultBackgroundColor = trueDarkGray
         message.clear()
-        for (x in 0 until message.widthInCharacters) {
-            for (y in 0 until message.heightInCharacters) {
-                if (x == 0 || x == message.widthInCharacters - 1 || y == 0 || y == message.heightInCharacters - 1) {
-                    message.write(254.toChar(), x, y)
-                }
+        for ((x, y) in range(message.widthInCharacters, message.heightInCharacters)) {
+            if (x == 0 || x == message.widthInCharacters - 1 || y == 0 || y == message.heightInCharacters - 1) {
+                message.write(254.toChar(), x, y)
             }
         }
         message.writeCenter("You are dead", 2)

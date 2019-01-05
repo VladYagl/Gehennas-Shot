@@ -16,7 +16,7 @@ data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
     private fun updateSenses() {
         dangerZone.clear()
         val bullets = ArrayList<PredictableBehaviour>()
-        for (sense in entity.all(Senses::class)) {
+        entity.all(Senses::class).forEach { sense ->
             sense.visitFov { obj, x, y ->
                 if (obj != entity && obj[Obstacle::class]?.blockMove == true) dangerZone.add(x to y)
                 obj[BulletBehaviour::class]?.let { bullets.add(it) }

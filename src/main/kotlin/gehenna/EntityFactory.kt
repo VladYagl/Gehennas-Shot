@@ -3,6 +3,7 @@ package gehenna
 import com.beust.klaxon.JsonReader
 import gehenna.components.Component
 import gehenna.components.Item
+import gehenna.utils.nextStringList
 import org.reflections.Reflections
 import java.io.InputStream
 import kotlin.reflect.KFunction
@@ -11,14 +12,9 @@ import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
 
-
-interface EntityFactory {
-    fun newEntity(name: String): Entity
-}
-
 //FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
 //TODO: Throw proper exceptions of where error happens and why
-class JsonFactory : EntityFactory {
+class EntityFactory : JsonFactory<Entity> {
     private val entities = HashMap<String, EntityBuilder>()
 
     private val reflections = Reflections("gehenna.components")
@@ -34,7 +30,7 @@ class JsonFactory : EntityFactory {
                         if (parameter.type == itemListType) {
                             @Suppress("UNCHECKED_CAST")
                             (value as List<String>).map {
-                                newEntity(it)[Item::class] ?: throw Exception("$it is not an Item")
+                                new(it)[Item::class] ?: throw Exception("$it is not an Item")
                             }
                         } else {
                             value
@@ -45,23 +41,11 @@ class JsonFactory : EntityFactory {
     }
 
     private inner class EntityBuilder(private val components: List<ComponentBuilder>) {
-        fun build(name: String): Entity {
-            val entity = Entity(name, this@JsonFactory)
+        fun build(name: String) = Entity(name, this@EntityFactory).also { entity ->
             components.forEach { builder ->
                 entity.add(builder.build(entity))
             }
-            return entity
         }
-    }
-
-    private fun JsonReader.nextStringList(): List<String> {
-        val list = ArrayList<String>()
-        beginArray {
-            while (hasNext()) {
-                list.add(nextString())
-            }
-        }
-        return list
     }
 
     private fun JsonReader.nextComponent(): ComponentBuilder {
@@ -103,7 +87,7 @@ class JsonFactory : EntityFactory {
         return EntityBuilder(list)
     }
 
-    fun loadJson(stream: InputStream) {
+    override fun loadJson(stream: InputStream) {
         JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
                 while (reader.hasNext()) {
@@ -114,7 +98,7 @@ class JsonFactory : EntityFactory {
         }
     }
 
-    override fun newEntity(name: String): Entity {
+    override fun new(name: String): Entity {
         return entities[name]?.build(name) ?: throw Exception("no such entity: $name")
     }
 }

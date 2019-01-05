@@ -1,18 +1,20 @@
 package gehenna.ui
 
+import gehenna.EntityFactory
 import gehenna.Game
-import gehenna.JsonFactory
 import gehenna.Settings
 import gehenna.components.*
 import gehenna.components.behaviour.PredictableBehaviour
 import gehenna.level.DungeonLevel
+import gehenna.level.LevelFactory
 import gehenna.streamResource
 import gehenna.utils.*
 import java.awt.Color
 
 class App(private val ui: UI, private val settings: Settings) {
-    private val factory = JsonFactory()
-    private val game = Game(factory)
+    private val factory = EntityFactory()
+    private val levelFactory = LevelFactory(factory)
+    private val game = Game(factory, levelFactory)
     private val context: Context
     private var state: State
 
@@ -150,7 +152,7 @@ class App(private val ui: UI, private val settings: Settings) {
             }
         }
 
-        for ((x, y) in range(ui.worldWidth, ui.worldHeight)) {
+        range(ui.worldWidth, ui.worldHeight).forEach { (x, y) ->
             val pos = levelPos(x, y)
             if (priority[x, y] == -100 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
                 level.memory(pos.x, pos.y)?.let {
@@ -188,6 +190,7 @@ class App(private val ui: UI, private val settings: Settings) {
     init {
         factory.loadJson(streamResource("data/entities.json"))
         factory.loadJson(streamResource("data/items.json"))
+        levelFactory.loadJson(streamResource("data/rooms.json"))
         game.init()
 
         game.player[Logger::class]?.add("Welcome to Gehenna's Shot")

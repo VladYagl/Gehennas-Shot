@@ -172,7 +172,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         )
         message.defaultBackgroundColor = trueDarkGray
         message.clear()
-        for ((x, y) in range(message.widthInCharacters, message.heightInCharacters)) {
+        range(message.widthInCharacters, message.heightInCharacters).forEach { (x, y) ->
             if (x == 0 || x == message.widthInCharacters - 1 || y == 0 || y == message.heightInCharacters - 1) {
                 message.write(254.toChar(), x, y)
             }

@@ -5,15 +5,16 @@ import gehenna.components.*
 import gehenna.components.behaviour.Behaviour
 import gehenna.components.behaviour.ThinkUntilSet
 import gehenna.level.DungeonLevel
+import gehenna.level.LevelPart
 
-class Game(private val factory: EntityFactory) {
+class Game(private val factory: Factory<Entity>, private val levelFactory: Factory<LevelPart>) {
     lateinit var player: Entity
         private set
     var time: Long = 0
 
     fun init() {
-        player = factory.newEntity("player")
-        val level = DungeonLevel(5 * 8, 6 * 8, factory)
+        player = factory.new("player")
+        val level = DungeonLevel(5 * 8, 6 * 8, factory, levelFactory)
         level.init()
         level.spawn(player, 10, 10)
         ComponentManager.update()

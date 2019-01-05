@@ -75,9 +75,7 @@ data class Inventory(
         items.remove(item)
     }
 
-    fun all(): List<Item> {
-        return items.toList()
-    }
+    fun all() = items.toList()
 
     fun dropAll() {
         entity[Position::class]?.let { pos ->

@@ -1,5 +1,6 @@
 package gehenna.utils
 
+import com.beust.klaxon.JsonReader
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -8,9 +9,7 @@ import javax.swing.JOptionPane.showMessageDialog
 import kotlin.math.sign
 import kotlin.random.Random
 
-operator fun Color.times(alpha: Double): Color {
-    return Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
-}
+operator fun Color.times(alpha: Double) = Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
 
 fun showError(e: Throwable) {
     val errors = StringWriter()
@@ -21,13 +20,9 @@ fun showError(e: Throwable) {
 
 typealias Point = Pair<Int, Int>
 
-operator fun Point.minus(other: Point): Point {
-    return Pair(first - other.first, second - other.second)
-}
+operator fun Point.minus(other: Point) = Point(first - other.first, second - other.second)
 
-operator fun Point.plus(other: Point): Point {
-    return Pair(first + other.first, second + other.second)
-}
+operator fun Point.plus(other: Point) = Point(first + other.first, second + other.second)
 
 val Point.x: Int get() = first
 val Point.y: Int get() = second
@@ -46,13 +41,9 @@ val directions = listOf(
         1 to -1
 )
 
-fun turnLeft(dir: Point): Pair<Int, Int> {
-    return directions[(directions.indexOf(dir) + 1) % directions.size]
-}
+fun turnLeft(dir: Point) = directions[(directions.indexOf(dir) + 1) % directions.size]
 
-fun turnRight(dir: Point): Pair<Int, Int> {
-    return directions[(directions.indexOf(dir) + directions.size - 1) % directions.size]
-}
+fun turnRight(dir: Point) = directions[(directions.indexOf(dir) + directions.size - 1) % directions.size]
 
 operator fun <T, S> Iterable<T>.times(other: Iterable<S>): List<Pair<T, S>> {
     return cartesianProduct(other) { first, second -> first to second }
@@ -76,6 +67,14 @@ fun range(end: Point): List<Point> {
 
 fun range(x: Int, y: Int): List<Point> {
     return (0 to 0) until (x to y)
+}
+
+fun JsonReader.nextStringList() = ArrayList<String>().also { list ->
+    beginArray {
+        while (hasNext()) {
+            list.add(nextString())
+        }
+    }
 }
 
 

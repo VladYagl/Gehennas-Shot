@@ -63,7 +63,9 @@
         "sight": {
             "range": 25
         },
-        "MonsterBehaviour": {}
+        "MonsterBehaviour": {
+            "time": 1
+        }
     },
 
     "bullet": {
@@ -114,5 +116,7 @@
             "priority": 20
         },
         "stairs": {}
-    }
+    },
+
+    "nothing": {}
 }

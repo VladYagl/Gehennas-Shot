@@ -1,52 +1,48 @@
 package gehenna.level
 
-import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
+import com.beust.klaxon.Klaxon
 import gehenna.Entity
 import gehenna.Factory
 import gehenna.JsonFactory
 import gehenna.utils.Point
-import gehenna.utils.nextStringList
 import java.io.InputStream
 
 class LevelFactory(private val factory: Factory<Entity>) : JsonFactory<LevelPart> {
     private val levels = HashMap<String, LevelPart>()
+    private val klaxon = Klaxon()
 
     private data class LevelConfig(
             val rows: List<String>,
-            val charMap: HashMap<Char, String>
-    )
-
-    private fun JsonReader.nextPart(): LevelPart {
-        //fixme: this shit is messy
-        val entities = ArrayList<Pair<Point, String>>()
-        var charMapTemp: JsonObject? = null
-        var rowsTemp: List<String>? = null
-        beginObject {
-            while (hasNext()) {
-                when (nextName()) {
-                    "entities" -> charMapTemp = nextObject()
-                    "rows" -> rowsTemp = nextStringList()
+            val entities: Map<String, Any>
+    ) {
+        fun toPart(factory: Factory<Entity>): LevelPart {
+            val list = ArrayList<Pair<Point, EntityConfig>>()
+            rows.forEachIndexed { y, row ->
+                row.forEachIndexed { x, char ->
+                    entities[char.toString()]?.let { entity ->
+                        when (entity) {
+                            is String -> list.add((x to y) to EntityConfig.Name(entity))
+                            is List<*> -> list.add((x to y) to EntityConfig.Choice(entity as List<String>))
+                            else -> throw Exception("Unknown entity config: $entity")
+                        }
+                    }
                 }
             }
+            return FixedPart(list, factory)
         }
-        val rows = rowsTemp!!
-        val charMap = charMapTemp!!
-        rows.forEachIndexed { y, row ->
-            row.forEachIndexed { x, char ->
-                charMap.string(char.toString())?.let { name ->
-                    entities.add((x to y) to name)
-                }
-            }
-        }
-        return FixedPart(entities, factory)
     }
 
     override fun loadJson(stream: InputStream) {
         JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
-                val name = reader.nextName()
-                levels[name] = reader.nextPart()
+                while (reader.hasNext()) {
+                    val name = reader.nextName()
+                    reader.lexer.nextToken() // consume ':'
+                    klaxon.parse<LevelConfig>(reader)?.let { config ->
+                        levels.put(name, config.toPart(factory))
+                    }
+                }
             }
         }
     }

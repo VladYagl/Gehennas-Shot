@@ -25,7 +25,7 @@ class Settings {
     }
 }
 
-private val colorConverter = object : Converter {
+private object ColorConverter : Converter {
     override fun canConvert(cls: Class<*>) = cls == Color::class.java
 
     override fun toJson(value: Any): String = (value as Color).let {
@@ -42,7 +42,7 @@ private val colorConverter = object : Converter {
 
 }
 
-private val fontConverter = object : Converter {
+private object FontConverter : Converter {
     override fun canConvert(cls: Class<*>) = cls == AsciiFont::class.java
 
     override fun toJson(value: Any): String = (value as AsciiFont).let {
@@ -59,7 +59,7 @@ private val fontConverter = object : Converter {
 
 }
 
-private val klaxon = Klaxon().converter(colorConverter).converter(fontConverter)
+private val klaxon = Klaxon().converter(ColorConverter).converter(FontConverter)
 
 fun streamResource(name: String): InputStream {
     return (Thread::currentThread)().contextClassLoader.getResourceAsStream(name)!!

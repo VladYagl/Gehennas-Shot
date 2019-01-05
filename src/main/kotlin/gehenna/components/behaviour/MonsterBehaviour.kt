@@ -8,7 +8,7 @@ import gehenna.components.*
 import gehenna.utils.*
 import java.lang.Math.abs
 
-data class MonsterBehaviour(override val entity: Entity) : Behaviour() {
+data class MonsterBehaviour(override val entity: Entity, override var time: Long) : Behaviour() {
     private var target: Position? = null
     private val dangerZone = HashSet<Point>()
     private val pos get() = entity[Position::class]!!

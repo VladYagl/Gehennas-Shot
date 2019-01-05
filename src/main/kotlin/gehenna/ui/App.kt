@@ -73,6 +73,7 @@ class App(private val ui: UI, private val settings: Settings) {
         ui.info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
         ui.info.writeLine("Effects = " + game.player.all(Effect::class), 5)
         ui.info.writeLine("Inventory", 8, Alignment.center, Color.white, Color.darkGray)
+        repeat(10) { i -> ui.info.writeLine("", 9 + i) }
         storage.all().forEachIndexed { index, item ->
             ui.info.writeLine(item.entity.toString(), 9 + index)
         }
@@ -81,6 +82,7 @@ class App(private val ui: UI, private val settings: Settings) {
             ui.info.writeLine("Level: " + pos.level.depth, 19)
         }
 
+        repeat(10) { i -> ui.info.writeLine("", 31 + i) }
         ui.info.writeLine("Objects", 30, Alignment.center, Color.white, Color.darkGray)
         pos.neighbors.forEachIndexed { index, entity ->
             ui.info.writeLine(entity.toString(), 31 + index)
@@ -195,6 +197,7 @@ class App(private val ui: UI, private val settings: Settings) {
     }
 
     fun onInput(input: Input) {
+        ui.info.writeLine("$input", 23)
         state = state.handleInput(input)
         needRepaint = true
     }

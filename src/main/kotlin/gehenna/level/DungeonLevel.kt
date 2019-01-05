@@ -3,9 +3,12 @@ package gehenna.level
 import gehenna.EntityFactory
 import gehenna.components.Floor
 import gehenna.components.Obstacle
+import gehenna.components.Position
+import gehenna.components.Stairs
 import gehenna.utils.*
 
-class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0) : Level(width, height, factory) {
+class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: Int = 0, private val previous: Stairs? = null) : Level(width, height, factory) {
+    var stairsUp: Stairs? = null
 
     private fun wall(x: Int, y: Int) {
         spawn(factory.newEntity("wall"), x, y)
@@ -41,11 +44,17 @@ class DungeonLevel(width: Int, height: Int, factory: EntityFactory, val depth: I
                 room.y + 1 + random.nextInt(size.y - 3)
         )
         spawn(
-                factory.newEntity("stairs"),
+                factory.newEntity("stairsDown"),
                 room.x + 1 + random.nextInt(size.x - 3),
                 room.y + 1 + random.nextInt(size.y - 3)
         )
 
+        previous?.let { prev ->
+            val stairs = factory.newEntity("stairsUp")
+            stairs[Stairs::class]?.pos = prev.entity[Position::class]
+            spawn(stairs, 2, 2)
+            stairsUp = stairs[Stairs::class]
+        }
 //        spawn(factory.newEntity("stairs"), 2, 2)
 
         spawn(factory.newEntity("teddy bear"), 1, 1)

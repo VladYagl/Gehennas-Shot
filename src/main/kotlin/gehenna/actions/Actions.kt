@@ -97,9 +97,9 @@ data class ClimbStairs(private val entity: Entity, override val time: Long = 100
         val stairs = pos.neighbors.firstOrNull { it.has(Stairs::class) }?.get(Stairs::class) ?: return fail()
         if (stairs.pos == null) {
             val depth = if (pos.level is DungeonLevel) pos.level.depth + 1 else -1
-            val level = DungeonLevel(5 * 8, 6 * 8, pos.level.factory, depth)
+            val level = DungeonLevel(5 * 8, 6 * 8, pos.level.factory, depth, stairs)
             level.init()
-            stairs.pos = Position(stairs.entity, 2, 2, level)
+            stairs.pos = level.stairsUp?.entity?.get(Position::class)
         }
         val destination = stairs.pos!!
         pos.level.remove(entity)

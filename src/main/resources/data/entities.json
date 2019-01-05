@@ -22,6 +22,7 @@
                 "Death Grips - The Money Store"
             ]
         },
+        "trueSight": {},
         "sight": {
             "range": 25
         },
@@ -93,9 +94,17 @@
         }
     },
 
-    "stairs": {
+    "stairsDown": {
         "glyph": {
             "char": 62,
+            "priority": 20
+        },
+        "stairs": {}
+    },
+
+    "stairsUp": {
+        "glyph": {
+            "char": 60,
             "priority": 20
         },
         "stairs": {}

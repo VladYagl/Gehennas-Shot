@@ -26,13 +26,20 @@ data class Position(
         level.move(entity, x, y)
     }
 
-    val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
-
-    override fun onRemove() {
-        level.remove(this)
+    fun spawnHere(entity: Entity) {
+        level.spawn(entity, x, y)
     }
 
-    override fun onAdd() {
-        level.spawn(this)
+    val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
+
+    override fun onEvent(event: Entity.Event) {
+        when (event) {
+            is Entity.Add -> level.spawn(this)
+            is Entity.Remove -> level.remove(this)
+        }
+    }
+
+    fun findPath(toX: Int, toY: Int): List<Point>? {
+        return level.findPath(x, y, toX, toY)
     }
 }

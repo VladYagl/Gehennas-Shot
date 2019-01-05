@@ -34,13 +34,15 @@ data class Health(
         override val entity: Entity,
         val max: Int
 ) : Component() {
+    object Death : Entity.Event
+
     var current = max
         private set
 
     fun dealDamage(amount: Int) {
         current -= amount
         if (current <= 0) {
-            entity[Inventory::class]?.dropAll()
+            entity.emit(Death)
             entity.clean() // FIXME: If player dies his logger is cleared too
         }
     }
@@ -80,10 +82,12 @@ data class Inventory(
 
     fun all() = items.toList()
 
-    fun dropAll() {
-        entity[Position::class]?.let { pos ->
-            items.forEach { item ->
-                pos.level.spawn(item.entity, pos.x, pos.y)
+    override fun onEvent(event: Entity.Event) {
+        if (event is Health.Death) {
+            entity[Position::class]?.let { pos ->
+                items.forEach { item ->
+                    pos.spawnHere(item.entity)
+                }
             }
         }
     }
@@ -93,9 +97,11 @@ data class ChooseOneItem(
         override val entity: Entity,
         private val items: ArrayList<Item> = ArrayList()
 ) : Component() {
-    override fun onAdd() {
-        entity[Inventory::class]?.add(random.choose(items))
-        entity.remove(this)
+    override fun onEvent(event: Entity.Event) {
+        if (event is Entity.Finish) {
+            entity[Inventory::class]?.add(random.choose(items))
+            entity.remove(this)
+        }
     }
 }
 

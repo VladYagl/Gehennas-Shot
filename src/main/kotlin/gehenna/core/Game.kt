@@ -14,7 +14,8 @@ import gehenna.level.DungeonLevel
 class Game(private val factory: Factory<Entity>, private val levelFactory: Factory<LevelPart>) {
     lateinit var player: Entity
         private set
-    var time: Long = 0
+    private var globalTime: Long = 0
+    val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
 
     fun init() {
         player = factory.new("player")
@@ -28,10 +29,9 @@ class Game(private val factory: Factory<Entity>, private val levelFactory: Facto
 
     // TODO: Think about energy randomization / but maybe i don't really need one
     fun update() {
-        val first = ComponentManager.waiters().firstOrNull()
-        if (first != null) {
+        ComponentManager.waiters().firstOrNull()?.let { first ->
             val time = first.time
-            this.time += time
+            globalTime += time
             ComponentManager.waiters().forEach {
                 it.time -= time
                 if (it is Effect) {

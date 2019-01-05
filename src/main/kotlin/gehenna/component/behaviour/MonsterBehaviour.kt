@@ -1,14 +1,14 @@
 package gehenna.component.behaviour
 
 import com.beust.klaxon.internal.firstNotNullResult
-import gehenna.core.Entity
-import gehenna.core.Action
 import gehenna.action.Move
 import gehenna.component.*
+import gehenna.core.Action
+import gehenna.core.Entity
 import gehenna.utils.*
 import java.lang.Math.abs
 
-data class MonsterBehaviour(override val entity: Entity, override var time: Long) : Behaviour() {
+data class MonsterBehaviour(override val entity: Entity, override var time: Long = 0) : Behaviour() {
     private var target: Position? = null
     private val dangerZone = HashSet<Point>()
     private val pos get() = entity[Position::class]!!
@@ -44,7 +44,7 @@ data class MonsterBehaviour(override val entity: Entity, override var time: Long
     }
 
     private fun goto(target: Position): Action? {
-        return pos.level.findPath(pos.x, pos.y, target.x, target.y)?.firstOrNull()?.let { next ->
+        return pos.findPath(target.x, target.y)?.firstOrNull()?.let { next ->
             val dir = next.x - pos.x to next.y - pos.y
             if (next !in dangerZone) Move(entity, dir)
             else {

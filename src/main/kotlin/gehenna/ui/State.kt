@@ -31,29 +31,27 @@ private abstract class Select<T>(protected val context: Context, private val ite
         window.repaint()
     }
 
-    override fun handleInput(input: Input): State {
-        return when (input) {
-            is Input.Char -> {
-                if (input.char in 'a'..'z') {
-                    val index = input.char - 'a'
-                    if (index < select.size) {
-                        select[index] = !select[index]
-                        updateItem(index)
-                        window.repaint()
-                    }
+    override fun handleInput(input: Input) = when (input) {
+        is Input.Char -> {
+            if (input.char in 'a'..'z') {
+                val index = input.char - 'a'
+                if (index < select.size) {
+                    select[index] = !select[index]
+                    updateItem(index)
+                    window.repaint()
                 }
-                this
             }
-            is Input.Accept -> {
-                context.removeWindow(window)
-                onAccept(items.filterIndexed { index, _ -> select[index] })
-            }
-            is Input.Cancel -> {
-                context.removeWindow(window)
-                onCancel()
-            }
-            else -> this
+            this
         }
+        is Input.Accept -> {
+            context.removeWindow(window)
+            onAccept(items.filterIndexed { index, _ -> select[index] })
+        }
+        is Input.Cancel -> {
+            context.removeWindow(window)
+            onCancel()
+        }
+        else -> this
     }
 
     abstract fun onAccept(items: List<T>): State
@@ -65,39 +63,35 @@ private abstract class Select<T>(protected val context: Context, private val ite
 
 private class Normal(private val context: Context) : State() {
 
-    override fun handleInput(input: Input): State {
-        return when (input) {
-            is Input.Direction -> {
-                context.action(Move(context.game.player, input.dir))
-                this
-            }
-            Input.Fire -> {
-                val inventory = context.game.player[Inventory::class]!!
-                val gun = inventory.all().mapNotNull { it.entity.all(Gun::class).firstOrNull() }.firstOrNull()
-                if (gun == null) {
-                    context.log.add("You don't have any guns!")
-                    return this
-                }
-                Aim(context, gun)
-            }
-            Input.Pickup -> {
-                val pos = context.game.player[Position::class]!!
-                val items = pos.neighbors.mapNotNull { it[Item::class] }
-                if (items.isEmpty()) {
-                    context.log.add("There is no items to pickup(((")
-                    return this
-                }
-                Pickup(context, items)
-            }
-            Input.Drop -> {
-                Drop(context)
-            }
-            Input.ClimbStairs -> {
-                context.action(ClimbStairs(context.game.player))
-                this
-            }
-            else -> this
+    override fun handleInput(input: Input) = when (input) {
+        is Input.Direction -> {
+            context.action = Move(context.game.player, input.dir)
+            this
         }
+        Input.Fire -> {
+            val inventory = context.game.player[Inventory::class]!!
+            val gun = inventory.all().mapNotNull { it.entity.all(Gun::class).firstOrNull() }.firstOrNull()
+            if (gun == null) {
+                context.log.add("You don't have any guns!")
+                this
+            } else Aim(context, gun)
+        }
+        Input.Pickup -> {
+            val pos = context.game.player[Position::class]!!
+            val items = pos.neighbors.mapNotNull { it[Item::class] }
+            if (items.isEmpty()) {
+                context.log.add("There is no items to pickup(((")
+                this
+            } else Pickup(context, items)
+        }
+        Input.Drop -> {
+            Drop(context)
+        }
+        Input.ClimbStairs -> {
+            context.action = ClimbStairs(context.game.player)
+            this
+        }
+        else -> this
     }
 }
 
@@ -106,25 +100,26 @@ private class Aim(private val context: Context, private val gun: Gun) : State() 
         context.log.add("Fire in which direction?")
     }
 
-    override fun handleInput(input: Input): State {
-        return when (input) {
-            is Input.Direction -> {
-                context.action(gun.fire(context.game.player, input.dir) ?: return Normal(context))
-                Normal(context)
-            }
-            is Input.Cancel -> {
-                context.log.add("Never mind")
-                Normal(context)
-            }
-            else -> this
+    override fun handleInput(input: Input) = when (input) {
+        is Input.Direction -> {
+            context.action = gun.fire(context.game.player, input.dir)
+            Normal(context)
         }
+        is Input.Cancel -> {
+            context.log.add("Never mind")
+            Normal(context)
+        }
+        else -> this
     }
 }
 
 class End(private val context: Context) : State() {
-    override fun handleInput(input: Input): State {
-        if (input == Input.Accept) System.exit(0)
-        return this
+    override fun handleInput(input: Input) = when (input) {
+        Input.Accept, Input.Cancel -> {
+            System.exit(0)
+            this
+        }
+        else -> this
     }
 }
 
@@ -132,10 +127,7 @@ class End(private val context: Context) : State() {
 private class Pickup(context: Context, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
     override fun onAccept(items: List<Item>): State {
         val inventory = context.game.player[Inventory::class]!!
-        items.forEach { item ->
-            item.entity.remove(item.entity[Position::class]!!)
-            inventory.add(item)
-        }
+        context.action = gehenna.action.Pickup(items, inventory)
         return Normal(context)
     }
 }
@@ -144,10 +136,7 @@ private class Drop(context: Context) : Select<Item>(context, context.game.player
     override fun onAccept(items: List<Item>): State {
         val pos = context.game.player[Position::class]!!
         val inventory = context.game.player[Inventory::class]!!
-        items.forEach { item ->
-            inventory.remove(item)
-            pos.level.spawn(item.entity, pos.x, pos.y)
-        }
+        context.action = gehenna.action.Drop(items, inventory, pos)
         return Normal(context)
     }
 }

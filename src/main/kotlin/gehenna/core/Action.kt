@@ -3,8 +3,7 @@ package gehenna.core
 import gehenna.component.Position
 import gehenna.component.Senses
 
-abstract class Action {
-    abstract val time: Long
+abstract class Action(open val time: Long = 100) {
     abstract fun perform(): ActionResult
 
     protected val log = ArrayList<LogEntry>()

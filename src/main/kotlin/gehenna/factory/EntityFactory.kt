@@ -1,9 +1,9 @@
 package gehenna.factory
 
 import com.beust.klaxon.JsonReader
-import gehenna.core.Entity
-import gehenna.core.Component
 import gehenna.component.Item
+import gehenna.core.Component
+import gehenna.core.Entity
 import gehenna.utils.nextStringList
 import org.reflections.Reflections
 import java.io.InputStream
@@ -109,7 +109,7 @@ class EntityFactory : JsonFactory<Entity> {
     }
 
     override fun new(name: String): Entity {
-        return entities[name]?.build(name) ?: throw Exception("no such entity: $name")
+        return entities[name]?.build(name)?.also { it.emit(Entity.Finish) } ?: throw Exception("no such entity: $name")
     }
 }
 

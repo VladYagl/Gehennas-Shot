@@ -30,7 +30,6 @@ val Point.y: Int get() = second
 val Point.dir: Point get() = x.sign to y.sign
 
 val random = Random.Default
-fun <T> Random.choose(items: List<T>): T = items[random.nextInt(items.size)]
 
 val directions = listOf(
         1 to 0,

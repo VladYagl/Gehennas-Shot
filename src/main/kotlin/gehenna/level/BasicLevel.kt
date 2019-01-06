@@ -1,17 +1,21 @@
 package gehenna.level
 
-import gehenna.core.Entity
 import gehenna.component.Obstacle
 import gehenna.component.Position
-import gehenna.utils.Array
+import gehenna.core.Entity
 import gehenna.utils.*
 
 abstract class BasicLevel(val width: Int, val height: Int) {
+    abstract val startPosition: Point
     protected val cells = Array(width, height) { HashSet<Entity>() }
 
     operator fun get(x: Int, y: Int): HashSet<Entity> {
         return cells[x, y]
     }
+
+    fun spawnAtStart(entity: Entity) = spawn(entity, startPosition)
+
+    fun spawn(entity: Entity, point: Point) = spawn(entity, point.x, point.y)
 
     fun spawn(entity: Entity, x: Int, y: Int) {
         val pos = Position(entity, x, y, this as Level) // xd looks no good
@@ -25,9 +29,7 @@ abstract class BasicLevel(val width: Int, val height: Int) {
 
     fun remove(entity: Entity) {
         val pos = entity[Position::class]!!
-        //cells[pos.x, pos.y].remove(entity)
         entity.remove(pos)
-        //update(pos.x, pos.y)
     }
 
     fun remove(pos: Position) {

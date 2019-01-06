@@ -4,16 +4,15 @@ import gehenna.factory.EntityFactory
 import gehenna.core.Game
 import gehenna.component.*
 import gehenna.component.behaviour.PredictableBehaviour
-import gehenna.level.DungeonLevel
-import gehenna.factory.LevelFactory
+import gehenna.factory.LevelPartFactory
 import gehenna.utils.*
 import java.awt.Color
 
 class App(private val ui: UI, private val settings: Settings) {
     private val factory = EntityFactory()
-    private val levelFactory = LevelFactory(factory)
+    private val levelFactory = LevelPartFactory(factory)
     private val game = Game(factory, levelFactory)
-    private val context: Context
+    private val context: UIContext
     private var state: State
 
     private var time = 0L
@@ -69,17 +68,13 @@ class App(private val ui: UI, private val settings: Settings) {
         val pos = game.player[Position::class]!!
         val storage = game.player[Inventory::class]!!
         ui.info.writeLine("Player glyph = ${glyph.char}|${glyph.priority}", 2)
-        ui.info.writeLine("Player pos = ${pos.x}, ${pos.y}", 3)
+        ui.info.writeLine("Player destination = ${pos.x}, ${pos.y}", 3)
         ui.info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
         ui.info.writeLine("Effects = " + game.player.all(Effect::class), 5)
         ui.info.writeLine("Inventory", 8, Alignment.center, Color.white, Color.darkGray)
         repeat(10) { i -> ui.info.writeLine("", 9 + i) }
         storage.all().forEachIndexed { index, item ->
             ui.info.writeLine(item.entity.toString(), 9 + index)
-        }
-
-        if (pos.level is DungeonLevel) {
-            ui.info.writeLine("Level: " + pos.level.depth, 19)
         }
 
         repeat(10) { i -> ui.info.writeLine("", 31 + i) }
@@ -193,7 +188,7 @@ class App(private val ui: UI, private val settings: Settings) {
 
         game.player[Logger::class]?.add("Welcome to Gehenna's Shot")
         game.player[Logger::class]?.add("   Suffer bitch,   love you " + 3.toChar())
-        context = Context(game, ui)
+        context = UIContext(game, ui)
         state = State.create(context)
     }
 

@@ -9,19 +9,23 @@ import gehenna.component.behaviour.Behaviour
 import gehenna.component.behaviour.ThinkUntilSet
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
-import gehenna.level.DungeonLevel
+import gehenna.level.DungeonLevelBuilder
 
-class Game(private val factory: Factory<Entity>, private val levelFactory: Factory<LevelPart>) {
-    lateinit var player: Entity
+class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
+    override lateinit var player: Entity
         private set
     private var globalTime: Long = 0
-    val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
+    override val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
+
+    override fun newLevelBuilder() = DungeonLevelBuilder()
+            .withFactory(factory)
+            .withPartFactory(partFactory)
+            .withSize(5 * 8, 6 * 8)
 
     fun init() {
         player = factory.new("player")
-        val level = DungeonLevel(5 * 8, 6 * 8, factory, levelFactory)
-        level.init()
-        level.spawn(player, 10, 10)
+        val level = newLevelBuilder().build()
+        level.spawnAtStart(player)
         ComponentManager.update()
     }
 
@@ -44,11 +48,11 @@ class Game(private val factory: Factory<Entity>, private val levelFactory: Facto
 
             val result = when (first) {
                 is Behaviour -> {
-                    first.lastResult = first.action.perform()
+                    first.lastResult = first.action.perform(this)
                     first.lastResult!!
                 }
 
-                is Effect -> first.action.perform()
+                is Effect -> first.action.perform(this)
 
                 else -> throw Exception("Unknown waiter: $first of type: ${first::class}")
             }

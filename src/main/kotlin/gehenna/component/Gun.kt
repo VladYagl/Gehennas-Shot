@@ -13,7 +13,7 @@ abstract class Gun : Component() {
 
 data class Pistol(override val entity: Entity, private val bullet: String) : Gun() {
     //TODO: get actor from inventory or equipment
-    override fun fire(actor: Entity, dir: Point): Action = Shoot(actor[Position::class]!!, dir, entity.factory.new(bullet))
+    override fun fire(actor: Entity, dir: Point): Action = Shoot(actor[Position::class]!!, dir, bullet)
 }
 
 data class Rifle(override val entity: Entity, private val bullet: String) : Gun() {
@@ -25,6 +25,6 @@ data class Rifle(override val entity: Entity, private val bullet: String) : Gun(
 
 data class BurstFire(override val entity: Entity, val bullet: String, val actor: Entity, val dir: Point, override var time: Long) : Effect() {
     override var duration: Long = 500
-    override val action: Action get() = Shoot(actor[Position::class]!!, dir, entity.factory.new(bullet))
+    override val action: Action get() = Shoot(actor[Position::class]!!, dir, bullet)
 }
 

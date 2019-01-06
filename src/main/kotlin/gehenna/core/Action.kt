@@ -4,7 +4,7 @@ import gehenna.component.Position
 import gehenna.component.Senses
 
 abstract class Action(open val time: Long = 100) {
-    abstract fun perform(): ActionResult
+    abstract fun perform(context: Context): ActionResult
 
     protected val log = ArrayList<LogEntry>()
     protected fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class) {

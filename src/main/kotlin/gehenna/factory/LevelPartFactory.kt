@@ -6,7 +6,7 @@ import gehenna.core.Entity
 import gehenna.utils.Point
 import java.io.InputStream
 
-class LevelFactory(private val factory: Factory<Entity>) : JsonFactory<LevelPart> {
+class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<LevelPart> {
     private val levels = HashMap<String, LevelPart>()
     private val klaxon = Klaxon()
 

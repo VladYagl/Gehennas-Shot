@@ -69,7 +69,7 @@ data class MonsterBehaviour(override val entity: Entity, override var time: Long
 
     private fun safeRandom(): Action? {
         val dirs = directions.plus(0 to 0).filter { pos.point + it !in dangerZone }
-        return if (dirs.isNotEmpty()) Move(entity, random.choose(dirs)) else null
+        return if (dirs.isNotEmpty()) Move(entity, dirs.random(random)) else null
     }
 
     private fun randomMove(): Action = safeRandom() ?: Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))

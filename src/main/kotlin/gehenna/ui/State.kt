@@ -11,11 +11,11 @@ abstract class State {
     open fun handleInput(input: Input): State = this
 
     companion object {
-        fun create(context: Context): State = Normal(context)
+        fun create(context: UIContext): State = Normal(context)
     }
 }
 
-private abstract class Select<T>(protected val context: Context, private val items: List<T>, title: String) : State() {
+private abstract class Select<T>(protected val context: UIContext, private val items: List<T>, title: String) : State() {
     private val select = BooleanArray(items.size) { false }
     private val window = context.newWindow(100, 30)
 
@@ -61,15 +61,15 @@ private abstract class Select<T>(protected val context: Context, private val ite
     }
 }
 
-private class Normal(private val context: Context) : State() {
+private class Normal(private val context: UIContext) : State() {
 
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
-            context.action = Move(context.game.player, input.dir)
+            context.action = Move(context.player, input.dir)
             this
         }
         Input.Fire -> {
-            val inventory = context.game.player[Inventory::class]!!
+            val inventory = context.player[Inventory::class]!!
             val gun = inventory.all().mapNotNull { it.entity.all(Gun::class).firstOrNull() }.firstOrNull()
             if (gun == null) {
                 context.log.add("You don't have any guns!")
@@ -77,7 +77,7 @@ private class Normal(private val context: Context) : State() {
             } else Aim(context, gun)
         }
         Input.Pickup -> {
-            val pos = context.game.player[Position::class]!!
+            val pos = context.player[Position::class]!!
             val items = pos.neighbors.mapNotNull { it[Item::class] }
             if (items.isEmpty()) {
                 context.log.add("There is no items to pickup(((")
@@ -88,21 +88,21 @@ private class Normal(private val context: Context) : State() {
             Drop(context)
         }
         Input.ClimbStairs -> {
-            context.action = ClimbStairs(context.game.player)
+            context.action = ClimbStairs(context.player)
             this
         }
         else -> this
     }
 }
 
-private class Aim(private val context: Context, private val gun: Gun) : State() {
+private class Aim(private val context: UIContext, private val gun: Gun) : State() {
     init {
         context.log.add("Fire in which direction?")
     }
 
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
-            context.action = gun.fire(context.game.player, input.dir)
+            context.action = gun.fire(context.player, input.dir)
             Normal(context)
         }
         is Input.Cancel -> {
@@ -113,7 +113,7 @@ private class Aim(private val context: Context, private val gun: Gun) : State() 
     }
 }
 
-class End(private val context: Context) : State() {
+class End(private val context: UIContext) : State() {
     override fun handleInput(input: Input) = when (input) {
         Input.Accept, Input.Cancel -> {
             System.exit(0)
@@ -124,18 +124,18 @@ class End(private val context: Context) : State() {
 }
 
 //TODO: Why it's not an action??
-private class Pickup(context: Context, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
+private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
     override fun onAccept(items: List<Item>): State {
-        val inventory = context.game.player[Inventory::class]!!
+        val inventory = context.player[Inventory::class]!!
         context.action = gehenna.action.Pickup(items, inventory)
         return Normal(context)
     }
 }
 
-private class Drop(context: Context) : Select<Item>(context, context.game.player[Inventory::class]!!.all(), "Drop what?") {
+private class Drop(context: UIContext) : Select<Item>(context, context.player[Inventory::class]!!.all(), "Drop what?") {
     override fun onAccept(items: List<Item>): State {
-        val pos = context.game.player[Position::class]!!
-        val inventory = context.game.player[Inventory::class]!!
+        val pos = context.player[Position::class]!!
+        val inventory = context.player[Inventory::class]!!
         context.action = gehenna.action.Drop(items, inventory, pos)
         return Normal(context)
     }

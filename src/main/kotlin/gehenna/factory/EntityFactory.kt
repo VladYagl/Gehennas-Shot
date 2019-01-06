@@ -42,7 +42,7 @@ class EntityFactory : JsonFactory<Entity> {
     }
 
     private inner class EntityBuilder(val components: List<ComponentBuilder>, val customName: String? = null) {
-        fun build(name: String) = Entity(customName ?: name, this@EntityFactory).also { entity ->
+        fun build(name: String) = Entity(customName ?: name).also { entity ->
             components.forEach { builder ->
                 entity.add(builder.build(entity))
             }

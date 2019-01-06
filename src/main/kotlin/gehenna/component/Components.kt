@@ -3,7 +3,8 @@ package gehenna.component
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
-import gehenna.utils.choose
+import gehenna.level.Level
+import gehenna.utils.Point
 import gehenna.utils.random
 import gehenna.utils.until
 
@@ -55,7 +56,7 @@ data class Logger(override val entity: Entity) : Component() {
     }
 }
 
-data class Stairs(override val entity: Entity, var pos: Position? = null) : Component()
+data class Stairs(override val entity: Entity, var destination: Pair<Level, Point>? = null) : Component()
 
 data class Item(override val entity: Entity, val volume: Int) : Component()
 
@@ -99,7 +100,7 @@ data class ChooseOneItem(
 ) : Component() {
     override fun onEvent(event: Entity.Event) {
         if (event is Entity.Finish) {
-            entity[Inventory::class]?.add(random.choose(items))
+            entity[Inventory::class]?.add(items.random(random))
             entity.remove(this)
         }
     }

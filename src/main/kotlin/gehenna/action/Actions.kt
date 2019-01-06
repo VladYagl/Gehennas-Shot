@@ -4,8 +4,8 @@ import gehenna.component.*
 import gehenna.component.behaviour.BulletBehaviour
 import gehenna.core.Action
 import gehenna.core.ActionResult
+import gehenna.core.Context
 import gehenna.core.Entity
-import gehenna.level.DungeonLevel
 import gehenna.utils.Point
 
 fun scaleTime(time: Long, speed: Int): Long {
@@ -13,11 +13,11 @@ fun scaleTime(time: Long, speed: Int): Long {
 }
 
 object Think : Action(0) {
-    override fun perform(): ActionResult = end()
+    override fun perform(context: Context): ActionResult = end()
 }
 
 data class Move(private val entity: Entity, val dir: Point) : Action(100) {
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         val (x, y) = dir
         return if (x == 0 && y == 0) {
             end()
@@ -38,8 +38,9 @@ data class Move(private val entity: Entity, val dir: Point) : Action(100) {
     }
 }
 
-data class Shoot(private val pos: Position, private val dir: Point, private val bullet: Entity) : Action(100) {
-    override fun perform(): ActionResult {
+data class Shoot(private val pos: Position, private val dir: Point, private val bulletName: String) : Action(100) {
+    override fun perform(context: Context): ActionResult {
+        val bullet = context.factory.new(bulletName)
         pos.spawnHere(bullet)
         bullet.add(BulletBehaviour(bullet, dir, 80))
         return end()
@@ -47,14 +48,14 @@ data class Shoot(private val pos: Position, private val dir: Point, private val 
 }
 
 data class Destroy(private val entity: Entity) : Action(0) {
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         entity.clean()
         return end()
     }
 }
 
 data class Collide(val entity: Entity, val victim: Entity, val damage: Int) : Action(100) {
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         val health = victim[Health::class]
         victim[Logger::class]?.add("You were hit by ${entity.name} for $damage damage")
                 ?: log("$victim were hit by $entity for $damage damage", victim[Position::class])
@@ -65,7 +66,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Int) : Ac
 }
 
 data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(100) {
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         entity[Logger::class]?.add("Your start ${effect::class.simpleName}")
         entity.add(effect)
         return end()
@@ -74,26 +75,24 @@ data class ApplyEffect(private val entity: Entity, private val effect: Effect) :
 
 data class ClimbStairs(private val entity: Entity) : Action(100) {
     //todo Maybe pass stairs?
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         val pos = entity[Position::class]!!
         val stairs = pos.neighbors.firstOrNull { it.has(Stairs::class) }?.get(Stairs::class) ?: return fail()
-        if (stairs.pos == null) {
-            val depth = if (pos.level is DungeonLevel) pos.level.depth + 1 else -1
-            val levelFactory = if (pos.level is DungeonLevel) pos.level.levelFactory else throw Exception("TODO")
-            val level = DungeonLevel(5 * 8, 6 * 8, pos.level.factory, levelFactory, depth, stairs)
-            level.init()
-            stairs.pos = level.stairsUp?.entity?.get(Position::class)
-        }
-        val destination = stairs.pos!!
+        val destination = stairs.destination ?: context.newLevelBuilder()
+                .withPrevious(pos.level)
+                .withBackPoint(pos.point)
+                .build().let { level ->
+                    (level to level.startPosition).also { stairs.destination = it }
+                }
         pos.level.remove(entity)
-        destination.level.spawn(entity, destination.x, destination.y)
-        entity[Logger::class]?.add("You've climbed stairs to " + stairs.pos!!.level)
+        destination.first.spawn(entity, destination.second)
+        entity[Logger::class]?.add("You've climbed stairs to " + stairs.destination)
         return end()
     }
 }
 
 data class Pickup(private val items: List<Item>, private val inventory: Inventory) : Action(50) {
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         items.forEach { item ->
             item.entity.remove(item.entity[Position::class]!!)
             inventory.add(item)
@@ -103,7 +102,7 @@ data class Pickup(private val items: List<Item>, private val inventory: Inventor
 }
 
 data class Drop(private val items: List<Item>, private val inventory: Inventory, private val pos: Position) : Action(50) {
-    override fun perform(): ActionResult {
+    override fun perform(context: Context): ActionResult {
         items.forEach { item ->
             inventory.remove(item)
             pos.spawnHere(item.entity)

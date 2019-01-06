@@ -2,7 +2,10 @@ package gehenna.factory
 
 import gehenna.core.Entity
 import gehenna.level.BasicLevel
-import gehenna.utils.*
+import gehenna.utils.Point
+import gehenna.utils.random
+import gehenna.utils.x
+import gehenna.utils.y
 
 interface LevelPart {
     fun spawnTo(toX: Int, toY: Int, level: BasicLevel)
@@ -24,7 +27,7 @@ class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private v
         entities.forEach { (point, config) ->
             when (config) {
                 is EntityConfig.Name -> level.spawn(factory.new(config.name), toX + point.x, toY + point.y)
-                is EntityConfig.Choice -> level.spawn(factory.new(random.choose(config.list)), toX + point.x, toY + point.y)
+                is EntityConfig.Choice -> level.spawn(factory.new(config.list.random(random)), toX + point.x, toY + point.y)
             }
         }
     }

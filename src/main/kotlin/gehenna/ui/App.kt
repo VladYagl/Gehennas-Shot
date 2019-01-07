@@ -1,9 +1,9 @@
 package gehenna.ui
 
-import gehenna.factory.EntityFactory
-import gehenna.core.Game
 import gehenna.component.*
 import gehenna.component.behaviour.PredictableBehaviour
+import gehenna.core.Game
+import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.utils.*
 import java.awt.Color
@@ -68,7 +68,7 @@ class App(private val ui: UI, private val settings: Settings) {
         val pos = game.player[Position::class]!!
         val storage = game.player[Inventory::class]!!
         ui.info.writeLine("Player glyph = ${glyph.char}|${glyph.priority}", 2)
-        ui.info.writeLine("Player destination = ${pos.x}, ${pos.y}", 3)
+        ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
         ui.info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
         ui.info.writeLine("Effects = " + game.player.all(Effect::class), 5)
         ui.info.writeLine("Inventory", 8, Alignment.center, Color.white, Color.darkGray)

@@ -110,3 +110,11 @@ data class Drop(private val items: List<Item>, private val inventory: Inventory,
         return end()
     }
 }
+
+data class UseDoor(private val door: Door, private val close: Boolean) : Action(100) {
+    override fun perform(context: Context): ActionResult {
+        if (door.closed == close) return fail()
+        door.change(close)
+        return end()
+    }
+}

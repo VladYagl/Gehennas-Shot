@@ -9,8 +9,12 @@ abstract class BasicLevel(val width: Int, val height: Int) {
     abstract val startPosition: Point
     protected val cells = Array(width, height) { HashSet<Entity>() }
 
-    operator fun get(x: Int, y: Int): HashSet<Entity> {
+    operator fun get(x: Int, y: Int): Set<Entity> {
         return cells[x, y]
+    }
+
+    fun safeGet(x: Int, y: Int): Set<Entity> {
+        return if (x < 0 || y < 0 || x >= width || y >= height) emptySet() else cells[x, y]
     }
 
     fun spawnAtStart(entity: Entity) = spawn(entity, startPosition)
@@ -50,5 +54,5 @@ abstract class BasicLevel(val width: Int, val height: Int) {
         return cells[x, y].any { it[Obstacle::class]?.blockMove ?: false }
     }
 
-    protected open fun update(x: Int, y: Int) {}
+    open fun update(x: Int, y: Int) {}
 }

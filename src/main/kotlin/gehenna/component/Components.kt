@@ -10,16 +10,16 @@ import gehenna.utils.until
 
 data class Glyph(
         override val entity: Entity,
-        val char: Char,
-        val priority: Int = 0,
-        val memorable: Boolean = true
+        var char: Char,
+        var priority: Int = 0,
+        var memorable: Boolean = true
 ) : Component()
 
 data class Obstacle(
         override val entity: Entity,
-        val blockMove: Boolean = false,
-        val blockView: Boolean = false,
-        val blockPath: Boolean = blockMove
+        var blockMove: Boolean = false,
+        var blockView: Boolean = false,
+        var blockPath: Boolean = blockMove
 ) : Component()
 
 data class Floor(override val entity: Entity) : Component()
@@ -104,6 +104,22 @@ data class ChooseOneItem(
             entity.remove(this)
         }
     }
+}
+
+data class Door(override val entity: Entity, var closed: Boolean = true) : Component() {
+    //todo -> it can add glyph and obstacle if there is no
+    fun change(closed: Boolean) {
+        entity[Obstacle::class]?.apply {
+            blockMove = closed
+            blockView = closed
+            entity[Position::class]?.update()
+        }
+        entity[Glyph::class]?.apply { char = (if (closed) '+' else 254.toChar()) } // todo
+        this.closed = closed
+    }
+
+    fun open() = change(true)
+    fun close() = change(false)
 }
 
 sealed class Senses : Component() {

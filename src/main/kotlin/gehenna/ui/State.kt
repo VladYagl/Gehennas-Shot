@@ -1,11 +1,13 @@
 package gehenna.ui
 
+import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.ClimbStairs
 import gehenna.action.Move
-import gehenna.component.Gun
-import gehenna.component.Inventory
-import gehenna.component.Item
-import gehenna.component.Position
+import gehenna.component.*
+import gehenna.utils.Point
+import gehenna.utils.plus
+import gehenna.utils.x
+import gehenna.utils.y
 
 abstract class State {
     open fun handleInput(input: Input): State = this
@@ -61,6 +63,24 @@ private abstract class Select<T>(protected val context: UIContext, private val i
     }
 }
 
+private abstract class Direction(protected val context: UIContext) : State() {
+    init {
+        context.log.add("Fire in which direction?")
+    }
+
+    abstract fun onDir(dir: Point): State
+    open fun onCancel(): State {
+        context.log.add("Never mind")
+        return Normal(context)
+    }
+
+    override fun handleInput(input: Input) = when (input) {
+        is Input.Direction -> onDir(input.dir)
+        is Input.Cancel -> onCancel()
+        else -> this
+    }
+}
+
 private class Normal(private val context: UIContext) : State() {
 
     override fun handleInput(input: Input) = when (input) {
@@ -84,32 +104,32 @@ private class Normal(private val context: UIContext) : State() {
                 this
             } else Pickup(context, items)
         }
-        Input.Drop -> {
-            Drop(context)
-        }
+        Input.Drop -> Drop(context)
         Input.ClimbStairs -> {
             context.action = ClimbStairs(context.player)
             this
         }
+        Input.Open -> UseDoor(context, false)
+        Input.Close -> UseDoor(context, true)
         else -> this
     }
 }
 
-private class Aim(private val context: UIContext, private val gun: Gun) : State() {
-    init {
-        context.log.add("Fire in which direction?")
+private class Aim(context: UIContext, private val gun: Gun) : Direction(context) {
+    override fun onDir(dir: Point): State {
+        context.action = gun.fire(context.player, dir)
+        return Normal(context)
     }
+}
 
-    override fun handleInput(input: Input) = when (input) {
-        is Input.Direction -> {
-            context.action = gun.fire(context.player, input.dir)
-            Normal(context)
-        }
-        is Input.Cancel -> {
-            context.log.add("Never mind")
-            Normal(context)
-        }
-        else -> this
+private class UseDoor(context: UIContext, private val close: Boolean) : Direction(context) {
+    override fun onDir(dir: Point): State {
+        val playerPos = context.player[Position::class]!!
+        val point = playerPos.point + dir
+        playerPos.level[point.x, point.y].firstNotNullResult { it[Door::class] }?.let { door ->
+            context.action = gehenna.action.UseDoor(door, close)
+        } ?: context.log.add("there is no door")
+        return Normal(context)
     }
 }
 

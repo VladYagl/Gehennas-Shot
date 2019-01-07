@@ -22,7 +22,6 @@
                 "death_grips_2"
             ]
         },
-        "trueSight": {},
         "sight": {
             "range": 25
         },
@@ -116,6 +115,18 @@
             "priority": 20
         },
         "stairs": {}
+    },
+
+    "door": {
+        "glyph": {
+            "char": 43,
+            "priority": 10
+        },
+        "obstacle": {
+            "blockView": true,
+            "blockMove": true
+        },
+        "door": {}
     },
 
     "nothing": {}

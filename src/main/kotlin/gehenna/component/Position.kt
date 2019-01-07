@@ -30,6 +30,8 @@ data class Position(
         level.spawn(entity, x, y)
     }
 
+    fun update() = level.update(x, y)
+
     val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
 
     override fun onEvent(event: Entity.Event) {

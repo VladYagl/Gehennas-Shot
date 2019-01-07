@@ -186,6 +186,8 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
                         ',', 'g' -> app.onInput(Input.Pickup)
                         'd' -> app.onInput(Input.Drop)
                         '>', '<' -> app.onInput(Input.ClimbStairs)
+                        'o' -> app.onInput(Input.Open)
+                        'c' -> app.onInput(Input.Close)
                     }
                     info.writeLine("Last typed: ${e.keyChar}", 21)
                 }

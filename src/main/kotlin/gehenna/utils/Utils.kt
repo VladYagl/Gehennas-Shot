@@ -30,6 +30,14 @@ val Point.y: Int get() = second
 val Point.dir: Point get() = x.sign to y.sign
 
 val random = Random.Default
+fun Random.nextPoint(width: Int, height: Int) = nextPoint(0, 0, width, height)
+fun Random.nextPoint(x: Int, y: Int, width: Int, height: Int) = nextInt(x, x + width) to nextInt(y, y + height)
+fun Random.next4way(vararg dir: Point? = emptyArray()): Point {
+    while (true) {
+        val rand = directions[random.nextInt(4) * 2]
+        if (rand !in dir) return rand
+    }
+}
 
 val directions = listOf(
         1 to 0,

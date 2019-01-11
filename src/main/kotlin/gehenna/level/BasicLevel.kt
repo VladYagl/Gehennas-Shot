@@ -13,8 +13,12 @@ abstract class BasicLevel(val width: Int, val height: Int) {
         return cells[x, y]
     }
 
+    fun inBounds(x: Int, y: Int): Boolean {
+        return (x >= 0 && y >= 0 && x < width && y < height)
+    }
+
     fun safeGet(x: Int, y: Int): Set<Entity> {
-        return if (x < 0 || y < 0 || x >= width || y >= height) emptySet() else cells[x, y]
+        return if (inBounds(x, y)) cells[x, y] else emptySet()
     }
 
     fun spawnAtStart(entity: Entity) = spawn(entity, startPosition)

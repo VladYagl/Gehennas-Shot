@@ -8,72 +8,79 @@ import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelBuilder
 import gehenna.utils.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.awt.Color
+import kotlin.system.measureNanoTime
 
 class App(private val ui: UI, private val settings: Settings) {
     private val factory = EntityFactory()
     private val levelFactory = LevelPartFactory(factory)
     private val game = Game(factory, levelFactory)
-    private val context: UIContext
-    private var state: State
+    private val context = UIContext(game, ui)
+    private var state = State.create(context)
 
     private var time = 0L
     private var count = 0
     private var repaintCount = 0
     private var stop = false
-    suspend fun mainLoop() {
-        try {
-            GlobalScope.launch {
-                uiLoop()
-            }
-            while (true) {
-                if ((settings.drawEachUpdate && game.time > time + settings.updateStep) || game.isPlayerNext())
-                    repaint.offer(Unit)
+    fun start() {
+        factory.loadJson(streamResource("data/entities.json"))
+        factory.loadJson(streamResource("data/items.json"))
+        levelFactory.loadJson(streamResource("data/rooms.json"))
+        game.init()
 
-                withContext(repaintContext) {
-                    game.update()
-                }
-                count++
-
-                if (!game.player.has(Position::class)) {
-                    repaint.offer(Unit)
-                    state = End(context)
-                    val window = ui.newWindow(17, 6)
-                    window.writeLine("RIP ", 1, Alignment.center)
-                    window.writeLine("YOU ARE DEAD", 3, Alignment.center)
-                    return
-                }
-                if ((game.player[Position::class]?.level as DungeonLevelBuilder.DungeonLevel).depth == 2) {
-                    repaint.offer(Unit)
-                    state = End(context)
-                    val window = ui.newWindow(19, 4)
-                    window.writeLine("WE WON ZULUL", 1, Alignment.center)
-                    return
-                }
+        game.player[Logger::class]?.add("Welcome to Gehenna's Shot")
+        game.player[Logger::class]?.add("   Suffer bitch,   love you " + 3.toChar())
+        val uiJob = GlobalScope.launch(exceptionHandler) {
+            uiLoop()
+        }
+        GlobalScope.launch(exceptionHandler) {
+            withContext(gameContext) {
+                gameLoop()
+                uiJob.cancel()
+                uiJob.join()
             }
-        } catch (e: Throwable) {
-            showError(e)
-            ui.printException(e)
         }
     }
 
-    //    private val repaint = Channel<Boolean>(Channel.CONFLATED)
-    private val repaintContext = newSingleThreadContext("CounterContext")
-    private val repaint = Channel<Unit>(Channel.CONFLATED)
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        showError(exception)
+        ui.printException(exception)
+    }
+
+    private suspend fun gameLoop() {
+        while (true) {
+            game.update()
+            count++
+
+            if (!game.player.has(Position::class)) {
+                state = End(context)
+                val window = ui.newWindow(17, 6)
+                window.writeLine("RIP ", 1, Alignment.center)
+                window.writeLine("YOU ARE DEAD", 3, Alignment.center)
+                break
+            }
+            if ((game.player[Position::class]?.level as DungeonLevelBuilder.DungeonLevel).depth == 2) {
+                state = End(context)
+                val window = ui.newWindow(19, 4)
+                window.writeLine("WE WON ZULUL", 1, Alignment.center)
+                break
+            }
+        }
+    }
+
+    private val gameContext = newSingleThreadContext("CounterContext")
     private suspend fun uiLoop() {
         while (true) {
 //        for (i in repaint) {
-            time = game.time
-            ui.info.writeLine("Paint=${repaintCount++} loop=$count", 0)
-            withContext(repaintContext) {
-                update()
+            val fps = 1000_000_000L / measureNanoTime {
+                time = game.time
+                withContext(gameContext) {
+                    update()
+                }
+                ui.update()
             }
-            ui.update()
+            ui.info.writeLine("fps=$fps loop=$count", 0)
         }
     }
 
@@ -207,21 +214,8 @@ class App(private val ui: UI, private val settings: Settings) {
         }
     }
 
-    init {
-        factory.loadJson(streamResource("data/entities.json"))
-        factory.loadJson(streamResource("data/items.json"))
-        levelFactory.loadJson(streamResource("data/rooms.json"))
-        game.init()
-
-        game.player[Logger::class]?.add("Welcome to Gehenna's Shot")
-        game.player[Logger::class]?.add("   Suffer bitch,   love you " + 3.toChar())
-        context = UIContext(game, ui)
-        state = State.create(context)
-    }
-
     fun onInput(input: Input) {
         ui.info.writeLine("$input", 23)
         state = state.handleInput(input)
-        repaint.offer(Unit)
     }
 }

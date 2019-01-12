@@ -6,7 +6,7 @@ import gehenna.core.Action
 import gehenna.core.Context
 
 class UIContext(private val context: Context, private val ui: UI) : Context by context {
-    val log = player[Logger::class]!!
+    val log get() = player[Logger::class]!!
 
     var action: Action? = null
         set(value) {

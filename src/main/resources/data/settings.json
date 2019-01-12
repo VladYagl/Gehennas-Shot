@@ -1,7 +1,4 @@
 {
-    "drawEachUpdate": true,
-    "updateStep": 10,
-
     "backgroundColor": {
         "r": 32,
         "g": 32,

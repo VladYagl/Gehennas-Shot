@@ -1,11 +1,7 @@
 package gehenna.ui
 
-import asciiPanel.AsciiPanel
 import gehenna.utils.Point
-import gehenna.utils.range
 import gehenna.utils.showError
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -75,9 +71,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         app = App(this, settings) // TODO move this out of main frame
         addComponentListener(object : ComponentAdapter() {
             override fun componentShown(e: ComponentEvent?) {
-                GlobalScope.launch {
-                    app.mainLoop()
-                }
+                app.start()
             }
         })
     }
@@ -94,14 +88,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     }
 
     override fun update() {
-//        world.paintImmediately()
-//        info.paintImmediately()
-//        log.paintImmediately()
         mainPane.paintImmediately()
-//        world.repaint()
-//        info.repaint()
-//        log.repaint()
-//        mainPane.repaint()
     }
 
     override fun updateLog(messages: ArrayList<String>) {

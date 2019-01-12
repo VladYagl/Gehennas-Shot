@@ -15,14 +15,14 @@ class CellularPart(
         var cnt = 0
         for (dir in directions) {
             val p = (x to y) + dir
-            if (cells.getOrNull(p.x)?.getOrNull(p.y) == true) cnt++
+            if (cells.getOrNull(p.x)?.getOrNull(p.y) != false) cnt++
         }
         return cnt
     }
 
     override fun spawnTo(toX: Int, toY: Int, level: BasicLevel) {
         for ((x, y) in range(width, height))
-            if (cells[x, y]) spawner(x, y)
+            if (!cells[x, y]) spawner(toX + x, toY + y)
     }
 
     override fun needs(x: Int, y: Int): Boolean = cells[x, y]

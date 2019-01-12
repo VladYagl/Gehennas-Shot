@@ -6,7 +6,13 @@ import gehenna.component.behaviour.ThinkUntilSet
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
+import gehenna.level.DungeonLevelBuilder
 import gehenna.utils.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.withContext
 import java.awt.Color
 
 class App(private val ui: UI, private val settings: Settings) {
@@ -17,28 +23,36 @@ class App(private val ui: UI, private val settings: Settings) {
     private var state: State
 
     private var time = 0L
-    private var needRepaint = true
+    private var count = 0
+    private var repaintCount = 0
     private var stop = false
-    fun mainLoop() {
+    suspend fun mainLoop() {
         try {
-            var count = 0
-            var repaintCount = 0
+            GlobalScope.launch {
+                uiLoop()
+            }
             while (true) {
-                if (settings.drawEachUpdate) needRepaint = needRepaint || game.time > time + settings.updateStep
-                if (game.isPlayerNext()) needRepaint = true
-                if (needRepaint) { // fixme - when not updating by game time it has weird stops???
-                    time = game.time
-                    ui.info.writeLine("Paint=${repaintCount++} loop=$count", 0)
-                    update()
-                    ui.update()
-                }
+                if ((settings.drawEachUpdate && game.time > time + settings.updateStep) || game.isPlayerNext())
+                    repaint.offer(Unit)
 
-                game.update()
+                withContext(repaintContext) {
+                    game.update()
+                }
                 count++
 
                 if (!game.player.has(Position::class)) {
+                    repaint.offer(Unit)
                     state = End(context)
-                    ui.endGame()
+                    val window = ui.newWindow(17, 6)
+                    window.writeLine("RIP ", 1, Alignment.center)
+                    window.writeLine("YOU ARE DEAD", 3, Alignment.center)
+                    return
+                }
+                if ((game.player[Position::class]?.level as DungeonLevelBuilder.DungeonLevel).depth == 2) {
+                    repaint.offer(Unit)
+                    state = End(context)
+                    val window = ui.newWindow(19, 4)
+                    window.writeLine("WE WON ZULUL", 1, Alignment.center)
                     return
                 }
             }
@@ -48,13 +62,26 @@ class App(private val ui: UI, private val settings: Settings) {
         }
     }
 
+    //    private val repaint = Channel<Boolean>(Channel.CONFLATED)
+    private val repaintContext = newSingleThreadContext("CounterContext")
+    private val repaint = Channel<Unit>(Channel.CONFLATED)
+    private suspend fun uiLoop() {
+        while (true) {
+//        for (i in repaint) {
+            time = game.time
+            ui.info.writeLine("Paint=${repaintCount++} loop=$count", 0)
+            withContext(repaintContext) {
+                update()
+            }
+            ui.update()
+        }
+    }
+
     private fun update() {
         updateLog()
         drawWorld()
         predict()
         updateInfo()
-
-        needRepaint = false
     }
 
     private fun updateLog() {
@@ -195,6 +222,6 @@ class App(private val ui: UI, private val settings: Settings) {
     fun onInput(input: Input) {
         ui.info.writeLine("$input", 23)
         state = state.handleInput(input)
-        needRepaint = true
+        repaint.offer(Unit)
     }
 }

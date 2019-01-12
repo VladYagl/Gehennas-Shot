@@ -12,6 +12,7 @@ import gehenna.core.ComponentManager
 import gehenna.core.Entity
 import gehenna.utils.Point
 import gehenna.utils.directions
+import kotlinx.coroutines.runBlocking
 
 abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
     fun predictWithGlyph(realBehaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
@@ -30,7 +31,7 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
         var time = fakeBehaviour.time
         val prediction = ArrayList<Pair<Point, Glyph>>()
         loop@ while (time < duration) {
-            val action = fakeBehaviour.action
+            val action = runBlocking { fakeBehaviour.action() }
             time += scaleTime(action.time, speed)
             val (x, y) = when (action) {
                 is Move -> fakePos + action.dir

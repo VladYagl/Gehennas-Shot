@@ -18,9 +18,9 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     override val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
 
     override fun newLevelBuilder() = DungeonLevelBuilder()
-            .withFactory(factory)
-            .withPartFactory(partFactory)
-            .withSize(8 * 8, 7 * 8)
+        .withFactory(factory)
+        .withPartFactory(partFactory)
+        .withSize(8 * 8, 7 * 8)
 
     fun init() {
         player = factory.new("player")
@@ -32,7 +32,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     fun isPlayerNext(): Boolean = ComponentManager.waiters().firstOrNull() == player[ThinkUntilSet::class]
 
     // TODO: Think about energy randomization / but maybe i don't really need one
-    fun update() {
+    suspend fun update() {
         ComponentManager.waiters().firstOrNull()?.let { first ->
             val time = first.time
             globalTime += time
@@ -48,7 +48,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
 
             val result = when (first) {
                 is Behaviour -> {
-                    first.lastResult = first.action.perform(this)
+                    first.lastResult = first.action().perform(this)
                     first.lastResult!!
                 }
 

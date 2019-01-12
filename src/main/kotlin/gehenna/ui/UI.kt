@@ -13,7 +13,6 @@ interface Window {
 }
 
 interface UI {
-    fun endGame() // TODO : replace through new window
     fun printException(e: Throwable)
     fun update()
     fun updateLog(messages: ArrayList<String>)

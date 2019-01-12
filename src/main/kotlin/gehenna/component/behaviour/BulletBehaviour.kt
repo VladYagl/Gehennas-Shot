@@ -54,20 +54,19 @@ data class BulletBehaviour(override val entity: Entity, var dir: Point, override
         }
     }
 
-    override val action: Action
-        get() {
-            if (lastResult?.succeeded == false) {
-                return Destroy(entity)
-            }
-            val pos = entity[Position::class]!!
-            val (newx, newy) = pos + dir
-            val obstacle = pos.level.obstacle(newx, newy)
-            if (obstacle != null) {
-                if (obstacle.has(Health::class)) {
-                    return Collide(entity, obstacle, 10) // TODO: Get damage from some component
-                }
-                return Bounce(entity, dir)
-            }
-            return Move(entity, dir)
+    override suspend fun action(): Action {
+        if (lastResult?.succeeded == false) {
+            return Destroy(entity)
         }
+        val pos = entity[Position::class]!!
+        val (newx, newy) = pos + dir
+        val obstacle = pos.level.obstacle(newx, newy)
+        if (obstacle != null) {
+            if (obstacle.has(Health::class)) {
+                return Collide(entity, obstacle, 10) // TODO: Get damage from some component
+            }
+            return Bounce(entity, dir)
+        }
+        return Move(entity, dir)
+    }
 }

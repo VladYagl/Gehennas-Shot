@@ -94,10 +94,14 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     }
 
     override fun update() {
-        world.repaint()
-        info.repaint()
-        log.repaint()
-        mainPane.repaint()
+//        world.paintImmediately()
+//        info.paintImmediately()
+//        log.paintImmediately()
+        mainPane.paintImmediately()
+//        world.repaint()
+//        info.repaint()
+//        log.repaint()
+//        mainPane.repaint()
     }
 
     override fun updateLog(messages: ArrayList<String>) {
@@ -105,27 +109,6 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         messages.takeLast(logHeight).forEachIndexed { index, s ->
             log.write(s, 0, index)
         }
-    }
-
-    override fun endGame() {
-        //TODO: move it inside manager???
-        val message = AsciiPanel(2 * 8, 1 * 8, font)
-        mainPane.add(message)
-        mainPane.moveToFront(message)
-        message.size = message.preferredSize
-        message.location = java.awt.Point(
-                (mainPane.width - message.width) / 2,
-                (mainPane.height - message.height) / 2
-        )
-        message.defaultBackgroundColor = trueDarkGray
-        message.clear()
-        range(message.widthInCharacters, message.heightInCharacters).forEach { (x, y) ->
-            if (x == 0 || x == message.widthInCharacters - 1 || y == 0 || y == message.heightInCharacters - 1) {
-                message.write(254.toChar(), x, y)
-            }
-        }
-        message.writeCenter("You are dead", 2)
-        message.writeCenter("RIP", 4)
     }
 
     override fun newWindow(width: Int, height: Int): Window {

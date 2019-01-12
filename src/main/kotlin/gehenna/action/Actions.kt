@@ -25,14 +25,14 @@ data class Move(private val entity: Entity, val dir: Point) : Action(100) {
             val pos = entity[Position::class]!!
             val newx = pos.x + x
             val newy = pos.y + y
-            if (pos.level.isBlocked(newx, newy)) {
-                fail()
-            } else {
+            if (pos.level.isWalkable(newx, newy)) {
                 pos.level[newx, newy].firstOrNull { it.has(BulletBehaviour::class) }?.let { bullet ->
                     entity[Logger::class]?.add("You've perfectly dodged ${bullet.name}")
                 }
                 pos.move(newx, newy)
                 end()
+            } else {
+                fail()
             }
         }
     }

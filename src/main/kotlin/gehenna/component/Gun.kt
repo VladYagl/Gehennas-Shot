@@ -19,7 +19,7 @@ data class Gun(
 
     fun fire(actor: Entity, dir: Point): Action? {
         return if (burst) {
-            if (!entity.has(RepeatAction::class)) { //TODO
+            if (!actor.has(RepeatAction::class)) { //TODO
                 ApplyEffect(actor, RepeatAction(actor, burstCount, time) { action(actor, dir) })
             } else null
         } else {

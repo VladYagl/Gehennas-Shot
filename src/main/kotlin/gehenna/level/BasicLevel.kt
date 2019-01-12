@@ -1,5 +1,6 @@
 package gehenna.level
 
+import gehenna.component.Floor
 import gehenna.component.Obstacle
 import gehenna.component.Position
 import gehenna.core.Entity
@@ -52,6 +53,11 @@ abstract class BasicLevel(val width: Int, val height: Int) {
 
     fun obstacle(x: Int, y: Int): Entity? {
         return cells[x][y].firstOrNull { it[Obstacle::class]?.blockMove ?: false }
+    }
+
+    fun isWalkable(x: Int, y: Int): Boolean {
+        return cells[x, y].any { it.has(Floor::class) } &&
+                cells[x, y].none { it[Obstacle::class]?.blockMove == true }
     }
 
     fun isBlocked(x: Int, y: Int): Boolean {

@@ -74,12 +74,11 @@ data class MonsterBehaviour(override val entity: Entity, override var time: Long
 
     private fun randomMove(): Action = safeRandom() ?: Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
 
-    override val action: Action
-        get() {
-            if (lastResult?.succeeded == false) {
-                return randomMove()
-            }
-            updateSenses()
-            return dodge() ?: target?.let { shoot(it) ?: goto(it) ?: randomMove() } ?: randomMove()
+    override suspend fun action(): Action {
+        if (lastResult?.succeeded == false) {
+            return randomMove()
         }
+        updateSenses()
+        return dodge() ?: target?.let { shoot(it) ?: goto(it) ?: randomMove() } ?: randomMove()
+    }
 }

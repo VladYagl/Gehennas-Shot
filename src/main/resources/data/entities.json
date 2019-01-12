@@ -70,7 +70,7 @@
 
     "bullet": {
         "glyph": {
-            "char": 249,
+            "char": 130,
             "priority": 80,
             "memorable": false
         },

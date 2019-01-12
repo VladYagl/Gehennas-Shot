@@ -1,5 +1,6 @@
 package gehenna.core
 
+import gehenna.component.Effect
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast

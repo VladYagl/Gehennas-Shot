@@ -20,7 +20,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     override fun newLevelBuilder() = DungeonLevelBuilder()
             .withFactory(factory)
             .withPartFactory(partFactory)
-            .withSize(5 * 8, 6 * 8)
+            .withSize(8 * 8, 7 * 8)
 
     fun init() {
         player = factory.new("player")

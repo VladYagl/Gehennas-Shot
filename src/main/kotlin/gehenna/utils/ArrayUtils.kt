@@ -6,7 +6,8 @@ inline fun <reified T> Array(width: Int, height: Int, init: () -> T) = Array(wid
 
 inline fun DoubleArray(width: Int, height: Int, init: () -> Double) = Array(width) { DoubleArray(height) { init() } }
 
-inline fun BooleanArray(width: Int, height: Int, init: () -> Boolean) = Array(width) { BooleanArray(height) { init() } }
+inline fun BooleanArray(width: Int, height: Int, init: () -> Boolean = { false }) =
+    Array(width) { BooleanArray(height) { init() } }
 
 fun Array<BooleanArray>.fill(element: Boolean = false) = forEach { it.fill(element) }
 
@@ -37,3 +38,4 @@ operator fun Array<BooleanArray>.get(x: Int, y: Int): Boolean {
 operator fun Array<BooleanArray>.set(x: Int, y: Int, a: Boolean) {
     get(x)[y] = a
 }
+

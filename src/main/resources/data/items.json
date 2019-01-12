@@ -39,8 +39,9 @@
     },
 
     "pistol": {
-        "pistol": {
-            "bullet": "bullet"
+        "gun": {
+            "bullet": "bullet",
+            "delay": 80
         },
         "item": {
             "volume": 50
@@ -51,8 +52,12 @@
     },
 
     "rifle": {
-        "rifle": {
-            "bullet": "bullet"
+        "gun": {
+            "bullet": "bullet",
+            "delay": 80,
+            "burst": true,
+            "burstCount": 5,
+            "time": 50
         },
         "item": {
             "volume": 50

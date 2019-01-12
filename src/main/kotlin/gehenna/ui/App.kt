@@ -2,6 +2,7 @@ package gehenna.ui
 
 import gehenna.component.*
 import gehenna.component.behaviour.PredictableBehaviour
+import gehenna.component.behaviour.ThinkUntilSet
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
@@ -85,7 +86,7 @@ class App(private val ui: UI, private val settings: Settings) {
     }
 
     private var camera = 0 to 0
-    private val cameraBound = ui.worldWidth / 2 - 5 to ui.worldHeight / 2 - 5
+    private val cameraBound = ui.worldWidth / 2 - 30 to ui.worldHeight / 2 - 30
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
@@ -118,7 +119,7 @@ class App(private val ui: UI, private val settings: Settings) {
         return (x to y) + camera
     }
 
-    private val priority = Array(11 * 8) { Array(8 * 8) { -2 } }
+    private val priority = Array(ui.worldWidth) { Array(ui.worldHeight) { -2 } }
     private fun putGlyph(glyph: Glyph, x: Int, y: Int, color: Color? = null) {
         if (inView(x, y)) {
             val p = viewPoint(x, y)
@@ -167,13 +168,12 @@ class App(private val ui: UI, private val settings: Settings) {
             entity.all(PredictableBehaviour::class).firstOrNull()?.let { behaviours.add(it) }
         }
         behaviours.forEach {
-            val glyph = it.entity[Glyph::class]!!
             var color = Color.white * 0.5 // TODO : DEFAULT COLOR
-            val prediction = level.predict(it, stats.speed.toLong())
-            prediction.forEach { (x, y) ->
-                if (sight.isVisible(x, y) && inView(x, y)) {
+            val prediction = level.predictWithGlyph(it, game.player[ThinkUntilSet::class]!!.time + stats.speed.toLong())
+            prediction.forEach { (p, glyph) ->
+                if (sight.isVisible(p.x, p.y) && inView(p.x, p.y)) {
                     color *= 0.85
-                    putGlyph(glyph, x, y, color)
+                    putGlyph(glyph, p.x, p.y, color)
                 }
             }
 

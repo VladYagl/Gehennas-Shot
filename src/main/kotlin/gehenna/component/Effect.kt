@@ -10,17 +10,37 @@ abstract class Effect : WaitTime() {
     abstract val action: Action
 }
 
-data class RunAndGun(
-        override val entity: Entity,
-        private val dir: Point,
-        private val gun: Gun,
-        override var duration: Long,
-        override var time: Long = 1
-) : Effect() {
-    override val action: Action = gun.fire(entity, dir)!!
-}
-
 data class DestroyTimer(override val entity: Entity, override var time: Long = 1000) : Effect() {
     override var duration: Long = time
     override val action: Action = Destroy(entity)
 }
+
+data class RepeatAction(
+    override val entity: Entity,
+    private var count: Int,
+    private var delay: Long = 100,
+    private val actionFactory: () -> Action
+) : Effect() {
+    override var time = 1L
+    override var duration = 1L
+    override val action: Action
+        get() {
+            if (--count > 0) duration += delay // TODO <- get action time here or some thing
+            return actionFactory()
+        }
+}
+
+data class SequenceOfActions(
+    override val entity: Entity,
+    private val actions: Iterable<Action>
+) : Effect() {
+    override var duration: Long = time
+    private val iterator = actions.iterator()
+    override val action: Action
+        get() {
+            val value = iterator.next()
+            if (iterator.hasNext()) duration += time
+            return value
+        }
+}
+

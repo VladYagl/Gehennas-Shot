@@ -7,24 +7,23 @@ import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.utils.Point
 
-abstract class Gun : Component() {
-    abstract fun fire(actor: Entity, dir: Point): Action?
-}
+data class Gun(
+    override val entity: Entity,
+    private val bullet: String,
+    private val delay: Long,
+    private val burst: Boolean = false,
+    private val burstCount: Int = 5,
+    private val time: Long = 100
+) : Component() {
+    fun action(actor: Entity, dir: Point): Action = Shoot(actor[Position::class]!!, dir, bullet, delay, time)
 
-data class Pistol(override val entity: Entity, private val bullet: String) : Gun() {
-    //TODO: get actor from inventory or equipment
-    override fun fire(actor: Entity, dir: Point): Action = Shoot(actor[Position::class]!!, dir, bullet)
-}
-
-data class Rifle(override val entity: Entity, private val bullet: String) : Gun() {
-    override fun fire(actor: Entity, dir: Point): Action? =
-            if (!entity.has(BurstFire::class)) {
-                ApplyEffect(actor, BurstFire(actor, bullet, actor, dir, 1))
+    fun fire(actor: Entity, dir: Point): Action? {
+        return if (burst) {
+            if (!entity.has(RepeatAction::class)) { //TODO
+                ApplyEffect(actor, RepeatAction(actor, burstCount, time) { action(actor, dir) })
             } else null
+        } else {
+            action(actor, dir)
+        }
+    }
 }
-
-data class BurstFire(override val entity: Entity, val bullet: String, val actor: Entity, val dir: Point, override var time: Long) : Effect() {
-    override var duration: Long = 500
-    override val action: Action get() = Shoot(actor[Position::class]!!, dir, bullet)
-}
-

@@ -14,11 +14,15 @@ import gehenna.utils.Point
 import gehenna.utils.directions
 
 //TODO: try some player seeking behaviour
-data class BulletBehaviour(override val entity: Entity, var dir: Point, override var time: Long = 0) :
-    PredictableBehaviour() {
+data class BulletBehaviour(
+    override val entity: Entity,
+    var dir: Point,
+    private val damage: Int,
+    override var time: Long = 0
+) : PredictableBehaviour() {
 
     override fun copy(entity: Entity): BulletBehaviour {
-        return BulletBehaviour(entity, dir, time)
+        return BulletBehaviour(entity, dir, damage, time)
     }
 
     fun dirChar() = (130 + directions.indexOf(dir)).toChar()
@@ -63,7 +67,7 @@ data class BulletBehaviour(override val entity: Entity, var dir: Point, override
         val obstacle = pos.level.obstacle(newx, newy)
         if (obstacle != null) {
             if (obstacle.has(Health::class)) {
-                return Collide(entity, obstacle, 10) // TODO: Get damage from some component
+                return Collide(entity, obstacle, damage)
             }
             return Bounce(entity, dir)
         }

@@ -10,6 +10,7 @@ import gehenna.component.behaviour.ThinkUntilSet
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevelBuilder
+import gehenna.level.StubLevelBuilder
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -18,6 +19,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     override val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
 
     override fun newLevelBuilder() = DungeonLevelBuilder()
+//    override fun newLevelBuilder() = StubLevelBuilder()
         .withFactory(factory)
         .withPartFactory(partFactory)
         .withSize(8 * 8, 7 * 8)

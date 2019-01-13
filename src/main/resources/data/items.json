@@ -41,19 +41,21 @@
     "pistol": {
         "gun": {
             "bullet": "bullet",
+            "damage": 10,
             "delay": 80
         },
         "item": {
-            "volume": 50
+            "volume": 15
         },
         "glyph": {
-            "char": 243
+            "char": 138
         }
     },
 
     "rifle": {
         "gun": {
             "bullet": "bullet",
+            "damage": 10,
             "delay": 80,
             "burst": true,
             "burstCount": 5,
@@ -63,7 +65,7 @@
             "volume": 50
         },
         "glyph": {
-            "char": 243
+            "char": 139
         }
     }
 }

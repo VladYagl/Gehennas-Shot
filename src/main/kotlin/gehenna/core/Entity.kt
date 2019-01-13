@@ -54,5 +54,9 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
     override fun toString(): String {
         return name
     }
+
+    companion object {
+        val world = Entity("World")
+    }
 }
 

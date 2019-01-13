@@ -3,6 +3,7 @@ package gehenna.ui
 import gehenna.component.*
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.component.behaviour.ThinkUntilSet
+import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
@@ -10,6 +11,7 @@ import gehenna.level.DungeonLevelBuilder
 import gehenna.utils.*
 import kotlinx.coroutines.*
 import java.awt.Color
+import kotlin.reflect.full.safeCast
 import kotlin.system.measureNanoTime
 
 class App(private val ui: UI, private val settings: Settings) {
@@ -35,11 +37,7 @@ class App(private val ui: UI, private val settings: Settings) {
             uiLoop()
         }
         GlobalScope.launch(exceptionHandler) {
-            withContext(gameContext) {
-                gameLoop()
-                uiJob.cancel()
-                uiJob.join()
-            }
+            gameLoop(uiJob)
         }
     }
 
@@ -48,28 +46,34 @@ class App(private val ui: UI, private val settings: Settings) {
         ui.printException(exception)
     }
 
-    private suspend fun gameLoop() {
-        while (true) {
-            game.update()
-            count++
+    private suspend fun gameLoop(uiJob: Job) {
+        while (
+            withContext(gameContext) {
+                game.update()
 
-            if (!game.player.has(Position::class)) {
-                state = End(context)
-                val window = ui.newWindow(17, 6)
-                window.writeLine("RIP ", 1, Alignment.center)
-                window.writeLine("YOU ARE DEAD", 3, Alignment.center)
-                break
-            }
-            if ((game.player[Position::class]?.level as DungeonLevelBuilder.DungeonLevel).depth == 2) {
-                state = End(context)
-                val window = ui.newWindow(19, 4)
-                window.writeLine("WE WON ZULUL", 1, Alignment.center)
-                break
-            }
+                if (!game.player.has(Position::class)) {
+                    state = End(context)
+                    val window = ui.newWindow(17, 6)
+                    window.writeLine("RIP ", 1, Alignment.center)
+                    window.writeLine("YOU ARE DEAD", 3, Alignment.center)
+                    uiJob.cancel()
+                    uiJob.join()
+                    return@withContext false
+                }
+                if (DungeonLevelBuilder.DungeonLevel::class.safeCast(game.player[Position::class]?.level)?.depth == 2) { //fixme
+                    state = End(context)
+                    val window = ui.newWindow(19, 4)
+                    window.writeLine("WE WON ZULUL", 1, Alignment.center)
+                    uiJob.cancel()
+                    uiJob.join()
+                    return@withContext false
+                }
+                true
+            }) {
         }
     }
 
-    private val gameContext = newSingleThreadContext("CounterContext")
+    private val gameContext = newSingleThreadContext("GameContext")
     private suspend fun uiLoop() {
         while (true) {
 //        for (i in repaint) {
@@ -120,7 +124,7 @@ class App(private val ui: UI, private val settings: Settings) {
     }
 
     private var camera = 0 to 0
-    private val cameraBound = ui.worldWidth / 2 - 30 to ui.worldHeight / 2 - 30
+    private val cameraBound = ui.worldWidth / 2 - ui.worldWidth / 5 to ui.worldHeight / 2 - 3
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
@@ -174,7 +178,7 @@ class App(private val ui: UI, private val settings: Settings) {
         game.player.all(Senses::class).forEach { sense ->
             sense.visitFov { entity, x, y ->
                 entity[Glyph::class]?.let { glyph ->
-                    if (glyph.memorable) level.remember(x, y, glyph)
+                    if (glyph.memorable) level.remember(x, y, glyph, game.time)
                     putGlyph(glyph, x, y)
                 }
             }
@@ -182,13 +186,9 @@ class App(private val ui: UI, private val settings: Settings) {
 
         range(ui.worldWidth, ui.worldHeight).forEach { (x, y) ->
             val pos = levelPos(x, y)
-            if (priority[x, y] == -100 && pos.x < level.width && pos.y < level.height && pos.x >= 0 && pos.y >= 0) {
-                level.memory(pos.x, pos.y)?.let {
-                    putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
-                } ?: putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
-            } else {
-                putGlyph(Glyph(game.player, ' ', -2), pos.x, pos.y)
-            }
+            level.memory(pos.x, pos.y)?.let {
+                putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
+            } ?: putGlyph(Glyph(Entity.world, ' ', -2), pos.x, pos.y)
         }
     }
 

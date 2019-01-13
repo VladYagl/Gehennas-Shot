@@ -68,7 +68,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         info.clear()
         log.clear()
 
-        app = App(this, settings) // TODO move this out of main frame
+        app = App(this, settings)
         addComponentListener(object : ComponentAdapter() {
             override fun componentShown(e: ComponentEvent?) {
                 app.start()

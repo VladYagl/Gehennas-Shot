@@ -42,13 +42,14 @@ data class Shoot(
     private val pos: Position,
     private val dir: Point,
     private val bulletName: String,
+    private val damage: Int,
     private val delay: Long,
     override val time: Long = 100L
 ) : Action() {
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(bulletName)
         pos.spawnHere(bullet)
-        bullet.add(BulletBehaviour(bullet, dir, delay))
+        bullet.add(BulletBehaviour(bullet, dir, damage, delay))
         return end()
     }
 }

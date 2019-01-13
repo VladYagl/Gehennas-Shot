@@ -16,7 +16,6 @@ import rlforj.los.PrecisePermissive
 abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     //fov
     private val transparent = DoubleArray(width, height) { 0.0 }
-    private var memory = Array(width, height) { null as Glyph? }
     private val fovAlgorithm = PrecisePermissive()
 
     //path find
@@ -33,14 +32,6 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
 
     fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Point>? {
         return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
-    }
-
-    fun memory(x: Int, y: Int): Glyph? {
-        return memory[x, y]
-    }
-
-    fun remember(x: Int, y: Int, glyph: Glyph) {
-        if (glyph.priority > memory[x, y]?.priority ?: Int.MIN_VALUE) memory[x, y] = glyph
     }
 
     fun visitFov(x: Int, y: Int, range: Int, visitor: (Entity, Int, Int) -> Unit): FovBoard {

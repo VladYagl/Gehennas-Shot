@@ -104,10 +104,10 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
             if (Random.nextDouble() < 0.4) cellular.cells[i, j] = true
         }
         cellular.automaton(2, 5, 2)
-        cellular.automaton(2, 8, 1)
+        cellular.automaton(2, 7, 1)
         cellular.cells[x / 3, y / 3] = false
         cellular.spawnTo(0, 0, this)
-//        real.automaton(4, 4, 1)
+//        real.automaton(8, 5, 1)
         real.spawnTo(0, 0, this)
     }
 
@@ -133,5 +133,11 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
 
     protected fun Level.has(x: Int, y: Int): Boolean {
         return safeGet(x, y).isNotEmpty()
+    }
+
+    protected fun Level.clear() {
+        for ((x, y) in range(width, height)) {
+            get(x, y).toList().forEach { remove(it) }
+        }
     }
 }

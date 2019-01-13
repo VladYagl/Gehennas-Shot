@@ -1,5 +1,6 @@
 package gehenna.level
 
+import gehenna.component.Floor
 import gehenna.component.Stairs
 import gehenna.utils.*
 import kotlin.reflect.full.safeCast
@@ -20,14 +21,19 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
                 spawn(stairs, startPosition.x, startPosition.y)
             }
 
-            automaton(startPosition.x, startPosition.y, depth)
-            for ((x, y) in range(width - 1, height - 1)) {
-                if (has(x, y) && has(x + 1, y + 1) && !has(x + 1, y) && !has(x, y + 1)) {
-                    part(x - 2, y - 2, "se_connector")
+            while (true) {
+                automaton(startPosition.x, startPosition.y, depth)
+                for ((x, y) in range(width - 1, height - 1)) {
+                    if (has(x, y) && has(x + 1, y + 1) && !has(x + 1, y) && !has(x, y + 1)) {
+                        part(x - 2, y - 2, "se_connector")
+                    }
+                    if (!has(x, y) && !has(x + 1, y + 1) && has(x + 1, y) && has(x, y + 1)) {
+                        part(x - 2, y - 2, "sw_connector")
+                    }
                 }
-                if (!has(x, y) && !has(x + 1, y + 1) && has(x + 1, y) && has(x, y + 1)) {
-                    part(x - 2, y - 2, "sw_connector")
-                }
+                val floor = range(width, height).count { (x, y) -> isWalkable(x, y) }
+                if (walkableSquare(startPosition.x, startPosition.y) < floor) clear()
+                else break
             }
             allWalls()
             box(0, 0, width, height)
@@ -76,6 +82,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
 //            rect(0, 0, width, height)
 //            room(0, 0, width, height)
 //            part(10, 10, "hall")
+
 //            spawn(factory.new("stairsDown"), startPosition)
 //            spawn(factory.new("rifle"), startPosition)
 //            spawn(factory.new("pistol"), startPosition)

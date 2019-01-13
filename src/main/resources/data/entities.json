@@ -116,7 +116,7 @@
             "speed": 475
         },
         "destroyTimer": {
-            "time": 10000
+            "time": 1000
         }
     },
 
@@ -163,7 +163,8 @@
         },
         "obstacle": {
             "blockView": true,
-            "blockMove": true
+            "blockMove": true,
+            "blockPath": false
         },
         "door": {},
         "floor": {}

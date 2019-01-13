@@ -22,12 +22,12 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     //path find
     private val navGrid = NavigationGrid(Array(width, height) { GridCell() }, true)
     private val pathFinderOptions = GridFinderOptions(
-            true,
-            false,
-            ChebyshevDistance(),
-            false,
-            1.0F,
-            1.0F
+        true,
+        false,
+        ChebyshevDistance(),
+        false,
+        1.0F,
+        1.0F
     )
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 
@@ -49,10 +49,22 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
         return fov
     }
 
+    fun walkableSquare(x: Int, y: Int): Int {
+        val visited = HashSet<GridCell>()
+        fun visit(cell: GridCell) {
+            visited.add(cell)
+            navGrid.getNeighbors(cell, pathFinderOptions).toList().forEach {
+                if (!visited.contains(it)) visit(it)
+            }
+        }
+        visit(navGrid.getCell(x, y))
+        return visited.size
+    }
+
     override fun update(x: Int, y: Int) {
         navGrid.setWalkable(x, y,
-                cells[x, y].any { it.has(Floor::class) } &&
-                        cells[x, y].none { it[Obstacle::class]?.blockPath == true })
+            cells[x, y].any { it.has(Floor::class) } &&
+                    cells[x, y].none { it[Obstacle::class]?.blockPath == true })
         transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
     }
 

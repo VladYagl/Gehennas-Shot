@@ -6,12 +6,12 @@ import gehenna.core.Action
 import gehenna.core.Context
 
 class UIContext(private val context: Context, private val ui: UI) : Context by context {
-    val log get() = player[Logger::class]!!
+    val log get() = player<Logger>()!!
 
     var action: Action? = null
         set(value) {
             value?.let { action ->
-                player[ThinkUntilSet::class]?.action = action
+                player<ThinkUntilSet>()?.action = action
             }
         }
 

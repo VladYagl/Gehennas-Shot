@@ -17,7 +17,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
         ).apply {
             previous?.let { previous ->
                 val stairs = factory.new("stairsUp")
-                stairs[Stairs::class]?.destination = previous to (backPoint ?: previous.startPosition)
+                stairs<Stairs>()?.destination = previous to (backPoint ?: previous.startPosition)
                 spawn(stairs, startPosition.x, startPosition.y)
             }
 

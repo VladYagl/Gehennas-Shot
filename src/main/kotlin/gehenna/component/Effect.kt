@@ -15,15 +15,15 @@ data class DestroyTimer(override val entity: Entity, override var time: Long = 1
     override val action: Action = Destroy(entity)
 }
 
-data class RepeatAction(
+data class RepeatAction<T : Action>(
     override val entity: Entity,
     private var count: Int,
     private var delay: Long = 100,
-    private val actionFactory: () -> Action
+    private val actionFactory: () -> T
 ) : Effect() {
     override var time = 1L
     override var duration = 1L
-    override val action: Action
+    override val action: T
         get() {
             if (--count > 0) duration += delay // TODO <- get action time here or some thing
             return actionFactory()

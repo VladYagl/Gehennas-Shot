@@ -70,7 +70,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
                     if (safeGet(x + dir.x, y + dir.y).isNotEmpty() && safeGet(
                             x + dir.x,
                             y + dir.y
-                        ).none { it[Obstacle::class]?.blockMove == true }
+                        ).none { it<Obstacle>()?.blockMove == true }
                     ) {
                         wall(x, y)
                         break
@@ -113,7 +113,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
 
     protected fun Level.rect(x1: Int, y1: Int, width: Int, height: Int) {
         for ((x, y) in (x1 to y1) until (x1 + width to y1 + height)) {
-            if (get(x, y).none { it.has(Floor::class) }) {
+            if (get(x, y).none { it.has<Floor>() }) {
                 floor(x, y)
             }
         }

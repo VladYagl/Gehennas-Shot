@@ -42,7 +42,7 @@
         "gun": {
             "bullet": "bullet",
             "damage": 10,
-            "delay": 80
+            "delay": 20
         },
         "item": {
             "volume": 15
@@ -56,7 +56,7 @@
         "gun": {
             "bullet": "bullet",
             "damage": 10,
-            "delay": 80,
+            "delay": 20,
             "burst": true,
             "burstCount": 5,
             "time": 50

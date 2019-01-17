@@ -18,8 +18,8 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     private var globalTime: Long = 0
     override val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
 
-    override fun newLevelBuilder() = DungeonLevelBuilder()
-//    override fun newLevelBuilder() = StubLevelBuilder()
+    //    override fun newLevelBuilder() = DungeonLevelBuilder()
+    override fun newLevelBuilder() = StubLevelBuilder()
         .withFactory(factory)
         .withPartFactory(partFactory)
         .withSize(8 * 8, 7 * 8)
@@ -31,7 +31,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         ComponentManager.update()
     }
 
-    fun isPlayerNext(): Boolean = ComponentManager.waiters().firstOrNull() == player[ThinkUntilSet::class]
+    fun isPlayerNext(): Boolean = ComponentManager.waiters().firstOrNull() == player<ThinkUntilSet>()
 
     // TODO: Think about energy randomization / but maybe i don't really need one
     suspend fun update() {
@@ -58,16 +58,16 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
 
                 else -> throw Exception("Unknown waiter: $first of type: ${first::class}")
             }
-            first.time += scaleTime(result.time, first.entity[Stats::class]?.speed ?: 100)
+            first.time += scaleTime(result.time, first.entity<Stats>()?.speed ?: 100)
             ComponentManager.update()
-            val sight = player[Senses.Sight::class]
+            val sight = player<Senses.Sight>()
             sight?.visitFov { _, _, _ -> }
             result.logEntries.forEach { entry ->
-                if (player.has(entry.sense)) {
+                if (player.all<Senses>().any { entry.sense.isInstance(it) }) { // fixme
                     when (entry.sense) {
                         Senses.Sight::class -> {
                             if (sight?.isVisible(entry.position!!.x, entry.position.y) == true) {
-                                player[Logger::class]?.add(entry.text)
+                                player<Logger>()?.add(entry.text)
                             }
                         }
                     }

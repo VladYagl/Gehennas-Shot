@@ -45,16 +45,16 @@ data class BulletBehaviour(
         }
 
         override fun perform(context: Context): ActionResult {
-            val behaviour = entity[BulletBehaviour::class]
-            behaviour?.dir = bounce(entity[Position::class]!!)
-            entity[Glyph::class]?.char = behaviour?.dirChar() ?: 130.toChar()
+            val behaviour = entity<BulletBehaviour>()
+            behaviour?.dir = bounce(entity()!!)
+            entity<Glyph>()?.char = behaviour?.dirChar() ?: 130.toChar()
             return end()
         }
     }
 
     override fun onEvent(event: Entity.Event) {
         if (event == Entity.Add) {
-            entity[Glyph::class]?.char = dirChar()
+            entity<Glyph>()?.char = dirChar()
         }
     }
 
@@ -62,11 +62,11 @@ data class BulletBehaviour(
         if (lastResult?.succeeded == false) {
             return Destroy(entity)
         }
-        val pos = entity[Position::class]!!
+        val pos = entity<Position>()!!
         val (newx, newy) = pos + dir
         val obstacle = pos.level.obstacle(newx, newy)
         if (obstacle != null) {
-            if (obstacle.has(Health::class)) {
+            if (obstacle.has<Health>()) {
                 return Collide(entity, obstacle, damage)
             }
             return Bounce(entity, dir)

@@ -16,11 +16,11 @@ data class Gun(
     private val burstCount: Int = 5,
     private val time: Long = 100
 ) : Component() {
-    fun action(actor: Entity, dir: Point): Action = Shoot(actor[Position::class]!!, dir, bullet, damage, delay, time)
+    fun action(actor: Entity, dir: Point) = Shoot(actor()!!, dir, bullet, damage, delay, time)
 
     fun fire(actor: Entity, dir: Point): Action? {
         return if (burst) {
-            if (!actor.has(RepeatAction::class)) { //TODO
+            if (!actor.has<RepeatAction<*>>()) { //TODO
                 ApplyEffect(actor, RepeatAction(actor, burstCount, time) { action(actor, dir) })
             } else null
         } else {

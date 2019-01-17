@@ -11,30 +11,30 @@ import java.lang.Math.abs
 data class MonsterBehaviour(override val entity: Entity, override var time: Long = 0) : Behaviour() {
     private var target: Position? = null
     private val dangerZone = HashSet<Point>()
-    private val pos get() = entity[Position::class]!!
+    private val pos get() = entity<Position>()!!
 
     private fun updateSenses() {
         dangerZone.clear()
         val bullets = ArrayList<PredictableBehaviour>()
-        entity.all(Senses::class).forEach { sense ->
+        entity.all<Senses>().forEach { sense ->
             sense.visitFov { obj, x, y ->
-                if (obj != entity && obj[Obstacle::class]?.blockMove == true) dangerZone.add(x to y)
-                obj[BulletBehaviour::class]?.let { bullets.add(it) }
+                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(x to y)
+                obj<BulletBehaviour>()?.let { bullets.add(it) }
                 if (obj.name == "player") {
-                    target = obj[Position::class]
+                    target = obj()
                 }
             }
         }
         bullets.forEach { bullet ->
-            dangerZone.addAll(pos.level.predict(bullet, entity[Stats::class]?.speed?.toLong() ?: 100))
+            dangerZone.addAll(pos.level.predict(bullet, entity<Stats>()?.speed?.toLong() ?: 100))
         }
     }
 
     private fun shoot(target: Position): Action? {
-        return entity[Inventory::class]?.all()
-            ?.firstNotNullResult { it.entity.all(Gun::class).firstOrNull() }
+        return entity<Inventory>()?.all()
+            ?.firstNotNullResult { it.entity.all<Gun>().firstOrNull() }
             ?.let { gun ->
-                if (target == target.entity[Position::class]) {
+                if (target == target.entity<Position>()) {
                     val diff = target.point - pos.point
                     if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
                         gun.fire(entity, diff.dir)

@@ -15,4 +15,5 @@ sealed class Input {
     object ClimbStairs : Input()
     object Open : Input()
     object Close : Input()
+    object Quit : Input()
 }

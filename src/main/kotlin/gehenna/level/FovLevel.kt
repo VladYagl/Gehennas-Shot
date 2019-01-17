@@ -54,9 +54,9 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
 
     override fun update(x: Int, y: Int) {
         navGrid.setWalkable(x, y,
-            cells[x, y].any { it.has(Floor::class) } &&
-                    cells[x, y].none { it[Obstacle::class]?.blockPath == true })
-        transparent[x, y] = if (cells[x, y].none { it[Obstacle::class]?.blockView == true }) 0.0 else 1.0
+            cells[x, y].any { it.has<Floor>() } &&
+                    cells[x, y].none { it<Obstacle>()?.blockPath == true })
+        transparent[x, y] = if (cells[x, y].none { it<Obstacle>()?.blockView == true }) 0.0 else 1.0
     }
 
     abstract inner class FovBoard : ILosBoard {

@@ -19,7 +19,8 @@
         "inventory": {
             "maxVolume": 200,
             "items": [
-                "death_grips_2"
+                "death_grips_2",
+                "pistol"
             ]
         },
         "sight": {
@@ -63,7 +64,7 @@
             "range": 25
         },
         "MonsterBehaviour": {
-            "time": 1
+            "time": 50
         }
     },
 
@@ -102,7 +103,7 @@
             "range": 25
         },
         "MonsterBehaviour": {
-            "time": 10
+            "time": 50
         }
     },
 

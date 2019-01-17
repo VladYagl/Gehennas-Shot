@@ -10,7 +10,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.*
 
-class MainFrame : JFrame(), UI, KeyEventDispatcher {
+class MainFrame : JFrame(), UI {
     private val settings = loadSettings(streamResource("data/settings.json"))!!
     private val worldFont = settings.worldFont
     private val font = settings.font
@@ -54,8 +54,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
 
     init {
         title = "Gehenna's Shot"
-        //isResizable = false
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
+        isResizable = false
 
         size = Dimension(settings.width, settings.height)
         preparePanels()
@@ -74,6 +73,8 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
                 app.start()
             }
         })
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(InputConverter(app))
     }
 
     override fun printException(e: Throwable) {
@@ -125,55 +126,6 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         } else {
             throw Exception("MainFrame can't remove $window")
         }
-    }
-
-    private fun getDir(char: Char): Point? {
-        return when (char) {
-            '.', '5' -> 0 to 0
-            'j', '2' -> 0 to +1
-            'k', '8' -> 0 to -1
-            'h', '4' -> -1 to 0
-            'l', '6' -> +1 to 0
-            'y', '7' -> -1 to -1
-            'u', '9' -> +1 to -1
-            'n', '3' -> +1 to +1
-            'b', '1' -> -1 to +1
-            else -> null
-        }
-    }
-
-    override fun dispatchKeyEvent(e: KeyEvent): Boolean {
-        try {
-            info.writeCenter("Last keys", 20, Color.white, Color.darkGray)
-            when (e.id) {
-                KeyEvent.KEY_TYPED -> {
-                    app.onInput(Input.Char(e.keyChar))
-                    getDir(e.keyChar)?.let { dir -> app.onInput(Input.Direction(dir)) }
-                    when (e.keyChar) {
-                        'Q' -> System.exit(0)
-                        'r' -> forceRepaint()
-                        'f' -> app.onInput(Input.Fire)
-                        ',', 'g' -> app.onInput(Input.Pickup)
-                        'd' -> app.onInput(Input.Drop)
-                        '>', '<' -> app.onInput(Input.ClimbStairs)
-                        'o' -> app.onInput(Input.Open)
-                        'c' -> app.onInput(Input.Close)
-                    }
-                    info.writeLine("Last typed: ${e.keyChar}", 21)
-                }
-                KeyEvent.KEY_PRESSED -> {
-                    info.writeLine("Last pressed: ${e.keyCode}", 22)
-                    when (e.keyCode) {
-                        KeyEvent.VK_ESCAPE, KeyEvent.VK_CAPS_LOCK -> app.onInput(Input.Cancel)
-                        KeyEvent.VK_ENTER, KeyEvent.VK_SPACE -> app.onInput(Input.Accept)
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            showError(e)
-            printException(e)
-        }
-        return false
     }
 
     private fun forceRepaint() {

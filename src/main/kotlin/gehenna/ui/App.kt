@@ -14,7 +14,7 @@ import java.awt.Color
 import kotlin.reflect.full.safeCast
 import kotlin.system.measureNanoTime
 
-class App(private val ui: UI, private val settings: Settings) {
+class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val factory = EntityFactory()
     private val levelFactory = LevelPartFactory(factory)
     private val game = Game(factory, levelFactory)
@@ -31,8 +31,8 @@ class App(private val ui: UI, private val settings: Settings) {
         levelFactory.loadJson(streamResource("data/rooms.json"))
         game.init()
 
-        game.player[Logger::class]?.add("Welcome to Gehenna's Shot")
-        game.player[Logger::class]?.add("   Suffer bitch,   love you " + 3.toChar())
+        game.player<Logger>()?.add("Welcome to Gehenna's Shot")
+        game.player<Logger>()?.add("   Suffer bitch,   love you " + 3.toChar())
         val uiJob = GlobalScope.launch(exceptionHandler) {
             uiLoop()
         }
@@ -51,7 +51,7 @@ class App(private val ui: UI, private val settings: Settings) {
             withContext(gameContext) {
                 game.update()
 
-                if (!game.player.has(Position::class)) {
+                if (!game.player.has<Position>()) {
                     state = End(context)
                     val window = ui.newWindow(17, 6)
                     window.writeLine("RIP ", 1, Alignment.center)
@@ -60,7 +60,7 @@ class App(private val ui: UI, private val settings: Settings) {
                     uiJob.join()
                     return@withContext false
                 }
-                if (DungeonLevelBuilder.DungeonLevel::class.safeCast(game.player[Position::class]?.level)?.depth == 2) { //fixme
+                if (DungeonLevelBuilder.DungeonLevel::class.safeCast(game.player<Position>()?.level)?.depth == 2) { //fixme
                     state = End(context)
                     val window = ui.newWindow(19, 4)
                     window.writeLine("WE WON ZULUL", 1, Alignment.center)
@@ -96,20 +96,20 @@ class App(private val ui: UI, private val settings: Settings) {
     }
 
     private fun updateLog() {
-        game.player[Logger::class]?.log?.let { messages ->
+        game.player<Logger>()?.log?.let { messages ->
             ui.updateLog(messages)
         }
     }
 
     private fun updateInfo() {
         ui.info.writeLine("In game time: " + game.time, 1)
-        val glyph = game.player[Glyph::class]!!
-        val pos = game.player[Position::class]!!
-        val storage = game.player[Inventory::class]!!
+        val glyph = game.player<Glyph>()!!
+        val pos = game.player<Position>()!!
+        val storage = game.player<Inventory>()!!
         ui.info.writeLine("Player glyph = ${glyph.char}|${glyph.priority}", 2)
         ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
-        ui.info.writeLine("Player hp = " + game.player[Health::class]?.current, 4)
-        ui.info.writeLine("Effects = " + game.player.all(Effect::class), 5)
+        ui.info.writeLine("Player hp = " + game.player<Health>()?.current, 4)
+        ui.info.writeLine("Effects = " + game.player.all<Effect>(), 5)
         ui.info.writeLine("Inventory", 8, Alignment.center, Color.white, Color.darkGray)
         repeat(10) { i -> ui.info.writeLine("", 9 + i) }
         storage.all().forEachIndexed { index, item ->
@@ -172,12 +172,12 @@ class App(private val ui: UI, private val settings: Settings) {
         //TODO: Try drawing whole level and then moving it
         //TODO: Animations
         priority.forEach { it.fill(-100) }
-        val playerPos = game.player[Position::class]!!
+        val playerPos = game.player<Position>()!!
         val level = playerPos.level
         moveCamera(playerPos.point)
-        game.player.all(Senses::class).forEach { sense ->
+        game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, x, y ->
-                entity[Glyph::class]?.let { glyph ->
+                entity<Glyph>()?.let { glyph ->
                     if (glyph.memorable) level.remember(x, y, glyph, game.time)
                     putGlyph(glyph, x, y)
                 }
@@ -193,17 +193,17 @@ class App(private val ui: UI, private val settings: Settings) {
     }
 
     private fun predict() {
-        val playerPos = game.player[Position::class]!!
-        val stats = game.player[Stats::class]!!
+        val playerPos = game.player<Position>()!!
+        val stats = game.player<Stats>()!!
         val level = playerPos.level
         val behaviours = ArrayList<PredictableBehaviour>()
-        val sight = game.player[Senses.Sight::class]!!
+        val sight = game.player<Senses.Sight>()!!
         sight.visitFov { entity, _, _ ->
-            entity.all(PredictableBehaviour::class).firstOrNull()?.let { behaviours.add(it) }
+            entity.all<PredictableBehaviour>().firstOrNull()?.let { behaviours.add(it) }
         }
         behaviours.forEach {
             var color = Color.white * 0.5 // TODO : DEFAULT COLOR
-            val prediction = level.predictWithGlyph(it, game.player[ThinkUntilSet::class]!!.time + stats.speed.toLong())
+            val prediction = level.predictWithGlyph(it, game.player<ThinkUntilSet>()!!.time + stats.speed.toLong())
             prediction.forEach { (p, glyph) ->
                 if (sight.isVisible(p.x, p.y) && inView(p.x, p.y)) {
                     color *= 0.85
@@ -214,8 +214,9 @@ class App(private val ui: UI, private val settings: Settings) {
         }
     }
 
-    fun onInput(input: Input) {
+    override fun onInput(input: Input) {
         ui.info.writeLine("$input", 23)
+        if (input == Input.Quit) System.exit(0)
         state = state.handleInput(input)
     }
 }

@@ -1,13 +1,12 @@
 package gehenna.core
 
-import gehenna.component.Effect
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
 
 //FIXME : CANT HAVE SAME COMPONENT TYPE TWICE
 data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUID.randomUUID().toString()) {
-    private val components = HashMap<KClass<out Component>, Component>()
+    val components = HashMap<KClass<out Component>, Component>()
 
     interface Event
     object Add : Event
@@ -18,19 +17,18 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         components.values.toList().forEach { it.onEvent(event) }
     }
 
-    operator fun <T : Component> get(clazz: KClass<T>): T? {
-        @Suppress("UNCHECKED_CAST")
-        return components[clazz] as T?
+    inline operator fun <reified T : Component> invoke(): T? {
+        return components[T::class] as T?
     }
 
-    fun <T : Component> all(clazz: KClass<T>): List<T> {
+    inline fun <reified T : Component> all(): List<T> {
         return components.mapNotNull {
-            clazz.safeCast(it.value)
+            T::class.safeCast(it.value)
         }
     }
 
-    fun <T : Component> has(clazz: KClass<T>): Boolean {
-        return get(clazz) != null
+    inline fun <reified T : Component> has(): Boolean {
+        return invoke<T>() != null
     }
 
     fun add(component: Component) {

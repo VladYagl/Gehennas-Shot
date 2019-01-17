@@ -22,11 +22,11 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
         val fakeEntity = Entity("stub")
         val fakeBehaviour = realBehaviour.copy(entity = fakeEntity)
         val realEntity = realBehaviour.entity
-        val realPos = realEntity[Position::class]!!
+        val realPos = realEntity<Position>()!!
         if (realPos.level != this) throw Exception("predicting other level")
         var fakePos = realPos.copy(entity = fakeEntity)
-        var fakeGlyph = realEntity[Glyph::class]!!.copy(entity = fakeEntity)
-        val speed = realEntity[Stats::class]?.speed ?: 100
+        var fakeGlyph = realEntity<Glyph>()!!.copy(entity = fakeEntity)
+        val speed = realEntity<Stats>()?.speed ?: 100
         fakeEntity.add(fakePos)
         var time = fakeBehaviour.time
         val prediction = ArrayList<Pair<Point, Glyph>>()
@@ -35,11 +35,11 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
             time += scaleTime(action.time, speed)
             val (x, y) = when (action) {
                 is Move -> fakePos + action.dir
-                is Collide -> action.victim[Position::class]!!.point
+                is Collide -> action.victim<Position>()!!.point
                 is BulletBehaviour.Bounce -> {
                     val dir = action.bounce(fakePos)
                     (fakeBehaviour as BulletBehaviour).dir = dir
-                    fakeGlyph = realEntity[Glyph::class]!!.copy(
+                    fakeGlyph = realEntity<Glyph>()!!.copy(
                         entity = fakeEntity,
                         char = fakeBehaviour.dirChar()
                     )
@@ -63,7 +63,7 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
     fun dangerZone(duration: Long): HashSet<Point> {
         val zone = HashSet<Point>()
         ComponentManager.predictables().forEach {
-            it.entity[Position::class]?.let { pos ->
+            it.entity<Position>()?.let { pos ->
                 if (pos.level == this) {
                     zone.addAll(predict(it, duration))
                 }

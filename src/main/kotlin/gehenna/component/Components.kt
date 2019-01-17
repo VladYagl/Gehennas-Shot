@@ -9,31 +9,31 @@ import gehenna.utils.random
 import gehenna.utils.until
 
 data class Glyph(
-        override val entity: Entity,
-        var char: Char,
-        var priority: Int = 0,
-        var memorable: Boolean = true
+    override val entity: Entity,
+    var char: Char,
+    var priority: Int = 0,
+    var memorable: Boolean = true
 ) : Component()
 
 data class Obstacle(
-        override val entity: Entity,
-        var blockMove: Boolean = false,
-        var blockView: Boolean = false,
-        var blockPath: Boolean = blockMove
+    override val entity: Entity,
+    var blockMove: Boolean = false,
+    var blockView: Boolean = false,
+    var blockPath: Boolean = blockMove
 ) : Component()
 
 data class Floor(override val entity: Entity) : Component()
 
 data class Stats(
-        override val entity: Entity,
-        val speed: Int = 100
+    override val entity: Entity,
+    val speed: Int = 100
 ) : Component()
 
 abstract class WaitTime(open var time: Long = 0) : Component() // TODO: let it manage ComponentManager??
 
 data class Health(
-        override val entity: Entity,
-        val max: Int
+    override val entity: Entity,
+    val max: Int
 ) : Component() {
     object Death : Entity.Event
 
@@ -61,9 +61,9 @@ data class Stairs(override val entity: Entity, var destination: Pair<Level, Poin
 data class Item(override val entity: Entity, val volume: Int) : Component()
 
 data class Inventory(
-        override val entity: Entity,
-        val maxVolume: Int,
-        private val items: ArrayList<Item> = ArrayList()
+    override val entity: Entity,
+    val maxVolume: Int,
+    private val items: ArrayList<Item> = ArrayList()
 ) : Component() {
     private var currentVolume = 0
 
@@ -85,7 +85,7 @@ data class Inventory(
 
     override fun onEvent(event: Entity.Event) {
         if (event is Health.Death) {
-            entity[Position::class]?.let { pos ->
+            entity<Position>()?.let { pos ->
                 items.forEach { item ->
                     pos.spawnHere(item.entity)
                 }
@@ -95,12 +95,12 @@ data class Inventory(
 }
 
 data class ChooseOneItem(
-        override val entity: Entity,
-        private val items: ArrayList<Item> = ArrayList()
+    override val entity: Entity,
+    private val items: ArrayList<Item> = ArrayList()
 ) : Component() {
     override fun onEvent(event: Entity.Event) {
         if (event is Entity.Finish) {
-            entity[Inventory::class]?.add(items.random(random))
+            entity<Inventory>()?.add(items.random(random))
             entity.remove(this)
         }
     }
@@ -109,12 +109,12 @@ data class ChooseOneItem(
 data class Door(override val entity: Entity, var closed: Boolean = true) : Component() {
     //todo -> it can add glyph and obstacle if there is no
     fun change(closed: Boolean) {
-        entity[Obstacle::class]?.apply {
+        entity<Obstacle>()?.apply {
             blockMove = closed
             blockView = closed
-            entity[Position::class]?.update()
+            entity<Position>()?.update()
         }
-        entity[Glyph::class]?.apply { char = (if (closed) '+' else 254.toChar()) } // todo
+        entity<Glyph>()?.apply { char = (if (closed) '+' else 254.toChar()) } // todo
         this.closed = closed
     }
 
@@ -129,7 +129,7 @@ sealed class Senses : Component() {
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
         private var fov: FovLevel.FovBoard? = null
         override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
-            val pos = entity[Position::class]
+            val pos = entity<Position>()
             fov = pos?.level?.visitFov(pos.x, pos.y, range, visitor)
         }
 
@@ -140,7 +140,7 @@ sealed class Senses : Component() {
         override fun isVisible(x: Int, y: Int): Boolean = true
 
         override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
-            entity[Position::class]?.let { pos ->
+            entity<Position>()?.let { pos ->
                 for ((x, y) in (0 to 0) until (pos.level.width to pos.level.height)) {
                     pos.level[x, y].forEach { entity -> visitor(entity, x, y) }
                 }

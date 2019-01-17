@@ -23,20 +23,23 @@ class EntityFactory : JsonFactory<Entity> {
     private val projection = KTypeProjection.invariant(Item::class.createType())
     private val itemListType = ArrayList::class.createType(listOf(projection))
 
-    private inner class ComponentBuilder(private val constructor: KFunction<Component>, private val args: HashMap<KParameter, Any>) {
+    private inner class ComponentBuilder(
+        private val constructor: KFunction<Component>,
+        private val args: HashMap<KParameter, Any>
+    ) {
         fun build(entity: Entity): Component {
             args[constructor.parameters[0]] = entity
             return constructor.callBy(
-                    args.mapValues { (parameter, value) ->
-                        if (parameter.type == itemListType) {
-                            @Suppress("UNCHECKED_CAST")
-                            (value as List<String>).map {
-                                new(it)[Item::class] ?: throw Exception("$it is not an Item")
-                            }
-                        } else {
-                            value
+                args.mapValues { (parameter, value) ->
+                    if (parameter.type == itemListType) {
+                        @Suppress("UNCHECKED_CAST")
+                        (value as List<String>).map {
+                            new(it)<Item>() ?: throw Exception("$it is not an Item")
                         }
+                    } else {
+                        value
                     }
+                }
             )
         }
     }
@@ -87,8 +90,10 @@ class EntityFactory : JsonFactory<Entity> {
                     "name" -> entityName = nextString()
                     "super" -> {
                         val parent = nextString()
-                        list.addAll(entities[parent]?.components
-                                ?: throw Exception("No supper entity: $parent"))
+                        list.addAll(
+                            entities[parent]?.components
+                                ?: throw Exception("No supper entity: $parent")
+                        )
                     }
                     else -> list.add(nextComponent(name))
                 }

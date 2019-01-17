@@ -25,3 +25,7 @@ interface UI {
     val info: Window
     val world: Window
 }
+
+interface InputListener {
+    fun onInput(input: Input)
+}

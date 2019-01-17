@@ -48,7 +48,7 @@ abstract class BasicLevel(val width: Int, val height: Int) {
     }
 
     fun remove(entity: Entity) {
-        val pos = entity[Position::class]!!
+        val pos = entity<Position>()!!
         entity.remove(pos)
     }
 
@@ -63,16 +63,16 @@ abstract class BasicLevel(val width: Int, val height: Int) {
     }
 
     fun obstacle(x: Int, y: Int): Entity? {
-        return cells[x][y].firstOrNull { it[Obstacle::class]?.blockMove ?: false }
+        return cells[x][y].firstOrNull { it<Obstacle>()?.blockMove ?: false }
     }
 
     fun isWalkable(x: Int, y: Int): Boolean {
-        return cells[x, y].any { it.has(Floor::class) } &&
-                cells[x, y].none { it[Obstacle::class]?.blockMove == true }
+        return cells[x, y].any { it.has<Floor>() } &&
+                cells[x, y].none { it<Obstacle>()?.blockMove == true }
     }
 
     fun isBlocked(x: Int, y: Int): Boolean {
-        return cells[x, y].any { it[Obstacle::class]?.blockMove ?: false }
+        return cells[x, y].any { it<Obstacle>()?.blockMove ?: false }
     }
 
     open fun update(x: Int, y: Int) {}

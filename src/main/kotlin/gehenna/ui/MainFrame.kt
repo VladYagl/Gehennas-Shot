@@ -78,10 +78,8 @@ class MainFrame : JFrame(), UI {
     }
 
     override fun printException(e: Throwable) {
-        val errors = StringWriter()
-        e.printStackTrace(PrintWriter(errors))
-        info.clear(' ', 0, info.heightInCharacters - 10, info.widthInCharacters, 10)
-        info.writeText(errors.toString(), 0, info.heightInCharacters - 10, Color.RED)
+        info.writeLine(e.message ?: "no message", info.heightInCharacters - 3, fg = Color.RED)
+        info.writeLine(e.toString(), info.heightInCharacters - 2, fg = Color.RED)
     }
 
     private fun JComponent.paintImmediately() {

@@ -5,7 +5,7 @@ import gehenna.component.behaviour.ThinkUntilSet
 import gehenna.core.Action
 import gehenna.core.Context
 
-class UIContext(private val context: Context, private val ui: UI) : Context by context {
+class UIContext(private val context: Context, private val ui: UI) : Context by context, UI by ui {
     val log get() = player<Logger>()!!
 
     var action: Action? = null
@@ -14,12 +14,4 @@ class UIContext(private val context: Context, private val ui: UI) : Context by c
                 player<ThinkUntilSet>()?.action = action
             }
         }
-
-    fun newWindow(width: Int, height: Int): Window {
-        return ui.newWindow(width, height)
-    }
-
-    fun removeWindow(window: Window) {
-        ui.removeWindow(window)
-    }
 }

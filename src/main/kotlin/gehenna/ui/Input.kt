@@ -16,4 +16,6 @@ sealed class Input {
     object Open : Input()
     object Close : Input()
     object Quit : Input()
+    object Console : Input()
+    object Backspace : Input()
 }

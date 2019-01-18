@@ -25,7 +25,8 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         when (e.id) {
             KeyEvent.KEY_TYPED -> {
-                listener.onInput(Input.Char(e.keyChar))
+                if (e.keyChar != '\b') //fixme
+                    listener.onInput(Input.Char(e.keyChar))
                 getDir(e.keyChar)?.let { dir -> listener.onInput(Input.Direction(dir)) }
                 when (e.keyChar) {
                     'Q' -> listener.onInput(Input.Quit)
@@ -37,12 +38,14 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                     '<' -> listener.onInput(Input.ClimbStairs)
                     'o' -> listener.onInput(Input.Open)
                     'c' -> listener.onInput(Input.Close)
+                    '`' -> listener.onInput(Input.Console)
                 }
             }
             KeyEvent.KEY_PRESSED -> {
                 when (e.keyCode) {
                     KeyEvent.VK_ESCAPE, KeyEvent.VK_CAPS_LOCK -> listener.onInput(Input.Cancel)
-                    KeyEvent.VK_ENTER, KeyEvent.VK_SPACE -> listener.onInput(Input.Accept)
+                    KeyEvent.VK_BACK_SPACE -> listener.onInput(Input.Backspace)
+                    KeyEvent.VK_ENTER -> listener.onInput(Input.Accept)
                     KeyEvent.VK_UP -> listener.onInput(Input.Direction(0 to -1))
                     KeyEvent.VK_DOWN -> listener.onInput(Input.Direction(0 to 1))
                     KeyEvent.VK_LEFT -> listener.onInput(Input.Direction(-1 to 0))

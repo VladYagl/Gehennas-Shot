@@ -122,6 +122,7 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Open -> UseDoor(context, false)
         Input.Close -> UseDoor(context, true)
+        Input.Console -> Console(context)
         else -> this
     }
 }
@@ -166,5 +167,38 @@ private class Drop(context: UIContext) : Select<Item>(context, context.player<In
     override fun onAccept(items: List<Item>): State {
         context.action = gehenna.action.Drop(items, context.player()!!, context.player()!!) //wtf is this??? kill me pls
         return Normal(context)
+    }
+}
+
+private class Console(private val context: UIContext) : State() {
+    private val window = context.newWindow(100, 2)
+    private var command: String = ""
+
+    override fun handleInput(input: Input) = when (input) {
+        is Input.Char -> {
+            command += input.char
+            window.writeLine(command, 0, alignment = Alignment.left)
+            this
+        }
+        is Input.Accept -> {
+            try {
+                val words = command.split(' ')
+                when (words[0]) {
+                    "spawn" -> context.player<Position>()!!.spawnHere(context.factory.new(words[1]))
+                    "give" -> context.player<Inventory>()!!.add(context.factory.new(words[1])()!!)
+                }
+            } catch (e: Throwable) {
+                context.printException(e)
+            }
+            context.removeWindow(window)
+            Normal(context)
+        }
+        is Input.Backspace -> {
+            command = command.dropLast(1)
+            window.writeLine(command, 0, alignment = Alignment.left)
+            this
+        }
+        is Input.Cancel -> Normal(context)
+        else -> this
     }
 }

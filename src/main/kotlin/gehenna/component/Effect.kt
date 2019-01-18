@@ -19,7 +19,10 @@ abstract class Effect : ActiveComponent() {
 }
 
 data class DestroyTimer(override val entity: Entity, override var waitTime: Long = 1000) : Effect() {
-    override var duration: Long = waitTime
+    override var duration
+        get() = 1L
+        set(value) {}
+
     override suspend fun action(): Action = Destroy(entity)
 }
 

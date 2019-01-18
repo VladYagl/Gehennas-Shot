@@ -61,9 +61,9 @@ class EntityFactory : JsonFactory<Entity> {
         beginObject {
             while (hasNext()) {
                 val argName = nextName()
-                val parameter = constructor.parameters.first {
+                val parameter = constructor.parameters.firstOrNull {
                     it.name == argName
-                }
+                } ?: throw Exception("Unknown component argument: $argName at $reader")
                 val value: Any = when (parameter.type) {
                     Boolean::class.createType() -> nextBoolean()
                     Double::class.createType() -> nextDouble()
@@ -72,7 +72,7 @@ class EntityFactory : JsonFactory<Entity> {
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
                     itemListType -> nextStringList()
-                    else -> throw Exception("Unkown type: " + parameter.type)
+                    else -> throw Exception("Unknown type: " + parameter.type)
                 }
                 args[parameter] = value
             }

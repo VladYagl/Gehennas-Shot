@@ -8,10 +8,9 @@ import gehenna.component.Position
 import gehenna.component.Stats
 import gehenna.component.behaviour.BulletBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
-import gehenna.core.ComponentManager
+import gehenna.core.ActionQueue
 import gehenna.core.Entity
 import gehenna.utils.Point
-import gehenna.utils.directions
 import kotlinx.coroutines.runBlocking
 
 abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
@@ -28,7 +27,7 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
         var fakeGlyph = realEntity<Glyph>()!!.copy(entity = fakeEntity)
         val speed = realEntity<Stats>()?.speed ?: 100
         fakeEntity.add(fakePos)
-        var time = fakeBehaviour.time
+        var time = fakeBehaviour.waitTime
         val prediction = ArrayList<Pair<Point, Glyph>>()
         loop@ while (time < duration) {
             val action = runBlocking { fakeBehaviour.action() }
@@ -62,7 +61,7 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
 
     fun dangerZone(duration: Long): HashSet<Point> {
         val zone = HashSet<Point>()
-        ComponentManager.predictables().forEach {
+        ActionQueue.predictables().forEach {
             it.entity<Position>()?.let { pos ->
                 if (pos.level == this) {
                     zone.addAll(predict(it, duration))

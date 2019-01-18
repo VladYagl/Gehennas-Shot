@@ -18,11 +18,11 @@ data class BulletBehaviour(
     override val entity: Entity,
     var dir: Point,
     private val damage: Int,
-    override var time: Long = 0
+    override var waitTime: Long = 0
 ) : PredictableBehaviour() {
 
     override fun copy(entity: Entity): BulletBehaviour {
-        return BulletBehaviour(entity, dir, damage, time)
+        return BulletBehaviour(entity, dir, damage, waitTime)
     }
 
     fun dirChar() = (130 + directions.indexOf(dir)).toChar()
@@ -52,12 +52,6 @@ data class BulletBehaviour(
         }
     }
 
-    override fun onEvent(event: Entity.Event) {
-        if (event == Entity.Add) {
-            entity<Glyph>()?.char = dirChar()
-        }
-    }
-
     override suspend fun action(): Action {
         if (lastResult?.succeeded == false) {
             return Destroy(entity)
@@ -72,5 +66,9 @@ data class BulletBehaviour(
             return Bounce(entity, dir)
         }
         return Move(entity, dir)
+    }
+
+    init {
+        subscribe<Entity.Add> { entity<Glyph>()?.char = dirChar() }
     }
 }

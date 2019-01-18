@@ -102,7 +102,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private fun updateInfo() {
-        ui.info.writeLine("In game time: " + game.time, 1)
+        ui.info.writeLine("In game waitTime: " + game.time, 1)
         val glyph = game.player<Glyph>()!!
         val pos = game.player<Position>()!!
         val storage = game.player<Inventory>()!!
@@ -203,7 +203,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
         behaviours.forEach {
             var color = Color.white * 0.5 // TODO : DEFAULT COLOR
-            val prediction = level.predictWithGlyph(it, game.player<ThinkUntilSet>()!!.time + stats.speed.toLong())
+            val prediction = level.predictWithGlyph(it, game.player<ThinkUntilSet>()!!.waitTime + stats.speed.toLong())
             prediction.forEach { (p, glyph) ->
                 if (sight.isVisible(p.x, p.y) && inView(p.x, p.y)) {
                     color *= 0.85

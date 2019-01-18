@@ -64,7 +64,7 @@
             "range": 25
         },
         "MonsterBehaviour": {
-            "time": 50
+            "waitTime": 50
         }
     },
 
@@ -103,7 +103,7 @@
             "range": 25
         },
         "MonsterBehaviour": {
-            "time": 50
+            "waitTime": 50
         }
     },
 
@@ -117,7 +117,7 @@
             "speed": 475
         },
         "destroyTimer": {
-            "time": 1000
+            "waitTime": 1000
         }
     },
 

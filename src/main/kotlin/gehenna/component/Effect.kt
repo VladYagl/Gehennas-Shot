@@ -1,46 +1,54 @@
 package gehenna.component
 
-import gehenna.core.Entity
-import gehenna.core.Action
 import gehenna.action.Destroy
-import gehenna.utils.Point
+import gehenna.core.*
 
-abstract class Effect : WaitTime() {
+abstract class ActiveComponent : Component() {
+    open var waitTime: Long = 0L
+    abstract suspend fun action(): Action
+    var lastResult: ActionResult? = null
+
+    init {
+        subscribe<Entity.Add> { ActionQueue.add(this) }
+        subscribe<Entity.Remove> { ActionQueue.remove(this) }
+    }
+}
+
+abstract class Effect : ActiveComponent() {
     abstract var duration: Long
-    abstract val action: Action
 }
 
-data class DestroyTimer(override val entity: Entity, override var time: Long = 1000) : Effect() {
-    override var duration: Long = time
-    override val action: Action = Destroy(entity)
+data class DestroyTimer(override val entity: Entity, override var waitTime: Long = 1000) : Effect() {
+    override var duration: Long = waitTime
+    override suspend fun action(): Action = Destroy(entity)
 }
 
-data class RepeatAction<T : Action>(
+open class RepeatAction<T : Action>(
     override val entity: Entity,
     private var count: Int,
     private var delay: Long = 100,
     private val actionFactory: () -> T
 ) : Effect() {
-    override var time = 1L
+    override var waitTime = 1L
     override var duration = 1L
-    override val action: T
-        get() {
-            if (--count > 0) duration += delay // TODO <- get action time here or some thing
-            return actionFactory()
-        }
+    override suspend fun action(): T {
+        if (--count > 0) duration += delay // TODO <- get action waitTime here or some thing
+        return actionFactory()
+    }
 }
 
 data class SequenceOfActions(
     override val entity: Entity,
-    private val actions: Iterable<Action>
+    private val actions: Iterable<Action>,
+    private var delay: Long = 100
 ) : Effect() {
-    override var duration: Long = time
+    override var waitTime = 1L
+    override var duration: Long = waitTime
     private val iterator = actions.iterator()
-    override val action: Action
-        get() {
-            val value = iterator.next()
-            if (iterator.hasNext()) duration += time
-            return value
-        }
+    override suspend fun action(): Action {
+        val value = iterator.next()
+        if (iterator.hasNext()) duration += waitTime
+        return value
+    }
 }
 

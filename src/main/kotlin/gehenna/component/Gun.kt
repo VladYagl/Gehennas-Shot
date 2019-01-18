@@ -20,11 +20,14 @@ data class Gun(
 
     fun fire(actor: Entity, dir: Point): Action? {
         return if (burst) {
-            if (!actor.has<RepeatAction<*>>()) { //TODO
-                ApplyEffect(actor, RepeatAction(actor, burstCount, time) { action(actor, dir) })
+            if (!actor.has<BurstFire>()) {
+                ApplyEffect(actor, BurstFire(actor, dir, this))
             } else null
         } else {
             action(actor, dir)
         }
     }
+
+    data class BurstFire(private val actor: Entity, private val dir: Point, private val gun: Gun) :
+        RepeatAction<Shoot>(actor, gun.burstCount, gun.time, { gun.action(actor, dir) })
 }

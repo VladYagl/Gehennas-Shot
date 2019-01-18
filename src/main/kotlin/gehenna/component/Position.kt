@@ -8,10 +8,10 @@ import gehenna.utils.x
 import gehenna.utils.y
 
 data class Position(
-        override val entity: Entity,
-        val x: Int,
-        val y: Int,
-        val level: Level
+    override val entity: Entity,
+    val x: Int,
+    val y: Int,
+    val level: Level
 ) : Component() {
     val point: Point
         get() {
@@ -34,11 +34,9 @@ data class Position(
 
     val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
 
-    override fun onEvent(event: Entity.Event) {
-        when (event) {
-            is Entity.Add -> level.spawn(this)
-            is Entity.Remove -> level.remove(this)
-        }
+    init {
+        subscribe<Entity.Add> { level.spawn(this) }
+        subscribe<Entity.Remove> { level.remove(this) }
     }
 
     fun findPath(toX: Int, toY: Int): List<Point>? {

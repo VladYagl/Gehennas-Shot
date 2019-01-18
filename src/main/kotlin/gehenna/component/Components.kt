@@ -29,8 +29,6 @@ data class Stats(
     val speed: Int = 100
 ) : Component()
 
-abstract class WaitTime(open var time: Long = 0) : Component() // TODO: let it manage ComponentManager??
-
 data class Health(
     override val entity: Entity,
     val max: Int
@@ -83,8 +81,8 @@ data class Inventory(
 
     fun all() = items.toList()
 
-    override fun onEvent(event: Entity.Event) {
-        if (event is Health.Death) {
+    init {
+        subscribe<Health.Death> {
             entity<Position>()?.let { pos ->
                 items.forEach { item ->
                     pos.spawnHere(item.entity)
@@ -98,8 +96,8 @@ data class ChooseOneItem(
     override val entity: Entity,
     private val items: ArrayList<Item> = ArrayList()
 ) : Component() {
-    override fun onEvent(event: Entity.Event) {
-        if (event is Entity.Finish) {
+    init {
+        subscribe<Entity.Finish> {
             entity<Inventory>()?.add(items.random(random))
             entity.remove(this)
         }

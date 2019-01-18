@@ -16,10 +16,10 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     override lateinit var player: Entity
         private set
     private var globalTime: Long = 0
-    override val time: Long get() = globalTime + (ComponentManager.waiters().firstOrNull()?.time ?: 0)
+    override val time: Long get() = globalTime + (ActionQueue.firstOrNull()?.waitTime ?: 0)
 
-    //    override fun newLevelBuilder() = DungeonLevelBuilder()
-    override fun newLevelBuilder() = StubLevelBuilder()
+    override fun newLevelBuilder() = DungeonLevelBuilder()
+//    override fun newLevelBuilder() = StubLevelBuilder()
         .withFactory(factory)
         .withPartFactory(partFactory)
         .withSize(8 * 8, 7 * 8)
@@ -28,38 +28,32 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         player = factory.new("player")
         val level = newLevelBuilder().build()
         level.spawnAtStart(player)
-        ComponentManager.update()
+        ActionQueue.update()
     }
 
-    fun isPlayerNext(): Boolean = ComponentManager.waiters().firstOrNull() == player<ThinkUntilSet>()
+    fun isPlayerNext(): Boolean = ActionQueue.firstOrNull() == player<ThinkUntilSet>()
 
     // TODO: Think about energy randomization / but maybe i don't really need one
     suspend fun update() {
-        ComponentManager.waiters().firstOrNull()?.let { first ->
-            val time = first.time
+        ActionQueue.firstOrNull()?.let { first ->
+            val time = first.waitTime
             globalTime += time
-            ComponentManager.waiters().forEach {
-                it.time -= time
+            ActionQueue.toList().forEach {
+                it.waitTime -= time
                 if (it is Effect) {
                     it.duration -= time
                     if (it.duration < 0) {
                         it.entity.remove(it)
+//                        ActionQueue.remove(it)
                     }
                 }
             }
 
-            val result = when (first) {
-                is Behaviour -> {
-                    first.lastResult = first.action().perform(this)
-                    first.lastResult!!
-                }
+            val result = first.action().perform(this)
+            first.lastResult = result
+            first.waitTime += scaleTime(result.time, first.entity<Stats>()?.speed ?: 100)
 
-                is Effect -> first.action.perform(this)
-
-                else -> throw Exception("Unknown waiter: $first of type: ${first::class}")
-            }
-            first.time += scaleTime(result.time, first.entity<Stats>()?.speed ?: 100)
-            ComponentManager.update()
+            ActionQueue.update()
             val sight = player<Senses.Sight>()
             sight?.visitFov { _, _, _ -> }
             result.logEntries.forEach { entry ->

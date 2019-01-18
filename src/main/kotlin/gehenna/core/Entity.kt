@@ -33,13 +33,11 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
 
     fun add(component: Component) {
         components[component::class] = component
-        ComponentManager.add(component)
         component.onEvent(Add)
     }
 
     fun remove(component: Component) {
         components.remove(component::class)
-        ComponentManager.remove(component)
         component.onEvent(Remove)
     }
 

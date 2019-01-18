@@ -3,9 +3,12 @@ package gehenna.component.behaviour
 import gehenna.core.Entity
 import gehenna.core.Action
 import gehenna.action.Move
+import gehenna.component.ActiveComponent
 import gehenna.utils.random
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+
+abstract class Behaviour : ActiveComponent()
 
 abstract class PredictableBehaviour : Behaviour() {
     abstract fun copy(entity: Entity): Behaviour

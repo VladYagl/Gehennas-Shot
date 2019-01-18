@@ -58,7 +58,7 @@
             "damage": 10,
             "delay": 20,
             "burst": true,
-            "burstCount": 5,
+            "burstCount": 6,
             "time": 50
         },
         "item": {

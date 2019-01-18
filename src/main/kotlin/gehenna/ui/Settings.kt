@@ -5,6 +5,7 @@ import com.beust.klaxon.Converter
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
 import java.awt.Color
+import java.awt.Color.*
 import java.io.InputStream
 
 class Settings {
@@ -16,6 +17,8 @@ class Settings {
     val worldFont = AsciiFont("tilesets/Bisasam_16x16.png", 16, 16)
     val font = AsciiFont("tilesets/Curses_640x300diag.png", 8, 12)
     val backgroundColor = Color(32, 32, 32)
+    val foregroundColor = lightGray!!
+    val memoryColor = Color(96, 32, 32)
 
     fun toJson(): String {
         return klaxon.toJsonString(this)

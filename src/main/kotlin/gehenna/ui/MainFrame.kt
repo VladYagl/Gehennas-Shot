@@ -14,7 +14,6 @@ class MainFrame : JFrame(), UI {
     private val settings = loadSettings(streamResource("data/settings.json"))!!
     private val worldFont = settings.worldFont
     private val font = settings.font
-    private val trueDarkGray = settings.backgroundColor
 
     private val mainPane = JLayeredPane()
     override lateinit var world: GehennaPanel
@@ -29,9 +28,27 @@ class MainFrame : JFrame(), UI {
     private fun preparePanels() {
         val logWidth = width - (infoWidth + 1) * font.width
         val worldHeight = height - (logHeight + 1) * font.height
-        log = GehennaPanel(logWidth / font.width, logHeight, font)
-        info = GehennaPanel(infoWidth, height / font.height, font)
-        world = GehennaPanel(logWidth / worldFont.width, worldHeight / worldFont.height, worldFont)
+        log = GehennaPanel(
+            logWidth / font.width,
+            logHeight,
+            settings.font,
+            settings.foregroundColor,
+            settings.backgroundColor
+        )
+        info = GehennaPanel(
+            infoWidth,
+            height / font.height,
+            settings.font,
+            settings.foregroundColor,
+            settings.backgroundColor
+        )
+        world = GehennaPanel(
+            logWidth / worldFont.width,
+            worldHeight / worldFont.height,
+            settings.worldFont,
+            settings.foregroundColor,
+            settings.backgroundColor
+        )
 
         add(mainPane)
         mainPane.layout = null
@@ -47,6 +64,7 @@ class MainFrame : JFrame(), UI {
         horizontalPane.add(info)
         horizontalPane.size = horizontalPane.preferredSize
         horizontalPane.location = java.awt.Point(0, 0)
+        horizontalPane.border = BorderFactory.createEmptyBorder(5, 5, 0, 0)
         mainPane.add(horizontalPane)
         mainPane.preferredSize = horizontalPane.preferredSize
         pack()
@@ -59,10 +77,7 @@ class MainFrame : JFrame(), UI {
         size = Dimension(settings.width, settings.height)
         preparePanels()
 
-        world.defaultBackgroundColor = trueDarkGray
-        info.defaultBackgroundColor = trueDarkGray
-        log.defaultBackgroundColor = trueDarkGray
-        contentPane.background = trueDarkGray
+        contentPane.background = settings.backgroundColor
         world.clear()
         info.clear()
         log.clear()
@@ -100,7 +115,7 @@ class MainFrame : JFrame(), UI {
     override fun newWindow(width: Int, height: Int): Window {
         val x = (mainPane.width - width * font.width) / 2
         val y = (mainPane.height - height * font.height) / 2
-        val window = GehennaPanel(width, height, font)
+        val window = GehennaPanel(width, height, settings.font, settings.foregroundColor, settings.backgroundColor)
         val panel = JPanel()
         panel.layout = BorderLayout()
         val empty = BorderFactory.createEmptyBorder(5, 5, 5, 5)
@@ -111,7 +126,6 @@ class MainFrame : JFrame(), UI {
         panel.add(window, BorderLayout.CENTER)
         mainPane.add(panel)
         mainPane.moveToFront(panel)
-        window.defaultBackgroundColor = mainPane.background
         panel.background = mainPane.background
         window.clear()
         return window

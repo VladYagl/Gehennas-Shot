@@ -15,6 +15,8 @@ import kotlin.reflect.full.safeCast
 import kotlin.system.measureNanoTime
 
 class App(private val ui: UI, private val settings: Settings) : InputListener {
+    private val minPriority = Int.MIN_VALUE
+
     private val factory = EntityFactory()
     private val levelFactory = LevelPartFactory(factory)
     private val game = Game(factory, levelFactory)
@@ -23,8 +25,6 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private var time = 0L
     private var count = 0
-    private var repaintCount = 0
-    private var stop = false
     fun start() {
         factory.loadJson(streamResource("data/entities.json"))
         factory.loadJson(streamResource("data/items.json"))
@@ -32,12 +32,13 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         game.init()
 
         game.player<Logger>()?.add("Welcome to Gehenna's Shot")
-        game.player<Logger>()?.add("   Suffer bitch,   love you " + 3.toChar())
+        game.player<Logger>()?.add("Suffer bitch, love you " + 3.toChar())
         val uiJob = GlobalScope.launch(exceptionHandler) {
             uiLoop()
         }
         GlobalScope.launch(exceptionHandler) {
-            gameLoop(uiJob)
+            while (gameLoop(uiJob)) {
+            }
         }
     }
 
@@ -46,30 +47,30 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.printException(exception)
     }
 
-    private suspend fun gameLoop(uiJob: Job) {
-        while (
-            withContext(gameContext) {
-                game.update()
+    private suspend fun gameLoop(uiJob: Job): Boolean {
+        return withContext(gameContext) {
+            game.update()
 
-                if (!game.player.has<Position>()) {
+            when {
+                !game.player.has<Position>() -> {
                     state = End(context)
                     val window = ui.newWindow(17, 6)
                     window.writeLine("RIP ", 1, Alignment.center)
                     window.writeLine("YOU ARE DEAD", 3, Alignment.center)
                     uiJob.cancel()
                     uiJob.join()
-                    return@withContext false
+                    false
                 }
-                if (DungeonLevelBuilder.DungeonLevel::class.safeCast(game.player<Position>()?.level)?.depth == 2) { //fixme
+                DungeonLevelBuilder.DungeonLevel::class.safeCast(game.player<Position>()?.level)?.depth == 2 -> { //fixme
                     state = End(context)
                     val window = ui.newWindow(19, 4)
                     window.writeLine("WE WON ZULUL", 1, Alignment.center)
                     uiJob.cancel()
                     uiJob.join()
-                    return@withContext false
+                    false
                 }
-                true
-            }) {
+                else -> true
+            }
         }
     }
 
@@ -91,7 +92,6 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private fun update() {
         updateLog()
         drawWorld()
-        predict()
         updateInfo()
     }
 
@@ -110,14 +110,14 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
         ui.info.writeLine("Player hp = " + game.player<Health>()?.current, 4)
         ui.info.writeLine("Effects = " + game.player.all<Effect>(), 5)
-        ui.info.writeLine("Inventory", 8, Alignment.center, Color.white, Color.darkGray)
-        repeat(10) { i -> ui.info.writeLine("", 9 + i) }
+        ui.info.writeLine("Inventory", 8, Alignment.center, ui.info.fgColor, Color.darkGray)
+        repeat(10) { i -> ui.info.clearLine(9 + i) }
         storage.all().forEachIndexed { index, item ->
             ui.info.writeLine(item.entity.toString(), 9 + index)
         }
 
-        repeat(10) { i -> ui.info.writeLine("", 31 + i) }
-        ui.info.writeLine("Objects", 30, Alignment.center, Color.white, Color.darkGray)
+        repeat(10) { i -> ui.info.clearLine(31 + i) }
+        ui.info.writeLine("Objects", 30, Alignment.center, ui.info.fgColor, Color.darkGray)
         pos.neighbors.forEachIndexed { index, entity ->
             ui.info.writeLine(entity.toString(), 31 + index)
         }
@@ -157,12 +157,12 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         return (x to y) + camera
     }
 
-    private val priority = Array(ui.worldWidth) { Array(ui.worldHeight) { -2 } }
-    private fun putGlyph(glyph: Glyph, x: Int, y: Int, color: Color? = null) {
+    private val priority = Array(ui.worldWidth) { Array(ui.worldHeight) { minPriority } }
+    private fun putGlyph(glyph: Glyph, x: Int, y: Int, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(x, y)) {
             val p = viewPoint(x, y)
             if (glyph.priority > priority[p.x, p.y]) {
-                ui.world.putChar(glyph.char, p.x, p.y, color)
+                ui.world.putChar(glyph.char, p.x, p.y, fg, bg)
                 priority[p.x, p.y] = glyph.priority
             }
         }
@@ -171,12 +171,17 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private fun drawWorld() {
         //TODO: Try drawing whole level and then moving it
         //TODO: Animations
-        priority.forEach { it.fill(-100) }
+        priority.forEach { it.fill(minPriority) }
+        val behaviours = ArrayList<PredictableBehaviour>()
         val playerPos = game.player<Position>()!!
+        val stats = game.player<Stats>()!!
         val level = playerPos.level
         moveCamera(playerPos.point)
+
+        //visit fov
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, x, y ->
+                entity.all<PredictableBehaviour>().firstOrNull()?.let { behaviours.add(it) }
                 entity<Glyph>()?.let { glyph ->
                     if (glyph.memorable) level.remember(x, y, glyph, game.time)
                     putGlyph(glyph, x, y)
@@ -184,33 +189,25 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             }
         }
 
+        //draw from memory
         range(ui.worldWidth, ui.worldHeight).forEach { (x, y) ->
             val pos = levelPos(x, y)
             level.memory(pos.x, pos.y)?.let {
-                putGlyph(it, pos.x, pos.y, Color(96, 32, 32))
-            } ?: putGlyph(Glyph(Entity.world, ' ', -2), pos.x, pos.y)
+                putGlyph(it, pos.x, pos.y, settings.memoryColor)
+            } ?: putGlyph(Glyph(Entity.world, ' ', minPriority + 1), pos.x, pos.y)
         }
-    }
 
-    private fun predict() {
-        val playerPos = game.player<Position>()!!
-        val stats = game.player<Stats>()!!
-        val level = playerPos.level
-        val behaviours = ArrayList<PredictableBehaviour>()
-        val sight = game.player<Senses.Sight>()!!
-        sight.visitFov { entity, _, _ ->
-            entity.all<PredictableBehaviour>().firstOrNull()?.let { behaviours.add(it) }
-        }
-        behaviours.forEach {
-            var color = Color.white * 0.5 // TODO : DEFAULT COLOR
-            val prediction = level.predictWithGlyph(it, game.player<ThinkUntilSet>()!!.waitTime + stats.speed.toLong())
+        //predict
+        behaviours.forEach { behaviour ->
+            var color = ui.world.fgColor * 0.5
+            val prediction =
+                level.predictWithGlyph(behaviour, game.player<ThinkUntilSet>()!!.waitTime + stats.speed.toLong())
             prediction.forEach { (p, glyph) ->
-                if (sight.isVisible(p.x, p.y) && inView(p.x, p.y)) {
+                if (game.player.all<Senses>().any { it.isVisible(p.x, p.y) } && inView(p.x, p.y)) {
                     color *= 0.85
                     putGlyph(glyph, p.x, p.y, color)
                 }
             }
-
         }
     }
 

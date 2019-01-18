@@ -7,8 +7,11 @@ enum class Alignment {
 }
 
 interface Window {
-    fun writeLine(line: String, y: Int, alignment: Alignment = Alignment.left, fg: Color? = null, bg: Color? = null)
-    fun putChar(char: Char, x: Int, y: Int, fg: Color? = null, bg: Color? = null)
+    val fgColor: Color
+    val bgColor: Color
+    fun clearLine(y: Int)
+    fun writeLine(line: String, y: Int, alignment: Alignment = Alignment.left, fg: Color = fgColor, bg: Color = bgColor)
+    fun putChar(char: Char, x: Int, y: Int, fg: Color = fgColor, bg: Color = bgColor)
     fun repaint()
 }
 

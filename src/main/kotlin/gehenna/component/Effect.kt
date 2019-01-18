@@ -30,9 +30,12 @@ open class RepeatAction<T : Action>(
     private val actionFactory: () -> T
 ) : Effect() {
     override var waitTime = 1L
-    override var duration = 1L
+    override var duration
+        get() = if (count > 0) 1L else 0L
+        set(_) {}
+
     override suspend fun action(): T {
-        if (--count > 0) duration += delay // TODO <- get action waitTime here or some thing
+        count--
         return actionFactory()
     }
 }
@@ -43,12 +46,11 @@ data class SequenceOfActions(
     private var delay: Long = 100
 ) : Effect() {
     override var waitTime = 1L
-    override var duration: Long = waitTime
+    override var duration
+        get() = if (iterator.hasNext()) 1L else 0L
+        set(_) {}
+
     private val iterator = actions.iterator()
-    override suspend fun action(): Action {
-        val value = iterator.next()
-        if (iterator.hasNext()) duration += waitTime
-        return value
-    }
+    override suspend fun action() = iterator.next()
 }
 

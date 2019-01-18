@@ -42,7 +42,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
                 it.waitTime -= time
                 if (it is Effect) {
                     it.duration -= time
-                    if (it.duration < 0) {
+                    if (it.duration <= 0) {
                         it.entity.remove(it)
 //                        ActionQueue.remove(it)
                     }

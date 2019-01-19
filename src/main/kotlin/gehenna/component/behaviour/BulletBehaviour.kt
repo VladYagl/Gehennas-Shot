@@ -25,7 +25,7 @@ data class BulletBehaviour(
         return BulletBehaviour(entity, dir, damage, waitTime)
     }
 
-    fun dirChar() = (130 + directions.indexOf(dir)).toChar()
+    fun dirChar(d: Point = dir) = (130 + directions.indexOf(d)).toChar()
 
     data class Bounce(private val entity: Entity, val dir: Point) : Action(30) {
         fun bounce(pos: Position): Point {
@@ -52,11 +52,7 @@ data class BulletBehaviour(
         }
     }
 
-    override suspend fun action(): Action {
-        if (lastResult?.succeeded == false) {
-            return Destroy(entity)
-        }
-        val pos = entity<Position>()!!
+    fun predict(pos: Position, dir: Point): Action {
         val (newx, newy) = pos + dir
         val obstacle = pos.level.obstacle(newx, newy)
         if (obstacle != null) {
@@ -66,6 +62,14 @@ data class BulletBehaviour(
             return Bounce(entity, dir)
         }
         return Move(entity, dir)
+    }
+
+    override suspend fun action(): Action {
+        if (lastResult?.succeeded == false) {
+            return Destroy(entity)
+        }
+        val pos = entity<Position>()!!
+        return predict(pos, dir)
     }
 
     init {

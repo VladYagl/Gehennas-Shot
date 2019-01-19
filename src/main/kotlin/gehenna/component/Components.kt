@@ -11,8 +11,8 @@ import gehenna.utils.until
 data class Glyph(
     override val entity: Entity,
     var char: Char,
-    var priority: Int = 0,
-    var memorable: Boolean = true
+    val priority: Int = 0,
+    val memorable: Boolean = true
 ) : Component()
 
 data class Obstacle(

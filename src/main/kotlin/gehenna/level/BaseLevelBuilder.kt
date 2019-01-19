@@ -35,16 +35,16 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
         this.height = height
     }
 
-    protected fun Level.corridor(x: Int, y: Int, dir: Point, len: Int = 0, door: Boolean = false) {
+    protected fun Level.corridor(x: Int, y: Int, dir: Dir, len: Int = 0, door: Boolean = false) {
         if (!inBounds(x, y) || get(x, y).isNotEmpty()) return
         floor(x, y)
         if (door) spawn(factory.new("door"), x, y)
         var newLen = len + 1
         if (!door) {
-            val d = turnLeft(turnLeft(dir))
-            var p = (x to y) + d
+            val d = dir.turnLeft.turnLeft
+            var p = (x at y) + d
             if (inBounds(p.x, p.y) && get(p.x, p.y).isEmpty()) floor(p.x, p.y)
-            p = (x to y) - d
+            p = (x at y) - d
             if (inBounds(p.x, p.y) && get(p.x, p.y).isEmpty()) floor(p.x, p.y)
         }
         if (len > 8)
@@ -66,7 +66,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
     protected fun Level.allWalls() {
         for ((x, y) in range(width, height)) {
             if (get(x, y).isEmpty())
-                for (dir in directions) {
+                for (dir in Dir) {
                     if (safeGet(x + dir.x, y + dir.y).isNotEmpty() && safeGet(
                             x + dir.x,
                             y + dir.y
@@ -112,7 +112,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
     }
 
     protected fun Level.rect(x1: Int, y1: Int, width: Int, height: Int) {
-        for ((x, y) in (x1 to y1) until (x1 + width to y1 + height)) {
+        for ((x, y) in (x1 at y1) until (x1 + width at y1 + height)) {
             if (get(x, y).none { it.has<Floor>() }) {
                 floor(x, y)
             }
@@ -120,7 +120,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
     }
 
     protected fun Level.box(x1: Int, y1: Int, width: Int, height: Int) {
-        for ((x, y) in (x1 to y1) until (x1 + width to y1 + height)) {
+        for ((x, y) in (x1 at y1) until (x1 + width at y1 + height)) {
             if (x == x1 || x == x1 + width - 1 || y == y1 || y == y1 + height - 1) {
                 wall(x, y)
             }

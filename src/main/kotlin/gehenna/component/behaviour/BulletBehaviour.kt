@@ -10,13 +10,12 @@ import gehenna.component.Position
 import gehenna.core.ActionResult
 import gehenna.core.Context
 import gehenna.core.Entity
-import gehenna.utils.Point
-import gehenna.utils.directions
+import gehenna.utils.*
 
 //TODO: try some player seeking behaviour
 data class BulletBehaviour(
     override val entity: Entity,
-    var dir: Point,
+    var dir: Dir,
     private val damage: Int,
     override var waitTime: Long = 0
 ) : PredictableBehaviour() {
@@ -25,22 +24,22 @@ data class BulletBehaviour(
         return BulletBehaviour(entity, dir, damage, waitTime)
     }
 
-    fun dirChar(d: Point = dir) = (130 + directions.indexOf(d)).toChar()
+    fun dirChar(d: Dir = dir) = (130 + Dir.indexOf(d)).toChar()
 
-    data class Bounce(private val entity: Entity, val dir: Point) : Action(30) {
-        fun bounce(pos: Position): Point {
+    data class Bounce(private val entity: Entity, val dir: Dir) : Action(30) {
+        fun bounce(pos: Position): Dir {
             val (x, y) = dir
             val (newx, newy) = pos + dir
             val h = pos.level.obstacle(newx - x, newy)
             val v = pos.level.obstacle(newx, newy - y)
             return if (h != null && v != null) {
-                -x to -y
+                -x on -y
             } else if (h != null) {
-                +x to -y
+                +x on -y
             } else if (v != null) {
-                -x to +y
+                -x on +y
             } else {
-                -x to -y
+                -x on -y
             }
         }
 
@@ -52,7 +51,7 @@ data class BulletBehaviour(
         }
     }
 
-    fun predict(pos: Position, dir: Point): Action {
+    fun predict(pos: Position, dir: Dir): Action {
         val (newx, newy) = pos + dir
         val obstacle = pos.level.obstacle(newx, newy)
         if (obstacle != null) {
@@ -73,6 +72,8 @@ data class BulletBehaviour(
     }
 
     init {
-        subscribe<Entity.Add> { entity<Glyph>()?.char = dirChar() }
+        subscribe<Entity.Add> {
+            entity<Glyph>()?.char = dirChar()
+        }
     }
 }

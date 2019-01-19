@@ -4,6 +4,8 @@ import gehenna.core.Entity
 import gehenna.core.Action
 import gehenna.action.Move
 import gehenna.component.ActiveComponent
+import gehenna.utils.at
+import gehenna.utils.Dir
 import gehenna.utils.random
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -31,5 +33,5 @@ data class ThinkUntilSet(override val entity: Entity) : Behaviour() {
 }
 
 data class RandomBehaviour(override val entity: Entity) : Behaviour() {
-    override suspend fun action() = Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
+    override suspend fun action() = Move(entity, Dir.random(random))
 }

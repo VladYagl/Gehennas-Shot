@@ -1,13 +1,8 @@
 package gehenna.ui
 
-import gehenna.utils.Point
-import gehenna.utils.showError
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.awt.event.KeyEvent
-import java.io.PrintWriter
-import java.io.StringWriter
 import javax.swing.*
 
 class MainFrame : JFrame(), UI {
@@ -108,7 +103,7 @@ class MainFrame : JFrame(), UI {
     override fun updateLog(messages: ArrayList<String>) {
         log.clear()
         messages.takeLast(logHeight).forEachIndexed { index, s ->
-            log.write(s, 0, index)
+            log.writeLine(s, index)
         }
     }
 

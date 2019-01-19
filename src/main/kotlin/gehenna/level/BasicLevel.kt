@@ -38,7 +38,7 @@ abstract class BasicLevel(val width: Int, val height: Int) {
     fun spawn(entity: Entity, point: Point) = spawn(entity, point.x, point.y)
 
     fun spawn(entity: Entity, x: Int, y: Int) {
-        val pos = Position(entity, x, y, this as Level) // xd looks no good
+        val pos = Position(x, y, this as Level, entity) // xd looks no good
         entity.add(pos)
     }
 

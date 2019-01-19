@@ -2,10 +2,7 @@ package gehenna.factory
 
 import gehenna.core.Entity
 import gehenna.level.BasicLevel
-import gehenna.utils.Point
-import gehenna.utils.random
-import gehenna.utils.x
-import gehenna.utils.y
+import gehenna.utils.*
 
 interface LevelPart {
     fun spawnTo(toX: Int, toY: Int, level: BasicLevel)
@@ -32,5 +29,5 @@ class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private v
         }
     }
 
-    override fun needs(x: Int, y: Int) = entities.any { it.first == (x to y) }
+    override fun needs(x: Int, y: Int) = entities.any { it.first == (x at y) }
 }

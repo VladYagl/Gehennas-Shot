@@ -5,7 +5,7 @@ import gehenna.action.Shoot
 import gehenna.core.Action
 import gehenna.core.Component
 import gehenna.core.Entity
-import gehenna.utils.Point
+import gehenna.utils.Dir
 
 data class Gun(
     override val entity: Entity,
@@ -16,9 +16,9 @@ data class Gun(
     private val burstCount: Int = 5,
     private val time: Long = 100
 ) : Component() {
-    fun action(actor: Entity, dir: Point) = Shoot(actor()!!, dir, bullet, damage, delay, time)
+    fun action(actor: Entity, dir: Dir) = Shoot(actor()!!, dir, bullet, damage, delay, time)
 
-    fun fire(actor: Entity, dir: Point): Action? {
+    fun fire(actor: Entity, dir: Dir): Action? {
         return if (burst) {
             if (!actor.has<BurstFire>()) {
                 ApplyEffect(actor, BurstFire(actor, dir, this))
@@ -28,6 +28,10 @@ data class Gun(
         }
     }
 
-    data class BurstFire(private val actor: Entity, private val dir: Point, private val gun: Gun) :
-        RepeatAction<Shoot>(actor, gun.burstCount, gun.time, { gun.action(actor, dir) })
+    data class BurstFire(private val actor: Entity, private val dir: Dir, private val gun: Gun) :
+        RepeatAction<Shoot>(actor, gun.burstCount, gun.time, { gun.action(actor, dir) }) {
+        override fun toString(): String {
+            return "burst fire $dir"
+        }
+    }
 }

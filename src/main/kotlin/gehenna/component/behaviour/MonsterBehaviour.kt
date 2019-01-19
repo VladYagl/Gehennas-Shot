@@ -18,7 +18,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
         val bullets = ArrayList<PredictableBehaviour>()
         entity.all<Senses>().forEach { sense ->
             sense.visitFov { obj, x, y ->
-                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(x to y)
+                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(x at y)
                 obj<BulletBehaviour>()?.let { bullets.add(it) }
                 if (obj.name == "player") {
                     target = obj()
@@ -35,7 +35,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
             ?.firstNotNullResult { it.entity.all<Gun>().firstOrNull() }
             ?.let { gun ->
                 if (target == target.entity<Position>()) {
-                    val diff = target.point - pos.point
+                    val diff = target - pos
                     if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
                         gun.fire(entity, diff.dir)
                     } else null
@@ -45,11 +45,11 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
 
     private fun goto(target: Position): Action? {
         return pos.findPath(target.x, target.y)?.firstOrNull()?.let { next ->
-            val dir = next.x - pos.x to next.y - pos.y
+            val dir = next.x - pos.x on next.y - pos.y
             if (next !in dangerZone) Move(entity, dir)
             else {
-                val left = turnLeft(dir)
-                val right = turnRight(dir)
+                val left = dir.turnLeft
+                val right = dir.turnRight
                 when {
                     pos + left !in dangerZone -> Move(entity, left)
                     pos + right !in dangerZone -> Move(entity, right)
@@ -60,19 +60,19 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
     }
 
     private fun dodge(): Action? {
-        return if (pos.point in dangerZone) {
-            target?.point?.minus(pos.point)?.dir?.let { dir ->
-                if (dir.plus(pos.point) !in dangerZone) Move(entity, dir) else null
-            } ?: directions.firstOrNull { it + pos.point !in dangerZone }?.let { Move(entity, it) }
+        return if (pos in dangerZone) {
+            target?.minus(pos)?.dir?.let { dir ->
+                if (dir.plus(pos) !in dangerZone) Move(entity, dir) else null
+            } ?: Dir.firstOrNull { it + pos !in dangerZone }?.let { Move(entity, it) }
         } else null
     }
 
     private fun safeRandom(): Action? {
-        val dirs = directions.plus(0 to 0).filter { pos.point + it !in dangerZone }
+        val dirs = Dir.plus(0 on 0).filter { pos + it !in dangerZone }
         return if (dirs.isNotEmpty()) Move(entity, dirs.random(random)) else null
     }
 
-    private fun randomMove(): Action = safeRandom() ?: Move(entity, (random.nextInt(3) - 1) to (random.nextInt(3) - 1))
+    private fun randomMove(): Action = safeRandom() ?: Move(entity, Dir.random(random))
 
     override suspend fun action(): Action {
         if (lastResult?.succeeded == false) {

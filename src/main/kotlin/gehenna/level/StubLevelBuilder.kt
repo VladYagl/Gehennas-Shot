@@ -4,7 +4,7 @@ import gehenna.utils.*
 
 class StubLevelBuilder : BaseLevelBuilder<StubLevelBuilder.StubLevel>() {
     override fun build(): StubLevel {
-        return StubLevel(width, height, 10 to 10).apply {
+        return StubLevel(width, height, 10 at 10).apply {
             box(0, 0, width, height)
             rect(0, 0, width, height)
 

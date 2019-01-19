@@ -123,8 +123,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
-    private var camera = 0 to 0
-    private val cameraBound = ui.worldWidth / 2 - ui.worldWidth / 5 to ui.worldHeight / 2 - 3
+    private var camera = 0 at 0
+    private val cameraBound = ui.worldWidth / 2 - ui.worldWidth / 5 at ui.worldHeight / 2 - 3
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
@@ -134,7 +134,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         if (playerPos.y < camera.y + cameraBound.y) {
             y = playerPos.y - cameraBound.y
         }
-        val end = camera.x + ui.worldWidth to camera.y + ui.worldHeight
+        val end = camera.x + ui.worldWidth at camera.y + ui.worldHeight
         if (playerPos.x > end.x - cameraBound.x) {
             x = playerPos.x + cameraBound.x - ui.worldWidth
         }
@@ -142,7 +142,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             y = playerPos.y + cameraBound.y - ui.worldHeight
         }
 
-        camera = x to y
+        camera = x at y
     }
 
     private fun inView(x: Int, y: Int): Boolean {
@@ -150,11 +150,11 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private fun viewPoint(x: Int, y: Int): Point {
-        return (x to y) - camera
+        return (x at y) - camera
     }
 
     private fun levelPos(x: Int, y: Int): Point {
-        return (x to y) + camera
+        return (x at y) + camera
     }
 
     private val priority = Array(ui.worldWidth) { Array(ui.worldHeight) { minPriority } }
@@ -176,7 +176,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         val playerPos = game.player<Position>()!!
         val stats = game.player<Stats>()!!
         val level = playerPos.level
-        moveCamera(playerPos.point)
+        moveCamera(playerPos)
 
         //visit fov
         game.player.all<Senses>().forEach { sense ->

@@ -1,6 +1,5 @@
 package gehenna.level
 
-import gehenna.component.Floor
 import gehenna.component.Stairs
 import gehenna.utils.*
 import kotlin.reflect.full.safeCast

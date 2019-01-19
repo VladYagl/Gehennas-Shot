@@ -4,6 +4,7 @@ import com.beust.klaxon.JsonReader
 import com.beust.klaxon.Klaxon
 import gehenna.core.Entity
 import gehenna.utils.Point
+import gehenna.utils.at
 import java.io.InputStream
 
 class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<LevelPart> {
@@ -20,8 +21,8 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
                 row.forEachIndexed { x, char ->
                     entities[char.toString()]?.let { entity ->
                         when (entity) {
-                            is String -> list.add((x to y) to EntityConfig.Name(entity))
-                            is List<*> -> list.add((x to y) to EntityConfig.Choice(entity as List<String>))
+                            is String -> list.add((x at y) to EntityConfig.Name(entity))
+                            is List<*> -> list.add((x at y) to EntityConfig.Choice(entity as List<String>))
                             else -> throw Exception("Unknown entity config: $entity")
                         }
                     }

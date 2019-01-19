@@ -1,23 +1,32 @@
 package gehenna.ui
 
 import gehenna.utils.*
+import gehenna.utils.Dir.Companion.east
+import gehenna.utils.Dir.Companion.north
+import gehenna.utils.Dir.Companion.northeast
+import gehenna.utils.Dir.Companion.northwest
+import gehenna.utils.Dir.Companion.south
+import gehenna.utils.Dir.Companion.southeast
+import gehenna.utils.Dir.Companion.southwest
+import gehenna.utils.Dir.Companion.west
+import gehenna.utils.Dir.Companion.zero
 import java.awt.KeyEventDispatcher
 import java.awt.event.KeyEvent
 
 //todo exceptions cause it's called from different thread
 class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
 
-    private fun getDir(char: Char): Point? {
+    private fun getDir(char: Char): Dir? {
         return when (char) {
-            '.', '5' -> 0 to 0
-            'j', '2' -> 0 to +1
-            'k', '8' -> 0 to -1
-            'h', '4' -> -1 to 0
-            'l', '6' -> +1 to 0
-            'y', '7' -> -1 to -1
-            'u', '9' -> +1 to -1
-            'n', '3' -> +1 to +1
-            'b', '1' -> -1 to +1
+            '.', '5' -> zero
+            'j', '2' -> south
+            'k', '8' -> north
+            'h', '4' -> west
+            'l', '6' -> east
+            'y', '7' -> northwest
+            'u', '9' -> northeast
+            'n', '3' -> southeast
+            'b', '1' -> southwest
             else -> null
         }
     }
@@ -46,10 +55,10 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                     KeyEvent.VK_ESCAPE, KeyEvent.VK_CAPS_LOCK -> listener.onInput(Input.Cancel)
                     KeyEvent.VK_BACK_SPACE -> listener.onInput(Input.Backspace)
                     KeyEvent.VK_ENTER -> listener.onInput(Input.Accept)
-                    KeyEvent.VK_UP -> listener.onInput(Input.Direction(0 to -1))
-                    KeyEvent.VK_DOWN -> listener.onInput(Input.Direction(0 to 1))
-                    KeyEvent.VK_LEFT -> listener.onInput(Input.Direction(-1 to 0))
-                    KeyEvent.VK_RIGHT -> listener.onInput(Input.Direction(1 to 0))
+                    KeyEvent.VK_UP -> listener.onInput(Input.Direction(0 on -1))
+                    KeyEvent.VK_DOWN -> listener.onInput(Input.Direction(0 on 1))
+                    KeyEvent.VK_LEFT -> listener.onInput(Input.Direction(-1 on 0))
+                    KeyEvent.VK_RIGHT -> listener.onInput(Input.Direction(1 on 0))
                 }
             }
         }

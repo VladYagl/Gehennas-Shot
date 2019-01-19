@@ -1,7 +1,6 @@
 package gehenna.level
 
 import gehenna.component.Floor
-import gehenna.component.Glyph
 import gehenna.component.Obstacle
 import gehenna.core.Entity
 import gehenna.utils.*
@@ -31,7 +30,7 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 
     fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Point>? {
-        return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x to it.y }
+        return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x at it.y }
     }
 
     fun visitFov(x: Int, y: Int, range: Int, visitor: (Entity, Int, Int) -> Unit): FovBoard {

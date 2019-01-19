@@ -7,7 +7,7 @@ import gehenna.core.Action
 import gehenna.core.ActionResult
 import gehenna.core.Context
 import gehenna.core.Entity
-import gehenna.utils.Point
+import gehenna.utils.Dir
 
 fun scaleTime(time: Long, speed: Int): Long {
     return time * 100 / speed
@@ -17,7 +17,7 @@ object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()
 }
 
-data class Move(private val entity: Entity, val dir: Point) : Action(100) {
+data class Move(private val entity: Entity, val dir: Dir) : Action(100) {
     override fun perform(context: Context): ActionResult {
         val (x, y) = dir
         return if (x == 0 && y == 0) {
@@ -41,7 +41,7 @@ data class Move(private val entity: Entity, val dir: Point) : Action(100) {
 
 data class Shoot(
     private val pos: Position,
-    private val dir: Point,
+    private val dir: Dir,
     private val bulletName: String,
     private val damage: Int,
     private val delay: Long,
@@ -74,7 +74,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Int) : Ac
 
 data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(100) {
     override fun perform(context: Context): ActionResult {
-        entity<Logger>()?.add("Your start ${effect::class.simpleName}")
+        entity<Logger>()?.add("Your start ${effect::class.simpleName}") ?: log("$entity starts $effect", entity())
         entity.add(effect)
         return end()
     }
@@ -87,7 +87,7 @@ data class ClimbStairs(private val entity: Entity) : Action(100) {
         val stairs = pos.neighbors.firstNotNullResult { it<Stairs>() } ?: return fail()
         val destination = stairs.destination ?: context.newLevelBuilder()
             .withPrevious(pos.level)
-            .withBackPoint(pos.point)
+            .withBackPoint(pos)
             .build().let { level ->
                 (level to level.startPosition).also { stairs.destination = it }
             }

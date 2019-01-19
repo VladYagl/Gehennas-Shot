@@ -4,23 +4,13 @@ import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.Level
 import gehenna.utils.Point
-import gehenna.utils.x
-import gehenna.utils.y
 
 data class Position(
-    override val entity: Entity,
-    val x: Int,
-    val y: Int,
-    val level: Level
-) : Component() {
-    val point: Point
-        get() {
-            return x to y
-        }
-
-    operator fun plus(dir: Point): Point {
-        return x + dir.x to y + dir.y
-    }
+    override val x: Int,
+    override val y: Int,
+    val level: Level,
+    override val entity: Entity
+) : Component(), Point {
 
     fun move(x: Int, y: Int) {
         level.move(entity, x, y)

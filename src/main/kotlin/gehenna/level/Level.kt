@@ -11,6 +11,7 @@ import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.ActionQueue
 import gehenna.core.Entity
 import gehenna.utils.Point
+import gehenna.utils.at
 
 abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
     fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
@@ -30,15 +31,15 @@ abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
             time += scaleTime(action.time, speed)
             val (x, y) = when (action) {
                 is Move -> fakePos + action.dir
-                is Collide -> action.victim<Position>()!!.point
+                is Collide -> action.victim<Position>()!!
                 is BulletBehaviour.Bounce -> {
                     dir = action.bounce(fakePos)
                     fakeGlyph = fakeGlyph.copy(char = behaviour.dirChar(dir))
-                    fakePos.point
+                    fakePos
                 }
                 else -> continue@loop
             }
-            prediction.add((x to y) to fakeGlyph)
+            prediction.add((x at y) to fakeGlyph)
             fakePos = fakePos.copy(x = x, y = y)
         }
 

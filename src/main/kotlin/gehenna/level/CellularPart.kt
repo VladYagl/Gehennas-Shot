@@ -13,8 +13,8 @@ class CellularPart(
 
     private fun neighbours(x: Int, y: Int): Int {
         var cnt = 0
-        for (dir in directions) {
-            val p = (x to y) + dir
+        for (dir in Dir) {
+            val p = (x at y) + dir
             if (cells.getOrNull(p.x)?.getOrNull(p.y) != false) cnt++
         }
         return cnt

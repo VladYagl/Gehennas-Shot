@@ -1,14 +1,10 @@
 package gehenna.ui
 
 import com.beust.klaxon.internal.firstNotNullResult
-import gehenna.action.ApplyEffect
 import gehenna.action.ClimbStairs
 import gehenna.action.Move
 import gehenna.component.*
-import gehenna.utils.Point
-import gehenna.utils.plus
-import gehenna.utils.x
-import gehenna.utils.y
+import gehenna.utils.Dir
 
 abstract class State {
     open fun handleInput(input: Input): State = this
@@ -70,7 +66,7 @@ private abstract class Direction(protected val context: UIContext) : State() {
         context.log.add("Fire in which direction?")
     }
 
-    abstract fun onDir(dir: Point): State
+    abstract fun onDir(dir: Dir): State
     open fun onCancel(): State {
         context.log.add("Never mind")
         return Normal(context)
@@ -88,7 +84,7 @@ private class Normal(private val context: UIContext) : State() {
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
             val playerPos = context.player<Position>()!!
-            val point = playerPos.point + input.dir
+            val point = playerPos + input.dir
             // check for closed do
             playerPos.level[point.x, point.y].firstNotNullResult {
                 if (it<Door>()?.closed == true) it<Door>() else null
@@ -128,16 +124,16 @@ private class Normal(private val context: UIContext) : State() {
 }
 
 private class Aim(context: UIContext, private val gun: Gun) : Direction(context) {
-    override fun onDir(dir: Point): State {
+    override fun onDir(dir: Dir): State {
         context.action = gun.fire(context.player, dir)
         return Normal(context)
     }
 }
 
 private class UseDoor(context: UIContext, private val close: Boolean) : Direction(context) {
-    override fun onDir(dir: Point): State {
+    override fun onDir(dir: Dir): State {
         val playerPos = context.player<Position>()!!
-        val point = playerPos.point + dir
+        val point = playerPos + dir
         playerPos.level[point.x, point.y].firstNotNullResult { it<Door>() }?.let { door ->
             context.action = gehenna.action.UseDoor(door, close)
         } ?: context.log.add("there is no door")

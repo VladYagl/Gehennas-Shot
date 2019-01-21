@@ -8,6 +8,7 @@ import gehenna.core.ActionResult
 import gehenna.core.Context
 import gehenna.core.Entity
 import gehenna.utils.Dir
+import gehenna.utils.Dir.Companion.zero
 
 fun scaleTime(time: Long, speed: Int): Long {
     return time * 100 / speed
@@ -19,18 +20,15 @@ object Think : Action(0) {
 
 data class Move(private val entity: Entity, val dir: Dir) : Action(100) {
     override fun perform(context: Context): ActionResult {
-        val (x, y) = dir
-        return if (x == 0 && y == 0) {
+        return if (dir == zero) {
             end()
         } else {
             val pos = entity<Position>()!!
-            val newx = pos.x + x
-            val newy = pos.y + y
-            if (pos.level.isWalkable(newx, newy)) {
-                pos.level[newx, newy].firstOrNull { it.has<BulletBehaviour>() }?.let { bullet ->
+            if (pos.level.isWalkable(pos + dir)) {
+                pos.level[pos + dir].firstOrNull { it.has<BulletBehaviour>() }?.let { bullet ->
                     entity<Logger>()?.add("You've perfectly dodged ${bullet.name}")
                 }
-                pos.move(newx, newy)
+                pos.move(pos + dir)
                 end()
             } else {
                 fail()

@@ -7,6 +7,7 @@ import gehenna.level.Level
 import gehenna.utils.Point
 import gehenna.utils.at
 import gehenna.utils.random
+import gehenna.utils.range
 
 data class Glyph(
     override val entity: Entity,
@@ -121,33 +122,33 @@ data class Door(override val entity: Entity, var closed: Boolean = true) : Compo
 }
 
 sealed class Senses : Component() {
-    abstract fun visitFov(visitor: (Entity, Int, Int) -> Unit)
-    abstract fun isVisible(x: Int, y: Int): Boolean
+    abstract fun visitFov(visitor: (Entity, Point) -> Unit)
+    abstract fun isVisible(point: Point): Boolean
 
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
         private var fov: FovLevel.FovBoard? = null
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
+        override fun visitFov(visitor: (Entity, Point) -> Unit) {
             val pos = entity<Position>()
-            fov = pos?.level?.visitFov(pos.x, pos.y, range, visitor)
+            fov = pos?.level?.visitFov(pos, range, visitor)
         }
 
-        override fun isVisible(x: Int, y: Int) = fov?.isVisible(x, y) ?: false
+        override fun isVisible(point: Point) = fov?.isVisible(point) ?: false
     }
 
     data class TrueSight(override val entity: Entity) : Senses() {
-        override fun isVisible(x: Int, y: Int): Boolean = true
+        override fun isVisible(point: Point): Boolean = true
 
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {
+        override fun visitFov(visitor: (Entity, Point) -> Unit) {
             entity<Position>()?.let { pos ->
-                for ((x, y) in (0 at 0) until (pos.level.width at pos.level.height)) {
-                    pos.level[x, y].forEach { entity -> visitor(entity, x, y) }
+                for (point in range(pos.level.width at pos.level.height)) {
+                    pos.level[point].forEach { entity -> visitor(entity, point) }
                 }
             }
         }
     }
 
     data class Hearing(override val entity: Entity) : Senses() {
-        override fun isVisible(x: Int, y: Int): Boolean = false
-        override fun visitFov(visitor: (Entity, Int, Int) -> Unit) {} // TODO
+        override fun isVisible(point: Point): Boolean = false
+        override fun visitFov(visitor: (Entity, Point) -> Unit) {} // TODO
     }
 }

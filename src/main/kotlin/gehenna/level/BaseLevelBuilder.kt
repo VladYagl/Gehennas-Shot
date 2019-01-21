@@ -6,6 +6,7 @@ import gehenna.core.Entity
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.utils.*
+import gehenna.utils.Point.Companion.zero
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -35,109 +36,107 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
         this.height = height
     }
 
-    protected fun Level.corridor(x: Int, y: Int, dir: Dir, len: Int = 0, door: Boolean = false) {
-        if (!inBounds(x, y) || get(x, y).isNotEmpty()) return
-        floor(x, y)
-        if (door) spawn(factory.new("door"), x, y)
+    protected fun Level.corridor(from: Point, dir: Dir, len: Int = 0, door: Boolean = false) {
+        if (!inBounds(from) || get(from).isNotEmpty()) return
+        floor(from)
+        if (door) spawn(factory.new("door"), from)
         var newLen = len + 1
         if (!door) {
             val d = dir.turnLeft.turnLeft
-            var p = (x at y) + d
-            if (inBounds(p.x, p.y) && get(p.x, p.y).isEmpty()) floor(p.x, p.y)
-            p = (x at y) - d
-            if (inBounds(p.x, p.y) && get(p.x, p.y).isEmpty()) floor(p.x, p.y)
+            var doorP = from + d
+            if (inBounds(doorP) && get(doorP).isEmpty()) floor(doorP)
+            doorP = from - d
+            if (inBounds(doorP) && get(doorP).isEmpty()) floor(doorP)
         }
         if (len > 8)
             if (Random.nextDouble() > 0.8) {
                 val tempDir = random.next4way(dir)
-                corridor(x + tempDir.x * 2, y + tempDir.y * 2, tempDir, 0, true)
+                corridor(from.x + tempDir.x * 2 at from.y + tempDir.y * 2, tempDir, 0, true)
                 newLen = 3
             }
 
         if (len > 16)
             if (Random.nextDouble() > 0.8) {
                 val newDir = random.next4way(dir)
-                corridor(x + newDir.x * 2, y + newDir.y * 2, newDir, 0, true)
+                corridor(from.x + newDir.x * 2 at from.y + newDir.y * 2, newDir, 0, true)
                 return
             }
-        corridor(x + dir.x, y + dir.y, dir, newLen, false)
+        corridor(from + dir, dir, newLen, false)
     }
 
     protected fun Level.allWalls() {
-        for ((x, y) in range(width, height)) {
-            if (get(x, y).isEmpty())
+        for (point in range(width, height)) {
+            if (get(point).isEmpty())
                 for (dir in Dir) {
-                    if (safeGet(x + dir.x, y + dir.y).isNotEmpty() && safeGet(
-                            x + dir.x,
-                            y + dir.y
-                        ).none { it<Obstacle>()?.blockMove == true }
+                    if (safeGet((point) + dir).isNotEmpty()
+                        && safeGet((point) + dir).none { it<Obstacle>()?.blockMove == true }
                     ) {
-                        wall(x, y)
+                        wall(point)
                         break
                     }
                 }
         }
     }
 
-    protected fun Level.wall(x: Int, y: Int) {
-        spawn(factory.new("wall"), x, y)
+    protected fun Level.wall(at: Point) {
+        spawn(factory.new("wall"), at)
     }
 
-    protected fun Level.floor(x: Int, y: Int) {
-        spawn(factory.new("floor"), x, y)
+    protected fun Level.floor(at: Point) {
+        spawn(factory.new("floor"), at)
     }
 
-    protected fun Level.automaton(x: Int, y: Int, k: Int) {
+    protected fun Level.automaton(point: Point, k: Int) {
 //        val random = Random(seed)
-        val real = CellularPart(width, height) { x1, y1 -> floor(x1, y1) }
+        val real = CellularPart(width, height) { point -> floor(point) }
         for ((i, j) in range(width, height)) real.cells[i, j] = true
-        val cellular = CellularPart(width / 3, height / 3) { x1, y1 ->
+        val cellular = CellularPart(width / 3, height / 3) { point ->
             for ((i, j) in range(3, 3)) {
 //                floor(3 * x1 + i, 3 * y1 + j)
-                real.cells[3 * x1 + i, 3 * y1 + j] = false
+                real.cells[3 * point.x + i, 3 * point.y + j] = false
             }
         }
         for ((i, j) in range(width / 3, height / 3)) {
             fun norm(x: Int) = Math.pow(x.toDouble(), 0.5)
-            val d = norm(abs(i - x / 3) + abs(y / 3 - j))
+            val d = norm(abs(i - point.x / 3) + abs(point.y / 3 - j))
 //            cellular.cells[i, j] = random.nextDouble() >= norm(width / 3 + height / 3) / d * 0.2 + 0.1
             if (Random.nextDouble() < 0.4) cellular.cells[i, j] = true
         }
         cellular.automaton(2, 5, 2)
         cellular.automaton(2, 7, 1)
-        cellular.cells[x / 3, y / 3] = false
-        cellular.spawnTo(0, 0, this)
+        cellular.cells[point.x / 3, point.y / 3] = false
+        cellular.spawnTo(zero, this) // todo zero point
 //        real.automaton(8, 5, 1)
-        real.spawnTo(0, 0, this)
+        real.spawnTo(zero, this)
     }
 
-    protected fun Level.rect(x1: Int, y1: Int, width: Int, height: Int) {
-        for ((x, y) in (x1 at y1) until (x1 + width at y1 + height)) {
-            if (get(x, y).none { it.has<Floor>() }) {
-                floor(x, y)
+    protected fun Level.rect(point: Point, width: Int, height: Int) {
+        for (pos in point until (point.x + width at point.y + height)) {
+            if (get(pos).none { it.has<Floor>() }) {
+                floor(pos)
             }
         }
     }
 
-    protected fun Level.box(x1: Int, y1: Int, width: Int, height: Int) {
-        for ((x, y) in (x1 at y1) until (x1 + width at y1 + height)) {
-            if (x == x1 || x == x1 + width - 1 || y == y1 || y == y1 + height - 1) {
-                wall(x, y)
+    protected fun Level.box(point: Point, width: Int, height: Int) {
+        for ((x, y) in (point) until (point.x + width at point.y + height)) {
+            if (x == point.x || x == point.x + width - 1 || y == point.y || y == point.y + height - 1) {
+                wall(x at y)
             }
         }
     }
 
-    protected fun Level.part(x: Int, y: Int, name: String) {
-        partFactory.new(name).spawnTo(x, y, this)
+    protected fun Level.part(point: Point, name: String) {
+        partFactory.new(name).spawnTo(point, this)
     }
 
-    protected fun Level.has(x: Int, y: Int): Boolean {
-        return safeGet(x, y).isNotEmpty()
+    protected fun Level.has(point: Point): Boolean {
+        return safeGet(point).isNotEmpty()
     }
 
     protected fun Level.clear() {
         for ((x, y) in range(width, height)) {
-            get(x, y).toList().forEach { remove(it) }
+            get(x at y).toList().forEach { remove(it) }
         }
     }
 }

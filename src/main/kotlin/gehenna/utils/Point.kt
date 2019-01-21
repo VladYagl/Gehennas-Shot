@@ -22,10 +22,13 @@ interface Point {
 
     operator fun component1(): Int = x
     operator fun component2(): Int = y
+
+    companion object {
+        val zero = 0 at 0
+    }
 }
 
 private data class PointImpl(override val x: Int, override val y: Int) : Point
-
 
 data class Dir(override val x: Int, override val y: Int) : Point {
     init {
@@ -72,6 +75,8 @@ data class Dir(override val x: Int, override val y: Int) : Point {
         }
     }
 }
+
+//TODO data class size(val width, val height): Point(width, height)
 
 val Pair<Int, Int>.point: Point get() = PointImpl(first, second)
 val Pair<Int, Int>.dir get() = Dir(first, second)

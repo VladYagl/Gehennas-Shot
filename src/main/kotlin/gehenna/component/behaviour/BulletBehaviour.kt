@@ -30,8 +30,8 @@ data class BulletBehaviour(
         fun bounce(pos: Position): Dir {
             val (x, y) = dir
             val (newx, newy) = pos + dir
-            val h = pos.level.obstacle(newx - x, newy)
-            val v = pos.level.obstacle(newx, newy - y)
+            val h = pos.level.obstacle(newx - x at newy)
+            val v = pos.level.obstacle(newx at newy - y)
             return if (h != null && v != null) {
                 -x on -y
             } else if (h != null) {
@@ -52,8 +52,7 @@ data class BulletBehaviour(
     }
 
     fun predict(pos: Position, dir: Dir): Action {
-        val (newx, newy) = pos + dir
-        val obstacle = pos.level.obstacle(newx, newy)
+        val obstacle = pos.level.obstacle(pos + dir)
         if (obstacle != null) {
             if (obstacle.has<Health>()) {
                 return Collide(entity, obstacle, damage)

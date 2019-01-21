@@ -17,8 +17,8 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
         dangerZone.clear()
         val bullets = ArrayList<PredictableBehaviour>()
         entity.all<Senses>().forEach { sense ->
-            sense.visitFov { obj, x, y ->
-                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(x at y)
+            sense.visitFov { obj, point ->
+                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(point)
                 obj<BulletBehaviour>()?.let { bullets.add(it) }
                 if (obj.name == "player") {
                     target = obj()
@@ -44,7 +44,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
     }
 
     private fun goto(target: Position): Action? {
-        return pos.findPath(target.x, target.y)?.firstOrNull()?.let { next ->
+        return pos.findPath(target)?.firstOrNull()?.let { next ->
             val dir = next.x - pos.x on next.y - pos.y
             if (next !in dangerZone) Move(entity, dir)
             else {

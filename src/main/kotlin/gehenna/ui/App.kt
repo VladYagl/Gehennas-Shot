@@ -9,6 +9,7 @@ import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelBuilder
 import gehenna.utils.*
+import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
 import java.awt.Color
 import kotlin.reflect.full.safeCast
@@ -123,7 +124,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
-    private var camera = 0 at 0
+    private var camera = zero
     private val cameraBound = ui.worldWidth / 2 - ui.worldWidth / 5 at ui.worldHeight / 2 - 3
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
@@ -145,25 +146,26 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         camera = x at y
     }
 
-    private fun inView(x: Int, y: Int): Boolean {
+    private fun inView(point: Point): Boolean {
+        val (x, y) = point
         return camera.x <= x && camera.y <= y && camera.x + ui.worldWidth > x && camera.y + ui.worldHeight > y
     }
 
-    private fun viewPoint(x: Int, y: Int): Point {
-        return (x at y) - camera
+    private fun viewPoint(point: Point): Point {
+        return point - camera
     }
 
-    private fun levelPos(x: Int, y: Int): Point {
-        return (x at y) + camera
+    private fun levelPos(point: Point): Point {
+        return point + camera
     }
 
     private val priority = Array(ui.worldWidth) { Array(ui.worldHeight) { minPriority } }
-    private fun putGlyph(glyph: Glyph, x: Int, y: Int, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
-        if (inView(x, y)) {
-            val p = viewPoint(x, y)
-            if (glyph.priority > priority[p.x, p.y]) {
-                ui.world.putChar(glyph.char, p.x, p.y, fg, bg)
-                priority[p.x, p.y] = glyph.priority
+    private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
+        if (inView(point)) {
+            val viewPoint = viewPoint(point)
+            if (glyph.priority > priority[viewPoint]) {
+                ui.world.putChar(glyph.char, viewPoint.x, viewPoint.y, fg, bg)
+                priority[viewPoint] = glyph.priority
             }
         }
     }
@@ -180,21 +182,21 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
         //visit fov
         game.player.all<Senses>().forEach { sense ->
-            sense.visitFov { entity, x, y ->
+            sense.visitFov { entity, point ->
                 entity.all<PredictableBehaviour>().firstOrNull()?.let { behaviours.add(it) }
                 entity<Glyph>()?.let { glyph ->
-                    if (glyph.memorable) level.remember(x, y, glyph, game.time)
-                    putGlyph(glyph, x, y)
+                    if (glyph.memorable) level.remember(point, glyph, game.time)
+                    putGlyph(glyph, point)
                 }
             }
         }
 
         //draw from memory
-        range(ui.worldWidth, ui.worldHeight).forEach { (x, y) ->
-            val pos = levelPos(x, y)
-            level.memory(pos.x, pos.y)?.let {
-                putGlyph(it, pos.x, pos.y, settings.memoryColor)
-            } ?: putGlyph(Glyph(Entity.world, ' ', minPriority + 1), pos.x, pos.y)
+        range(ui.worldWidth, ui.worldHeight).forEach { point ->
+            val pos = levelPos(point)
+            level.memory(pos)?.let {
+                putGlyph(it, pos, settings.memoryColor)
+            } ?: putGlyph(Glyph(Entity.world, ' ', minPriority + 1), pos)
         }
 
         //predict
@@ -202,10 +204,10 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             var color = ui.world.fgColor * 0.5
             val prediction =
                 level.predictWithGlyph(behaviour, game.player<ThinkUntilSet>()!!.waitTime + stats.speed.toLong())
-            prediction.forEach { (p, glyph) ->
-                if (game.player.all<Senses>().any { it.isVisible(p.x, p.y) } && inView(p.x, p.y)) {
+            prediction.forEach { (pos, glyph) ->
+                if (game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos)) {
                     color *= 0.85
-                    putGlyph(glyph, p.x, p.y, color)
+                    putGlyph(glyph, pos, color)
                 }
             }
         }

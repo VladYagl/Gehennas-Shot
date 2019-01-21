@@ -1,12 +1,13 @@
 package gehenna.level
 
 import gehenna.utils.*
+import gehenna.utils.Point.Companion.zero
 
 class StubLevelBuilder : BaseLevelBuilder<StubLevelBuilder.StubLevel>() {
     override fun build(): StubLevel {
         return StubLevel(width, height, 10 at 10).apply {
-            box(0, 0, width, height)
-            rect(0, 0, width, height)
+            box(zero, width, height)
+            rect(zero, width, height)
 
             spawn(factory.new("rifle"), startPosition)
             spawn(factory.new("pistol"), startPosition)

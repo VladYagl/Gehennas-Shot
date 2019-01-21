@@ -29,17 +29,17 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     )
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 
-    fun findPath(x: Int, y: Int, toX: Int, toY: Int): List<Point>? {
-        return pathFinder.findPath(x, y, toX, toY, navGrid)?.map { it.x at it.y }
+    fun findPath(from: Point, to: Point): List<Point>? {
+        return pathFinder.findPath(from.x, from.y, to.x, to.y, navGrid)?.map { it.x at it.y }
     }
 
-    fun visitFov(x: Int, y: Int, range: Int, visitor: (Entity, Int, Int) -> Unit): FovBoard {
+    fun visitFov(from: Point, range: Int, visitor: (Entity, Point) -> Unit): FovBoard {
         val fov = EntityFov(visitor)
-        fovAlgorithm.visitFieldOfView(fov, x, y, range)
+        fovAlgorithm.visitFieldOfView(fov, from.x, from.y, range)
         return fov
     }
 
-    fun walkableSquare(x: Int, y: Int): Int {
+    fun walkableSquare(point: Point): Int {
         val visited = HashSet<GridCell>()
         fun visit(cell: GridCell) {
             visited.add(cell)
@@ -47,21 +47,21 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
                 if (!visited.contains(it)) visit(it)
             }
         }
-        visit(navGrid.getCell(x, y))
+        visit(navGrid.getCell(point.x, point.y))
         return visited.size
     }
 
-    override fun update(x: Int, y: Int) {
-        navGrid.setWalkable(x, y,
-            cells[x, y].any { it.has<Floor>() } &&
-                    cells[x, y].none { it<Obstacle>()?.blockPath == true })
-        transparent[x, y] = if (cells[x, y].none { it<Obstacle>()?.blockView == true }) 0.0 else 1.0
+    override fun update(point: Point) {
+        navGrid.setWalkable(point.x, point.y,
+            cells[point].any { it.has<Floor>() } &&
+                    cells[point].none { it<Obstacle>()?.blockPath == true })
+        transparent[point] = if (cells[point].none { it<Obstacle>()?.blockView == true }) 0.0 else 1.0
     }
 
     abstract inner class FovBoard : ILosBoard {
         protected var board = BooleanArray(width, height) { false }
-        operator fun get(x: Int, y: Int): Boolean {
-            return board[x, y]
+        operator fun get(point: Point): Boolean {
+            return board[point]
         }
 
         override fun contains(x: Int, y: Int): Boolean {
@@ -72,21 +72,21 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
 
         final override fun visit(x: Int, y: Int) {
             board[x, y] = true
-            visitImpl(x, y)
+            visitImpl(x at y)
         }
 
-        abstract fun visitImpl(x: Int, y: Int)
+        abstract fun visitImpl(point: Point)
 
         fun clear() {
             board.fill(false)
         }
 
-        fun isVisible(x: Int, y: Int) = board[x, y]
+        fun isVisible(point: Point) = board[point]
     }
 
-    private inner class EntityFov(private val visitor: (Entity, Int, Int) -> Unit) : FovBoard() {
-        override fun visitImpl(x: Int, y: Int) {
-            cells[x, y].forEach { visitor(it, x, y) }
+    private inner class EntityFov(private val visitor: (Entity, Point) -> Unit) : FovBoard() {
+        override fun visitImpl(point: Point) {
+            cells[point].forEach { visitor(it, point) }
         }
     }
 }

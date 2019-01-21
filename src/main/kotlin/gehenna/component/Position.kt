@@ -12,24 +12,26 @@ data class Position(
     override val entity: Entity
 ) : Component(), Point {
 
-    fun move(x: Int, y: Int) {
-        level.move(entity, x, y)
+    constructor(point: Point, level: Level, entity: Entity) : this(point.x, point.y, level, entity)
+
+    fun move(point: Point) {
+        level.move(entity, point)
     }
 
     fun spawnHere(entity: Entity) {
-        level.spawn(entity, x, y)
+        level.spawn(entity, this)
     }
 
-    fun update() = level.update(x, y)
+    fun update() = level.update(this)
 
-    val neighbors: List<Entity> get() = level[x, y].filter { it != entity }
+    val neighbors: List<Entity> get() = level[this].filter { it != entity }
 
     init {
         subscribe<Entity.Add> { level.spawn(this) }
         subscribe<Entity.Remove> { level.remove(this) }
     }
 
-    fun findPath(toX: Int, toY: Int): List<Point>? {
-        return level.findPath(x, y, toX, toY)
+    fun findPath(to: Point): List<Point>? {
+        return level.findPath(this, to)
     }
 }

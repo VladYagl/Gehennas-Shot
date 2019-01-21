@@ -5,8 +5,8 @@ import gehenna.level.BasicLevel
 import gehenna.utils.*
 
 interface LevelPart {
-    fun spawnTo(toX: Int, toY: Int, level: BasicLevel)
-    fun needs(x: Int, y: Int): Boolean
+    fun spawnTo(to: Point, level: BasicLevel)
+    fun needs(point: Point): Boolean
     val width: Int
     val height: Int
 }
@@ -16,18 +16,19 @@ sealed class EntityConfig {
     data class Choice(val list: List<String>) : EntityConfig()
 }
 
-class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private val factory: Factory<Entity>) : LevelPart {
+class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private val factory: Factory<Entity>) :
+    LevelPart {
     override val width = entities.map { it.first.x }.max() ?: 0
     override val height = entities.map { it.first.y }.max() ?: 0
 
-    override fun spawnTo(toX: Int, toY: Int, level: BasicLevel) {
+    override fun spawnTo(to: Point, level: BasicLevel) {
         entities.forEach { (point, config) ->
             when (config) {
-                is EntityConfig.Name -> level.spawn(factory.new(config.name), toX + point.x, toY + point.y)
-                is EntityConfig.Choice -> level.spawn(factory.new(config.list.random(random)), toX + point.x, toY + point.y)
+                is EntityConfig.Name -> level.spawn(factory.new(config.name), to + point)
+                is EntityConfig.Choice -> level.spawn(factory.new(config.list.random(random)), to + point)
             }
         }
     }
 
-    override fun needs(x: Int, y: Int) = entities.any { it.first == (x at y) }
+    override fun needs(point: Point) = entities.any { it.first == point }
 }

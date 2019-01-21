@@ -2,6 +2,10 @@ package gehenna.level
 
 import gehenna.component.Stairs
 import gehenna.utils.*
+import gehenna.utils.Dir.Companion.east
+import gehenna.utils.Dir.Companion.south
+import gehenna.utils.Dir.Companion.southeast
+import gehenna.utils.Point.Companion.zero
 import kotlin.reflect.full.safeCast
 
 class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>() {
@@ -17,30 +21,30 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
             previous?.let { previous ->
                 val stairs = factory.new("stairsUp")
                 stairs<Stairs>()?.destination = previous to (backPoint ?: previous.startPosition)
-                spawn(stairs, startPosition.x, startPosition.y)
+                spawn(stairs, startPosition)
             }
 
             while (true) {
-                automaton(startPosition.x, startPosition.y, depth)
-                for ((x, y) in range(width - 1, height - 1)) {
-                    if (has(x, y) && has(x + 1, y + 1) && !has(x + 1, y) && !has(x, y + 1)) {
-                        part(x - 2, y - 2, "se_connector")
+                automaton(startPosition, depth)
+                for (p in range(width - 1, height - 1)) {
+                    if (has(p) && has(p + southeast) && !has(p + east) && !has(p + south)) {
+                        part(p.x - 2 at p.y - 2, "se_connector")
                     }
-                    if (!has(x, y) && !has(x + 1, y + 1) && has(x + 1, y) && has(x, y + 1)) {
-                        part(x - 2, y - 2, "sw_connector")
+                    if (!has(p) && !has(p + southeast) && has(p + east) && has(p + south)) {//fixme
+                        part(p.x - 2 at p.y - 2, "sw_connector")
                     }
                 }
-                val floor = range(width, height).count { (x, y) -> isWalkable(x, y) }
-                if (walkableSquare(startPosition.x, startPosition.y) < floor) clear()
+                val floor = range(width, height).count { isWalkable(it) }
+                if (walkableSquare(startPosition) < floor || !isWalkable(startPosition)) clear()
                 else break
             }
             allWalls()
-            box(0, 0, width, height)
+            box(zero, width, height)
 
             if (depth == 0) repeat(random.nextInt(6) + 4) {
                 while (true) {
                     val point = random.nextPoint(width, height)
-                    if (isWalkable(point.x, point.y)) {
+                    if (isWalkable(point)) {
                         spawn(factory.new("bandit"), point)
                         break
                     }
@@ -49,7 +53,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
             else repeat(random.nextInt(6) + 4) {
                 while (true) {
                     val point = random.nextPoint(width, height)
-                    if (isWalkable(point.x, point.y)) {
+                    if (isWalkable(point)) {
                         spawn(factory.new("strongBandit"), point)
                         break
                     }
@@ -58,13 +62,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
 
             while (true) {
                 val point = random.nextPoint(width, height)
-                if (isWalkable(point.x, point.y) && findPath(
-                        startPosition.x,
-                        startPosition.y,
-                        point.x,
-                        point.y
-                    )?.size ?: 0 > 25
-                ) {
+                if (isWalkable(point) && findPath(startPosition, point)?.size ?: 0 > 25) {
                     spawn(factory.new("stairsDown"), point)
                     break
                 }

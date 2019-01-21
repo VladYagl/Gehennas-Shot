@@ -84,9 +84,8 @@ private class Normal(private val context: UIContext) : State() {
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
             val playerPos = context.player<Position>()!!
-            val point = playerPos + input.dir
             // check for closed do
-            playerPos.level[point.x, point.y].firstNotNullResult {
+            playerPos.level[playerPos + input.dir].firstNotNullResult {
                 if (it<Door>()?.closed == true) it<Door>() else null
             }?.let { door ->
                 context.action = gehenna.action.UseDoor(door, close = false)
@@ -133,8 +132,7 @@ private class Aim(context: UIContext, private val gun: Gun) : Direction(context)
 private class UseDoor(context: UIContext, private val close: Boolean) : Direction(context) {
     override fun onDir(dir: Dir): State {
         val playerPos = context.player<Position>()!!
-        val point = playerPos + dir
-        playerPos.level[point.x, point.y].firstNotNullResult { it<Door>() }?.let { door ->
+        playerPos.level[playerPos + dir].firstNotNullResult { it<Door>() }?.let { door ->
             context.action = gehenna.action.UseDoor(door, close)
         } ?: context.log.add("there is no door")
         return Normal(context)

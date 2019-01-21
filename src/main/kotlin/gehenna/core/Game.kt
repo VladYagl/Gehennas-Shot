@@ -55,12 +55,12 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
 
             ActionQueue.update()
             val sight = player<Senses.Sight>()
-            sight?.visitFov { _, _, _ -> }
+            sight?.visitFov { _, _ -> }
             result.logEntries.forEach { entry ->
                 if (player.all<Senses>().any { entry.sense.isInstance(it) }) { // fixme
                     when (entry.sense) {
                         Senses.Sight::class -> {
-                            if (sight?.isVisible(entry.position!!.x, entry.position.y) == true) {
+                            if (sight?.isVisible(entry.position!!) == true) {
                                 player<Logger>()?.add(entry.text)
                             }
                         }

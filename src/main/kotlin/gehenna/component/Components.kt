@@ -1,5 +1,6 @@
 package gehenna.component
 
+import gehenna.component.behaviour.Behaviour
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
@@ -51,6 +52,11 @@ data class Logger(override val entity: Entity) : Component() {
     val log = ArrayList<String>()
     fun add(text: String) {
         log.add(text)
+    }
+
+    init {
+        //todo this is nice, but I need to filter out things somehow
+        //subscribe<Senses.Sight.Saw> { if (it.entity.all<Behaviour>().isNotEmpty()) add("${it.entity} comes to view") }
     }
 }
 
@@ -125,13 +131,22 @@ sealed class Senses : Component() {
     abstract fun isVisible(point: Point): Boolean
 
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
+        private var seen = HashMap<Entity, Long>()
+        private var count = 0L
         private var fov: FovLevel.FovBoard? = null
         override fun visitFov(visitor: (Entity, Point) -> Unit) {
             val pos = entity<Position>()
-            fov = pos?.level?.visitFov(pos, range, visitor)
+            fov = pos?.level?.visitFov(pos, range) { target, point ->
+                visitor(target, point)
+                if (seen[target] != count) entity.emit(Saw(target))
+                seen[target] = count + 1
+            }
+            count++
         }
 
         override fun isVisible(point: Point) = fov?.isVisible(point) ?: false
+
+        data class Saw(val entity: Entity) : Entity.Event
     }
 
     data class TrueSight(override val entity: Entity) : Senses() {

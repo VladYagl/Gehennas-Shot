@@ -1,7 +1,7 @@
 package gehenna.ui
 
 import gehenna.component.Logger
-import gehenna.component.behaviour.ThinkUntilSet
+import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.core.Action
 import gehenna.core.Context
 
@@ -11,7 +11,7 @@ class UIContext(private val context: Context, private val ui: UI) : Context by c
     var action: Action? = null
         set(value) {
             value?.let { action ->
-                player<ThinkUntilSet>()?.action = action
+                player<PlayerBehaviour>()?.set(action)
             }
         }
 }

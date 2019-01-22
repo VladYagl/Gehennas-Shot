@@ -26,7 +26,7 @@
         "sight": {
             "range": 25
         },
-        "thinkUntilSet": {},
+        "playerBehaviour": {},
         "logger": {}
     },
 

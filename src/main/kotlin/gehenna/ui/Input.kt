@@ -6,6 +6,7 @@ import gehenna.utils.Dir
 
 sealed class Input {
     data class Direction(val dir: Dir) : Input()
+    data class Run(val dir: Dir) : Input()
     data class Char(val char: kotlin.Char) : Input()
     object Fire : Input()
     object Pickup : Input()

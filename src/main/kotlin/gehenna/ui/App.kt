@@ -2,7 +2,7 @@ package gehenna.ui
 
 import gehenna.component.*
 import gehenna.component.behaviour.PredictableBehaviour
-import gehenna.component.behaviour.ThinkUntilSet
+import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
@@ -147,8 +147,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private fun inView(point: Point): Boolean {
-        val (x, y) = point
-        return camera.x <= x && camera.y <= y && camera.x + ui.worldSize.width > x && camera.y + ui.worldSize.height > y
+        return point - camera in ui.worldSize
     }
 
     private fun viewPoint(point: Point): Point {
@@ -203,7 +202,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         behaviours.forEach { behaviour ->
             var color = ui.world.fgColor * 0.5
             val prediction =
-                level.predictWithGlyph(behaviour, game.player<ThinkUntilSet>()!!.waitTime + stats.speed.toLong())
+                level.predictWithGlyph(behaviour, game.player<PlayerBehaviour>()!!.waitTime + stats.speed.toLong())
             prediction.forEach { (pos, glyph) ->
                 if (game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos)) {
                     color *= 0.85

@@ -5,12 +5,10 @@ import gehenna.component.Effect
 import gehenna.component.Logger
 import gehenna.component.Senses
 import gehenna.component.Stats
-import gehenna.component.behaviour.Behaviour
-import gehenna.component.behaviour.ThinkUntilSet
+import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevelBuilder
-import gehenna.level.StubLevelBuilder
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -31,7 +29,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         ActionQueue.update()
     }
 
-    fun isPlayerNext(): Boolean = ActionQueue.firstOrNull() == player<ThinkUntilSet>()
+    fun isPlayerNext(): Boolean = ActionQueue.firstOrNull() == player<PlayerBehaviour>()
 
     // TODO: Think about energy randomization / but maybe i don't really need one
     suspend fun update() {

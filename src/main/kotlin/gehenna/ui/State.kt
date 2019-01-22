@@ -4,6 +4,7 @@ import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.ClimbStairs
 import gehenna.action.Move
 import gehenna.component.*
+import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.utils.Dir
 
 abstract class State {
@@ -92,6 +93,10 @@ private class Normal(private val context: UIContext) : State() {
             } ?: run {
                 context.action = Move(context.player, input.dir)
             }
+            this
+        }
+        is Input.Run -> {
+            context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
             this
         }
         Input.Fire -> {

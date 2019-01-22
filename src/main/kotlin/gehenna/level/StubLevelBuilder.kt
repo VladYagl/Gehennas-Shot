@@ -5,9 +5,9 @@ import gehenna.utils.Point.Companion.zero
 
 class StubLevelBuilder : BaseLevelBuilder<StubLevelBuilder.StubLevel>() {
     override fun build(): StubLevel {
-        return StubLevel(width, height, 10 at 10).apply {
-            box(zero, width, height)
-            rect(zero, width, height)
+        return StubLevel(size, 10 at 10).apply {
+            box(zero, size)
+            rect(zero, size)
 
             spawn(factory.new("rifle"), startPosition)
             spawn(factory.new("pistol"), startPosition)
@@ -18,5 +18,5 @@ class StubLevelBuilder : BaseLevelBuilder<StubLevelBuilder.StubLevel>() {
         }
     }
 
-    class StubLevel(width: Int, height: Int, override val startPosition: Point) : Level(width, height)
+    class StubLevel(size: Size, override val startPosition: Point) : Level(size)
 }

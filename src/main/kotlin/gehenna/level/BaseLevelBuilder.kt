@@ -17,8 +17,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
 
     protected var factory: Factory<Entity> = EmptyFactory()
     protected var partFactory: Factory<LevelPart> = EmptyFactory()
-    protected var width: Int = 5 * 8
-    protected var height: Int = 6 * 8
+    protected var size: Size = Size(5 * 8, 6 * 8)
 
     protected var previous: Level? = null
     protected var backPoint: Point? = null
@@ -31,10 +30,9 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
 
     fun withPartFactory(partFactory: Factory<LevelPart>) = also { this.partFactory = partFactory }
 
-    fun withSize(width: Int, height: Int) = also {
-        this.width = width
-        this.height = height
-    }
+    fun withSize(size: Size) = also { this.size = size }
+
+    fun withSize(width: Int, height: Int) = also { this.size = Size(width, height) }
 
     protected fun Level.corridor(from: Point, dir: Dir, len: Int = 0, door: Boolean = false) {
         if (!inBounds(from) || get(from).isNotEmpty()) return
@@ -65,7 +63,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
     }
 
     protected fun Level.allWalls() {
-        for (point in range(width, height)) {
+        for (point in size.range) {
             if (get(point).isEmpty())
                 for (dir in Dir) {
                     if (safeGet((point) + dir).isNotEmpty()
@@ -88,15 +86,15 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
 
     protected fun Level.automaton(point: Point, k: Int) {
 //        val random = Random(seed)
-        val real = CellularPart(width, height) { point -> floor(point) }
-        for ((i, j) in range(width, height)) real.cells[i, j] = true
-        val cellular = CellularPart(width / 3, height / 3) { point ->
-            for ((i, j) in range(3, 3)) {
+        val real = CellularPart(size) { floor(it) }
+        for ((i, j) in size.range) real.cells[i, j] = true
+        val cellular = CellularPart(Size(size.width / 3, size.height / 3)) {
+            for ((i, j) in Size(3, 3).range) {
 //                floor(3 * x1 + i, 3 * y1 + j)
-                real.cells[3 * point.x + i, 3 * point.y + j] = false
+                real.cells[3 * it.x + i, 3 * it.y + j] = false
             }
         }
-        for ((i, j) in range(width / 3, height / 3)) {
+        for ((i, j) in Size(size.width / 3, size.height / 3).range) {
             fun norm(x: Int) = Math.pow(x.toDouble(), 0.5)
             val d = norm(abs(i - point.x / 3) + abs(point.y / 3 - j))
 //            cellular.cells[i, j] = random.nextDouble() >= norm(width / 3 + height / 3) / d * 0.2 + 0.1
@@ -110,17 +108,17 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
         real.spawnTo(zero, this)
     }
 
-    protected fun Level.rect(point: Point, width: Int, height: Int) {
-        for (pos in point until (point.x + width at point.y + height)) {
+    protected fun Level.rect(point: Point, size: Size) {
+        for (pos in point until (point + size)) {
             if (get(pos).none { it.has<Floor>() }) {
                 floor(pos)
             }
         }
     }
 
-    protected fun Level.box(point: Point, width: Int, height: Int) {
-        for ((x, y) in (point) until (point.x + width at point.y + height)) {
-            if (x == point.x || x == point.x + width - 1 || y == point.y || y == point.y + height - 1) {
+    protected fun Level.box(point: Point, size: Size) {
+        for ((x, y) in (point) until (point + size)) {
+            if (x == point.x || x == point.x + size.width - 1 || y == point.y || y == point.y + size.height - 1) {
                 wall(x at y)
             }
         }
@@ -135,7 +133,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
     }
 
     protected fun Level.clear() {
-        for ((x, y) in range(width, height)) {
+        for ((x, y) in size.range) {
             get(x at y).toList().forEach { remove(it) }
         }
     }

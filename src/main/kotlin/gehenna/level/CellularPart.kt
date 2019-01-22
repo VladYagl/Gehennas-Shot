@@ -5,11 +5,10 @@ import gehenna.utils.BooleanArray
 import gehenna.utils.*
 
 class CellularPart(
-    override val width: Int,
-    override val height: Int,
+    override val size: Size,
     private val spawner: (Point) -> Unit
 ) : LevelPart {
-    var cells = BooleanArray(width, height)
+    var cells = BooleanArray(size)
 
     private fun neighbours(point: Point): Int {
         var cnt = 0
@@ -21,7 +20,7 @@ class CellularPart(
     }
 
     override fun spawnTo(to: Point, level: BasicLevel) {
-        for (point in range(width, height))
+        for (point in size.range)
             if (!cells[point]) spawner(to + point)
     }
 
@@ -29,8 +28,8 @@ class CellularPart(
 
     fun automaton(birth: Int, death: Int, k: Int) {
         repeat(k) {
-            val newCells = BooleanArray(width, height)
-            for (point in range(width, height)) {
+            val newCells = BooleanArray(size)
+            for (point in size.range) {
                 newCells[point] = cells[point]
                 if (cells[point] && neighbours(point) < death) newCells[point] = false
                 if (!cells[point] && neighbours(point) > birth) newCells[point] = true

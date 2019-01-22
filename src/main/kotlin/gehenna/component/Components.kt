@@ -7,7 +7,6 @@ import gehenna.level.Level
 import gehenna.utils.Point
 import gehenna.utils.at
 import gehenna.utils.random
-import gehenna.utils.range
 
 data class Glyph(
     override val entity: Entity,
@@ -140,7 +139,7 @@ sealed class Senses : Component() {
 
         override fun visitFov(visitor: (Entity, Point) -> Unit) {
             entity<Position>()?.let { pos ->
-                for (point in range(pos.level.width at pos.level.height)) {
+                for (point in pos.level.size.range) {
                     pos.level[point].forEach { entity -> visitor(entity, point) }
                 }
             }

@@ -13,8 +13,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
     override fun build(): DungeonLevel {
         val previous = DungeonLevel::class.safeCast(this.previous)
         return DungeonLevel(
-            width,
-            height,
+            size,
             backPoint ?: random.nextPoint(3, 3, 5, 5),
             (previous?.depth ?: -1) + 1
         ).apply {
@@ -26,7 +25,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
 
             while (true) {
                 automaton(startPosition, depth)
-                for (p in range(width - 1, height - 1)) {
+                for (p in (size - (1 at 1)).size.range) {
                     if (has(p) && has(p + southeast) && !has(p + east) && !has(p + south)) {
                         part(p.x - 2 at p.y - 2, "se_connector")
                     }
@@ -34,16 +33,16 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
                         part(p.x - 2 at p.y - 2, "sw_connector")
                     }
                 }
-                val floor = range(width, height).count { isWalkable(it) }
+                val floor = size.range.count { isWalkable(it) }
                 if (walkableSquare(startPosition) < floor || !isWalkable(startPosition)) clear()
                 else break
             }
             allWalls()
-            box(zero, width, height)
+            box(zero, size)
 
             if (depth == 0) repeat(random.nextInt(6) + 4) {
                 while (true) {
-                    val point = random.nextPoint(width, height)
+                    val point = random.nextPoint(size)
                     if (isWalkable(point)) {
                         spawn(factory.new("bandit"), point)
                         break
@@ -52,7 +51,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
             }
             else repeat(random.nextInt(6) + 4) {
                 while (true) {
-                    val point = random.nextPoint(width, height)
+                    val point = random.nextPoint(size)
                     if (isWalkable(point)) {
                         spawn(factory.new("strongBandit"), point)
                         break
@@ -61,7 +60,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
             }
 
             while (true) {
-                val point = random.nextPoint(width, height)
+                val point = random.nextPoint(size)
                 if (isWalkable(point) && findPath(startPosition, point)?.size ?: 0 > 25) {
                     spawn(factory.new("stairsDown"), point)
                     break
@@ -86,8 +85,7 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
         }
     }
 
-    class DungeonLevel(width: Int, height: Int, override val startPosition: Point, val depth: Int = 0) :
-        Level(width, height) {
+    class DungeonLevel(size: Size, override val startPosition: Point, val depth: Int = 0) : Level(size) {
         override fun toString(): String = "Dungeon Level #$depth"
     }
 }

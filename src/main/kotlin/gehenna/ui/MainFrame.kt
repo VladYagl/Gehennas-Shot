@@ -1,5 +1,6 @@
 package gehenna.ui
 
+import gehenna.utils.Size
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -16,8 +17,7 @@ class MainFrame : JFrame(), UI {
     private lateinit var log: GehennaPanel
     private val logHeight = settings.logHeight
     private val infoWidth = settings.infoWidth
-    override val worldWidth: Int get() = world.widthInCharacters
-    override val worldHeight: Int get() = world.heightInCharacters
+    override val worldSize: Size get() = world.size
     private val app: App
 
     private fun preparePanels() {
@@ -106,6 +106,8 @@ class MainFrame : JFrame(), UI {
             log.writeLine(s, index)
         }
     }
+
+    override fun newWindow(size: Size): Window = newWindow(size.width, size.height)
 
     override fun newWindow(width: Int, height: Int): Window {
         val x = (mainPane.width - width * font.width) / 2

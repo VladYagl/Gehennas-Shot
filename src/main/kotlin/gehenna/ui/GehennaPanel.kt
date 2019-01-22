@@ -2,15 +2,18 @@ package gehenna.ui
 
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
+import gehenna.utils.Size
 import java.awt.Color
 
 class GehennaPanel(
-    width: Int,
-    height: Int,
+    val size: Size,
     font: AsciiFont,
     override val fgColor: Color = white,
     override val bgColor: Color = black
-) : AsciiPanel(width, height, font), Window {
+) : AsciiPanel(size.width, size.height, font), Window {
+
+    constructor(width: Int, height: Int, font: AsciiFont, fg: Color = white, bg: Color = black) :
+            this(Size(width, height), font, fg, bg)
 
     init {
         defaultBackgroundColor = bgColor

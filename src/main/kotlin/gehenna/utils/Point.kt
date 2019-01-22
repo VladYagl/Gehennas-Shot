@@ -1,5 +1,6 @@
 package gehenna.utils
 
+import gehenna.utils.Point.Companion.zero
 import kotlin.math.sign
 import kotlin.random.Random
 
@@ -11,6 +12,7 @@ interface Point {
     operator fun plus(other: Point): Point = PointImpl(x + other.x, y + other.y)
 
     val dir: Dir get() = x.sign on y.sign
+    val size: Size get() = Size(x, y)
 
     infix fun until(to: Point): List<Point> {
         return ((x until to.x) * (y until to.y)).map { it.point }
@@ -76,7 +78,14 @@ data class Dir(override val x: Int, override val y: Int) : Point {
     }
 }
 
-//TODO data class size(val width, val height): Point(width, height)
+data class Size(val width: Int, val height: Int) : Point {
+    operator fun contains(point: Point): Boolean = point.x >= 0 && point.y >= 0 && point.x < width && point.y < height
+
+    override val x: Int = width
+    override val y: Int = height
+
+    val range: List<Point> get() = zero until this
+}
 
 val Pair<Int, Int>.point: Point get() = PointImpl(first, second)
 val Pair<Int, Int>.dir get() = Dir(first, second)

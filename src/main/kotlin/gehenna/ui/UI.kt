@@ -1,5 +1,6 @@
 package gehenna.ui
 
+import gehenna.utils.Size
 import java.awt.Color
 
 enum class Alignment {
@@ -19,11 +20,11 @@ interface UI {
     fun printException(e: Throwable)
     fun update()
     fun updateLog(messages: ArrayList<String>)
+    fun newWindow(size: Size): Window
     fun newWindow(width: Int, height: Int): Window
     fun removeWindow(window: Window)
 
-    val worldWidth: Int
-    val worldHeight: Int
+    val worldSize: Size
 
     val info: Window
     val world: Window

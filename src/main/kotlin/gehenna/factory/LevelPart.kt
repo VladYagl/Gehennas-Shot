@@ -7,8 +7,7 @@ import gehenna.utils.*
 interface LevelPart {
     fun spawnTo(to: Point, level: BasicLevel)
     fun needs(point: Point): Boolean
-    val width: Int
-    val height: Int
+    val size: Size
 }
 
 sealed class EntityConfig {
@@ -18,8 +17,10 @@ sealed class EntityConfig {
 
 class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private val factory: Factory<Entity>) :
     LevelPart {
-    override val width = entities.map { it.first.x }.max() ?: 0
-    override val height = entities.map { it.first.y }.max() ?: 0
+    override val size = Size(
+        entities.map { it.first.x }.max() ?: 0,
+        entities.map { it.first.y }.max() ?: 0
+    )
 
     override fun spawnTo(to: Point, level: BasicLevel) {
         entities.forEach { (point, config) ->

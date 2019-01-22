@@ -7,10 +7,10 @@ import gehenna.component.Position
 import gehenna.core.Entity
 import gehenna.utils.*
 
-abstract class BasicLevel(val width: Int, val height: Int) {
+abstract class BasicLevel(val size: Size) {
     abstract val startPosition: Point
-    protected val cells = Array(width, height) { HashSet<Entity>() }
-    private var memory = Array(width, height) { 0L to null as Glyph? }
+    protected val cells = Array(size) { HashSet<Entity>() }
+    private var memory = Array(size) { 0L to null as Glyph? }
 
     operator fun get(point: Point): Set<Entity> {
         return cells[point]
@@ -26,8 +26,7 @@ abstract class BasicLevel(val width: Int, val height: Int) {
     }
 
     fun inBounds(point: Point): Boolean {
-        val (x, y) = point
-        return (x >= 0 && y >= 0 && x < width && y < height)
+        return point in size
     }
 
     fun safeGet(point: Point): Set<Entity> {

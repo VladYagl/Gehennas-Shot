@@ -125,7 +125,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private var camera = zero
-    private val cameraBound = ui.worldWidth / 2 - ui.worldWidth / 5 at ui.worldHeight / 2 - 3
+    private val cameraBound = ui.worldSize.width / 2 - ui.worldSize.width / 5 at ui.worldSize.height / 2 - 3
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
@@ -135,12 +135,12 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         if (playerPos.y < camera.y + cameraBound.y) {
             y = playerPos.y - cameraBound.y
         }
-        val end = camera.x + ui.worldWidth at camera.y + ui.worldHeight
+        val end = camera + ui.worldSize
         if (playerPos.x > end.x - cameraBound.x) {
-            x = playerPos.x + cameraBound.x - ui.worldWidth
+            x = playerPos.x + cameraBound.x - ui.worldSize.width
         }
         if (playerPos.y > end.y - cameraBound.y) {
-            y = playerPos.y + cameraBound.y - ui.worldHeight
+            y = playerPos.y + cameraBound.y - ui.worldSize.height
         }
 
         camera = x at y
@@ -148,7 +148,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private fun inView(point: Point): Boolean {
         val (x, y) = point
-        return camera.x <= x && camera.y <= y && camera.x + ui.worldWidth > x && camera.y + ui.worldHeight > y
+        return camera.x <= x && camera.y <= y && camera.x + ui.worldSize.width > x && camera.y + ui.worldSize.height > y
     }
 
     private fun viewPoint(point: Point): Point {
@@ -159,7 +159,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         return point + camera
     }
 
-    private val priority = Array(ui.worldWidth) { Array(ui.worldHeight) { minPriority } }
+    private val priority = IntArray(ui.worldSize) { minPriority }
     private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(point)) {
             val viewPoint = viewPoint(point)
@@ -192,7 +192,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
 
         //draw from memory
-        range(ui.worldWidth, ui.worldHeight).forEach { point ->
+        ui.worldSize.range.forEach { point ->
             val pos = levelPos(point)
             level.memory(pos)?.let {
                 putGlyph(it, pos, settings.memoryColor)

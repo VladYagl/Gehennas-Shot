@@ -11,9 +11,10 @@ import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.ActionQueue
 import gehenna.core.Entity
 import gehenna.utils.Point
+import gehenna.utils.Size
 import gehenna.utils.at
 
-abstract class Level(width: Int, height: Int) : FovLevel(width, height) {
+abstract class Level(size: Size) : FovLevel(size) {
     fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
         // TODO : LIST OF PAIR ------ SHIT
         behaviour as BulletBehaviour

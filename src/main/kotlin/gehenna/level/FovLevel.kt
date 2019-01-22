@@ -12,13 +12,13 @@ import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
 import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
 
-abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
+abstract class FovLevel(size: Size) : BasicLevel(size) {
     //fov
-    private val transparent = DoubleArray(width, height) { 0.0 }
+    private val transparent = DoubleArray(size) { 0.0 }
     private val fovAlgorithm = PrecisePermissive()
 
     //path find
-    private val navGrid = NavigationGrid(Array(width, height) { GridCell() }, true)
+    private val navGrid = NavigationGrid(Array(size) { GridCell() }, true)
     private val pathFinderOptions = GridFinderOptions(
         true,
         false,
@@ -59,13 +59,13 @@ abstract class FovLevel(width: Int, height: Int) : BasicLevel(width, height) {
     }
 
     abstract inner class FovBoard : ILosBoard {
-        protected var board = BooleanArray(width, height) { false }
+        protected var board = BooleanArray(size) { false }
         operator fun get(point: Point): Boolean {
             return board[point]
         }
 
         override fun contains(x: Int, y: Int): Boolean {
-            return (x in 0 until width) && (y in 0 until height)
+            return (x at y) in size
         }
 
         override fun isObstacle(x: Int, y: Int): Boolean = transparent[x, y] == 1.0

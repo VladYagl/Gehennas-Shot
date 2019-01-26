@@ -16,7 +16,14 @@ data class Gun(
     private val burstCount: Int = 5,
     private val time: Long = 100
 ) : Component() {
-    fun action(actor: Entity, dir: Dir) = Shoot(actor()!!, dir, bullet, damage, delay, time)
+    private fun action(actor: Entity, dir: Dir) = Shoot(actor()!!, dir, bullet, damage, delay, time)
+
+    private data class BurstFire(private val actor: Entity, private val dir: Dir, private val gun: Gun) :
+        RepeatAction<Shoot>(actor, gun.burstCount, gun.time, { gun.action(actor, dir) }) {
+        override fun toString(): String {
+            return "burst fire $dir"
+        }
+    }
 
     fun fire(actor: Entity, dir: Dir): Action? {
         return if (burst) {
@@ -25,13 +32,6 @@ data class Gun(
             } else null
         } else {
             action(actor, dir)
-        }
-    }
-
-    data class BurstFire(private val actor: Entity, private val dir: Dir, private val gun: Gun) :
-        RepeatAction<Shoot>(actor, gun.burstCount, gun.time, { gun.action(actor, dir) }) {
-        override fun toString(): String {
-            return "burst fire $dir"
         }
     }
 }

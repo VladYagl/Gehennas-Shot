@@ -32,15 +32,15 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
 
     private fun shoot(target: Position): Action? {
         return entity<Inventory>()?.all()
-            ?.firstNotNullResult { it.entity.all<Gun>().firstOrNull() }
-            ?.let { gun ->
-                if (target == target.entity<Position>()) {
-                    val diff = target - pos
-                    if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
-                        gun.fire(entity, diff.dir)
+                ?.firstNotNullResult { it.entity.all<Gun>().firstOrNull() }
+                ?.let { gun ->
+                    if (target == target.entity<Position>()) {
+                        val diff = target - pos
+                        if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
+                            gun.fire(entity, diff.dir)
+                        } else null
                     } else null
-                } else null
-            }
+                }
     }
 
     private fun goto(target: Position): Action? {
@@ -60,7 +60,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
     }
 
     private fun dodge(): Action? {
-        return if (pos in dangerZone) {
+        return if (pos.x at pos.y in dangerZone) {
             target?.minus(pos)?.dir?.let { dir ->
                 if (dir.plus(pos) !in dangerZone) Move(entity, dir) else null
             } ?: Dir.firstOrNull { it + pos !in dangerZone }?.let { Move(entity, it) }

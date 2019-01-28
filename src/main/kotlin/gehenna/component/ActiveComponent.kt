@@ -9,6 +9,7 @@ abstract class ActiveComponent : Component() {
     var lastResult: ActionResult? = null
 
     init {
+        //todo: get ActionQueue from somewhere i dont wanna this static bullshit
         subscribe<Entity.Add> { ActionQueue.add(this) }
         subscribe<Entity.Remove> { ActionQueue.remove(this) }
     }

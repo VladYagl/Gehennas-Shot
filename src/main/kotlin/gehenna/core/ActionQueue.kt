@@ -4,28 +4,24 @@ import gehenna.component.ActiveComponent
 import gehenna.component.behaviour.PredictableBehaviour
 import java.util.*
 
-private val active = ArrayList<ActiveComponent>()
+private val active: Queue<ActiveComponent> = PriorityQueue(compareBy({ it.waitTime }, { it.entity.id }))
 
 //TODO I DONT WANT THIS STATIC OBJECT
-object ActionQueue : List<ActiveComponent> by active {
+object ActionQueue : Queue<ActiveComponent> by active {
     private val predictables = TreeSet<PredictableBehaviour>(compareBy { it.entity.id })
 
-    fun update() {
-        active.sortWith(compareBy({ it.waitTime }, { it.hashCode() }))
+    override fun add(element: ActiveComponent): Boolean {
+        if (element is PredictableBehaviour) {
+            predictables.add(element)
+        }
+        return active.add(element)
     }
 
-    fun add(actor: ActiveComponent) {
-        if (actor is PredictableBehaviour) {
-            predictables.add(actor)
+    override fun remove(element: ActiveComponent): Boolean {
+        if (element is PredictableBehaviour) {
+            predictables.remove(element)
         }
-        active.add(actor)
-    }
-
-    fun remove(actor: ActiveComponent) {
-        if (actor is PredictableBehaviour) {
-            predictables.remove(actor)
-        }
-        active.remove(actor)
+        return active.remove(element)
     }
 
     fun predictables(): Set<PredictableBehaviour> {

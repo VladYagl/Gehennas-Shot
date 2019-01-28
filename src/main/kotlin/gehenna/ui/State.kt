@@ -3,6 +3,7 @@ package gehenna.ui
 import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.ClimbStairs
 import gehenna.action.Move
+import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.utils.Dir
@@ -16,7 +17,7 @@ abstract class State {
 }
 
 private abstract class Select<T>(protected val context: UIContext, private val items: List<T>, title: String) :
-    State() {
+        State() {
     private val select = BooleanArray(items.size) { false }
     private val window = context.newWindow(100, 30)
 
@@ -84,19 +85,28 @@ private class Normal(private val context: UIContext) : State() {
 
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
-            val playerPos = context.player<Position>()!!
-            // check for closed do
-            playerPos.level[playerPos + input.dir].firstNotNullResult {
-                if (it<Door>()?.closed == true) it<Door>() else null
-            }?.let { door ->
-                context.action = gehenna.action.UseDoor(door, close = false)
-            } ?: run {
-                context.action = Move(context.player, input.dir)
+            if (input.dir == Dir.zero) {
+                context.action = Wait
+                this
+            } else {
+                val playerPos = context.player<Position>()!!
+                // check for closed do
+                playerPos.level[playerPos + input.dir].firstNotNullResult {
+                    if (it<Door>()?.closed == true) it<Door>() else null
+                }?.let { door ->
+                    context.action = gehenna.action.UseDoor(door, close = false)
+                } ?: run {
+                    context.action = Move(context.player, input.dir)
+                }
+                this
             }
-            this
         }
         is Input.Run -> {
-            context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
+            if (input.dir == Dir.zero) {
+                context.action = Move(context.player, input.dir)
+            } else {
+                context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
+            }
             this
         }
         Input.Fire -> {

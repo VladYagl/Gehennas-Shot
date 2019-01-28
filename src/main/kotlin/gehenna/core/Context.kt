@@ -1,5 +1,6 @@
 package gehenna.core
 
+import gehenna.component.ActiveComponent
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.Level
@@ -12,4 +13,6 @@ interface Context {
 
     val time: Long
     val player: Entity
+
+    val actionQueue: ActionQueue
 }

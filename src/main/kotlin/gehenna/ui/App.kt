@@ -32,8 +32,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         levelFactory.loadJson(streamResource("data/rooms.json"))
         game.init()
 
-        game.player<Logger>()?.add("Welcome to Gehenna's Shot")
-        game.player<Logger>()?.add("Suffer bitch, love you " + 3.toChar())
+//        game.player<Logger>()?.add("Welcome to Gehenna's Shot")
+        game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
         val uiJob = GlobalScope.launch(exceptionHandler) {
             uiLoop()
         }
@@ -103,7 +103,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private fun updateInfo() {
-        ui.info.writeLine("In game waitTime: " + game.time, 1)
+        ui.info.writeLine("In game time: " + game.time, 1)
         val glyph = game.player<Glyph>()!!
         val pos = game.player<Position>()!!
         val storage = game.player<Inventory>()!!
@@ -202,7 +202,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         behaviours.forEach { behaviour ->
             var color = ui.world.fgColor * 0.5
             val prediction =
-                level.predictWithGlyph(behaviour, game.player<PlayerBehaviour>()!!.waitTime + stats.speed.toLong())
+                    level.predictWithGlyph(behaviour, game.player<PlayerBehaviour>()!!.waitTime + stats.speed.toLong())
             prediction.forEach { (pos, glyph) ->
                 if (game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos)) {
                     color *= 0.85
@@ -213,7 +213,6 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     override fun onInput(input: Input) {
-        ui.info.writeLine("$input", 23)
         if (input == Input.Quit) System.exit(0)
         state = state.handleInput(input)
     }

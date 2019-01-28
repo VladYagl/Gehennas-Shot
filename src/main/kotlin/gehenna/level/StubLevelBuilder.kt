@@ -12,6 +12,8 @@ class StubLevelBuilder : BaseLevelBuilder<StubLevelBuilder.StubLevel>() {
             spawn(factory.new("rifle"), startPosition)
             spawn(factory.new("pistol"), startPosition)
 
+            spawn(factory.new("bandit"), 15 at 10)
+
 //            for (pos in (11 to 11) until (width - 1 to height - 1)) {
 //                spawn(factory.new("bandit"), pos)
 //            }

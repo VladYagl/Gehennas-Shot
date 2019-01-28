@@ -35,7 +35,6 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         when (e.id) {
             KeyEvent.KEY_TYPED -> {
-                println(e.keyChar)
                 if (e.keyChar != '\b') //fixme
                     listener.onInput(Input.Char(e.keyChar))
                 when (e.keyChar) {

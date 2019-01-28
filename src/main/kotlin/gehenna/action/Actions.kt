@@ -37,13 +37,19 @@ data class Move(private val entity: Entity, val dir: Dir) : Action(100) {
     }
 }
 
+object Wait : Action() {
+    override fun perform(context: Context): ActionResult {
+        return ActionResult(context.actionQueue.map { it.waitTime }.min()?.plus(1) ?: 0, true, log)
+    }
+}
+
 data class Shoot(
-    private val pos: Position,
-    private val dir: Dir,
-    private val bulletName: String,
-    private val damage: Int,
-    private val delay: Long,
-    override val time: Long = 100L
+        private val pos: Position,
+        private val dir: Dir,
+        private val bulletName: String,
+        private val damage: Int,
+        private val delay: Long,
+        override val time: Long = 100L
 ) : Action() {
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(bulletName)
@@ -53,17 +59,17 @@ data class Shoot(
     }
 }
 
-data class Destroy(private val entity: Entity) : Action(0) {
+data class Destroy(private val entity: Entity) : Action(0, false) {
     override fun perform(context: Context): ActionResult {
         entity.clean()
         return end()
     }
 }
 
-data class Collide(val entity: Entity, val victim: Entity, val damage: Int) : Action(100) {
+data class Collide(val entity: Entity, val victim: Entity, val damage: Int) : Action(100, false) {
     override fun perform(context: Context): ActionResult {
         victim<Logger>()?.add("You were hit by ${entity.name} for $damage damage")
-            ?: log("$victim were hit by $entity for $damage damage", victim())
+                ?: log("$victim were hit by $entity for $damage damage", victim())
         victim<Health>()?.dealDamage(damage)
         entity.clean()
         return end()
@@ -84,11 +90,11 @@ data class ClimbStairs(private val entity: Entity) : Action(100) {
         val pos = entity<Position>()!!
         val stairs = pos.neighbors.firstNotNullResult { it<Stairs>() } ?: return fail()
         val destination = stairs.destination ?: context.newLevelBuilder()
-            .withPrevious(pos.level)
-            .withBackPoint(pos)
-            .build().let { level ->
-                (level to level.startPosition).also { stairs.destination = it }
-            }
+                .withPrevious(pos.level)
+                .withBackPoint(pos)
+                .build().let { level ->
+                    (level to level.startPosition).also { stairs.destination = it }
+                }
         pos.level.remove(entity)
         destination.first.spawn(entity, destination.second)
         entity<Logger>()?.add("You've climbed stairs to " + stairs.destination)
@@ -107,7 +113,7 @@ data class Pickup(private val items: List<Item>, private val inventory: Inventor
 }
 
 data class Drop(private val items: List<Item>, private val inventory: Inventory, private val pos: Position) :
-    Action(100) {
+        Action(100) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
             inventory.remove(item)

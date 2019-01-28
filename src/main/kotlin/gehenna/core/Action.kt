@@ -3,7 +3,7 @@ package gehenna.core
 import gehenna.component.Position
 import gehenna.component.Senses
 
-abstract class Action(open val time: Long = 100) {
+abstract class Action(open val time: Long = 100, open val addToQueue: Boolean = true) {
     abstract fun perform(context: Context): ActionResult
 
     protected val log = ArrayList<LogEntry>()
@@ -11,6 +11,6 @@ abstract class Action(open val time: Long = 100) {
         log.add(LogEntry(text, position, sense))
     }
 
-    protected fun end(): ActionResult = ActionResult(time, true, log)
-    protected fun fail(): ActionResult = ActionResult(0, false, log)
+    protected fun end(): ActionResult = ActionResult(time, true, log, addToQueue)
+    protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
 }

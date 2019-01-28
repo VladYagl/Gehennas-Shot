@@ -48,18 +48,6 @@ abstract class Level(size: Size) : FovLevel(size) {
     }
 
     fun predict(realBehaviour: PredictableBehaviour, duration: Long): List<Point> =
-        predictWithGlyph(realBehaviour as BulletBehaviour, duration).unzip().first
-
-    fun dangerZone(duration: Long): HashSet<Point> {
-        val zone = HashSet<Point>()
-        ActionQueue.predictables().forEach {
-            it.entity<Position>()?.let { pos ->
-                if (pos.level == this) {
-                    zone.addAll(predict(it, duration))
-                }
-            }
-        }
-        return zone
-    }
+            predictWithGlyph(realBehaviour as BulletBehaviour, duration).unzip().first
 }
 

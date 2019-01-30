@@ -1,8 +1,8 @@
 package gehenna.ui
 
 import gehenna.component.*
-import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
+import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
@@ -182,7 +182,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //visit fov
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, point ->
-                entity.all<PredictableBehaviour>().firstOrNull()?.let { behaviours.add(it) }
+                entity.any<PredictableBehaviour>()?.let { behaviours.add(it) }
                 entity<Glyph>()?.let { glyph ->
                     if (glyph.memorable) level.remember(point, glyph, game.time)
                     putGlyph(glyph, point)
@@ -206,7 +206,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             prediction.forEach { (pos, glyph) ->
                 if (game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos)) {
                     color *= 0.85
-                    putGlyph(glyph, pos, color)
+                    putGlyph(glyph, pos, max(color, Color(40, 40, 40))) //todo constant
                 }
             }
         }

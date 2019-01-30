@@ -1,7 +1,6 @@
 package gehenna.utils
 
 import com.beust.klaxon.JsonReader
-import gehenna.utils.Point.Companion.zero
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -44,4 +43,14 @@ fun JsonReader.nextStringList() = ArrayList<String>().also { list ->
     }
 }
 
+fun max(a: Color, b: Color): Color {
+    return if (a > b) a else b
+}
 
+fun min(a: Color, b: Color): Color {
+    return if (a < b) a else b
+}
+
+operator fun Color.compareTo(other: Color): Int {
+    return (this.red + this.blue + this.green).compareTo(other.red + other.green + other.blue)
+}

@@ -27,6 +27,20 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         }
     }
 
+    inline fun <reified T : Component> any(): T? {
+        return components.mapNotNull {
+            T::class.safeCast(it.value)
+        }.firstOrNull()
+    }
+
+    inline fun <reified T : Component> one(): T? {
+        val children = components.mapNotNull {
+            T::class.safeCast(it.value)
+        }
+        if (children.size == 1) return children.first()
+        else throw Exception("Expected that entity $name should have only one component of type ${T::class}")
+    }
+
     inline fun <reified T : Component> has(): Boolean {
         return invoke<T>() != null
     }

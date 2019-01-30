@@ -4,7 +4,6 @@ import gehenna.component.Senses
 import gehenna.core.Action
 import gehenna.core.Entity
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
 
 data class PlayerBehaviour(override val entity: Entity) : Behaviour() {
     private val channel = Channel<Action>(Channel.CONFLATED)
@@ -26,6 +25,6 @@ data class PlayerBehaviour(override val entity: Entity) : Behaviour() {
     }
 
     init {
-        subscribe<Senses.Sight.Saw> { if (it.entity.all<Behaviour>().isNotEmpty()) repeatAction = null }
+        subscribe<Senses.Sight.Saw> { if (it.entity.any<Behaviour>() != null) repeatAction = null }
     }
 }

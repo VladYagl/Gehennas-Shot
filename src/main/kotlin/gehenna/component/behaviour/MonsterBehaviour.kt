@@ -32,7 +32,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
 
     private fun shoot(target: Position): Action? {
         return entity<Inventory>()?.all()
-                ?.firstNotNullResult { it.entity.all<Gun>().firstOrNull() }
+                ?.firstNotNullResult { it.entity.any<Gun>() }
                 ?.let { gun ->
                     if (target == target.entity<Position>()) {
                         val diff = target - pos

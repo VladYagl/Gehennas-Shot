@@ -111,7 +111,7 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Fire -> {
             val inventory = context.player<Inventory>()!!
-            val gun = inventory.all().mapNotNull { it.entity.all<Gun>().firstOrNull() }.firstOrNull()
+            val gun = inventory.all().firstNotNullResult { it.entity.any<Gun>() }
             if (gun == null) {
                 context.log.add("You don't have any guns!")
                 this

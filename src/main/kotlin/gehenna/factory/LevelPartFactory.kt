@@ -32,7 +32,8 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
         }
     }
 
-    override fun loadJson(stream: InputStream) {
+    override fun loadJson(input: Pair<InputStream, String>) {
+        val (stream, file) = input
         JsonReader(stream.reader()).use { reader ->
             reader.beginObject {
                 while (reader.hasNext()) {

@@ -4,6 +4,7 @@ import com.beust.klaxon.JsonReader
 import gehenna.component.Item
 import gehenna.core.Component
 import gehenna.core.Entity
+import gehenna.exceptions.*
 import gehenna.utils.nextStringList
 import org.reflections.Reflections
 import java.io.InputStream
@@ -24,22 +25,22 @@ class EntityFactory : JsonFactory<Entity> {
     private val itemListType = ArrayList::class.createType(listOf(projection))
 
     private inner class ComponentBuilder(
-        private val constructor: KFunction<Component>,
-        private val args: HashMap<KParameter, Any>
+            private val constructor: KFunction<Component>,
+            private val args: HashMap<KParameter, Any>
     ) {
         fun build(entity: Entity): Component {
             args[constructor.parameters[0]] = entity
             return constructor.callBy(
-                args.mapValues { (parameter, value) ->
-                    if (parameter.type == itemListType) {
-                        @Suppress("UNCHECKED_CAST")
-                        (value as List<String>).map {
-                            new(it)<Item>() ?: throw Exception("$it is not an Item")
+                    args.mapValues { (parameter, value) ->
+                        if (parameter.type == itemListType) {
+                            @Suppress("UNCHECKED_CAST")
+                            (value as List<String>).map {
+                                new(it)<Item>() ?: throw NotAnItemException(it)
+                            }
+                        } else {
+                            value
                         }
-                    } else {
-                        value
                     }
-                }
             )
         }
     }
@@ -53,17 +54,16 @@ class EntityFactory : JsonFactory<Entity> {
     }
 
     private fun JsonReader.nextComponent(componentName: String): ComponentBuilder {
-        val clazz = components.firstOrNull {
+        val constructor = components.firstOrNull {
             it.simpleName?.toLowerCase() == componentName.toLowerCase()
-        } ?: throw Exception("In entities.json: contains unknown component [$componentName]")
-        val constructor = clazz.primaryConstructor ?: throw Exception("class $clazz don't have suitable constructor")
+        }?.primaryConstructor ?: throw BadComponentException(componentName)
         val args = HashMap<KParameter, Any>()
         beginObject {
             while (hasNext()) {
                 val argName = nextName()
                 val parameter = constructor.parameters.firstOrNull {
                     it.name == argName
-                } ?: throw Exception("Unknown component argument: $argName at $reader")
+                } ?: throw UnknownArgumentException(argName)
                 val value: Any = when (parameter.type) {
                     Boolean::class.createType() -> nextBoolean()
                     Double::class.createType() -> nextDouble()
@@ -72,7 +72,7 @@ class EntityFactory : JsonFactory<Entity> {
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
                     itemListType -> nextStringList()
-                    else -> throw Exception("Unknown type: " + parameter.type)
+                    else -> UnknownTypeException(parameter.type)
                 }
                 args[parameter] = value
             }
@@ -91,8 +91,7 @@ class EntityFactory : JsonFactory<Entity> {
                     "super" -> {
                         val parent = nextString()
                         list.addAll(
-                            entities[parent]?.components
-                                ?: throw Exception("No supper entity: $parent")
+                                entities[parent]?.components ?: throw UnknownSuperException(parent)
                         )
                     }
                     else -> list.add(nextComponent(name))
@@ -102,19 +101,28 @@ class EntityFactory : JsonFactory<Entity> {
         return EntityBuilder(list, entityName)
     }
 
-    override fun loadJson(stream: InputStream) {
-        JsonReader(stream.reader()).use { reader ->
-            reader.beginObject {
-                while (reader.hasNext()) {
-                    val name = reader.nextName()
-                    entities[name] = reader.nextEntity()
+    override fun loadJson(input: Pair<InputStream, String>) {
+        val (stream, file) = input
+        try {
+            JsonReader(stream.reader()).use { reader ->
+                reader.beginObject {
+                    while (reader.hasNext()) {
+                        val name = reader.nextName()
+                        try {
+                            entities[name] = reader.nextEntity()
+                        } catch (e: Throwable) {
+                            throw EntityReadException(name, e)
+                        }
+                    }
                 }
             }
+        } catch (e: Throwable) {
+            throw FactoryReadException(file, e)
         }
     }
 
     override fun new(name: String): Entity {
-        return entities[name]?.build(name)?.also { it.emit(Entity.Finish) } ?: throw Exception("no such entity: $name")
+        return entities[name]?.build(name)?.also { it.emit(Entity.Finish) } ?: throw NoSuchEntityException(name)
     }
 }
 

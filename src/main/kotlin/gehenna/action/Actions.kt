@@ -10,10 +10,6 @@ import gehenna.core.Entity
 import gehenna.utils.Dir
 import gehenna.utils.Dir.Companion.zero
 
-fun scaleTime(time: Long, speed: Int): Long {
-    return time * 100 / speed
-}
-
 object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()
 }
@@ -23,7 +19,7 @@ data class Move(private val entity: Entity, val dir: Dir) : Action(100) {
         return if (dir == zero) {
             end()
         } else {
-            val pos = entity<Position>()!!
+            val pos = entity.one<Position>()
             if (pos.level.isWalkable(pos + dir)) {
                 pos.level[pos + dir].firstOrNull { it.has<BulletBehaviour>() }?.let { bullet ->
                     entity<Logger>()?.add("You've perfectly dodged ${bullet.name}")
@@ -49,12 +45,13 @@ data class Shoot(
         private val bulletName: String,
         private val damage: Int,
         private val delay: Long,
-        override val time: Long = 100L
+        private val speed: Int,
+        override var time: Long = 100L
 ) : Action() {
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(bulletName)
         pos.spawnHere(bullet)
-        bullet.add(BulletBehaviour(bullet, dir, damage, delay))
+        bullet.add(BulletBehaviour(bullet, dir, damage, speed, delay))
         return end()
     }
 }
@@ -87,7 +84,7 @@ data class ApplyEffect(private val entity: Entity, private val effect: Effect) :
 data class ClimbStairs(private val entity: Entity) : Action(100) {
     //todo Maybe pass stairs?
     override fun perform(context: Context): ActionResult {
-        val pos = entity<Position>()!!
+        val pos = entity.one<Position>()
         val stairs = pos.neighbors.firstNotNullResult { it<Stairs>() } ?: return fail()
         val destination = stairs.destination ?: context.newLevelBuilder()
                 .withPrevious(pos.level)
@@ -105,7 +102,7 @@ data class ClimbStairs(private val entity: Entity) : Action(100) {
 data class Pickup(private val items: List<Item>, private val inventory: Inventory) : Action(100) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
-            item.entity.remove(item.entity<Position>()!!)
+            item.entity.remove(item.entity.one<Position>())
             inventory.add(item)
         }
         return end()

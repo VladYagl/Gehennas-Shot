@@ -10,9 +10,6 @@
             "blockMove": true,
             "blockPath": false
         },
-        "stats": {
-            "speed": 100
-        },
         "health": {
             "max": 50
         },
@@ -54,9 +51,6 @@
                 "brockhampton_3"
             ]
         },
-        "stats": {
-            "speed": 100
-        },
         "health": {
             "max": 10
         },
@@ -93,9 +87,6 @@
                 "brockhampton_3"
             ]
         },
-        "stats": {
-            "speed": 100
-        },
         "health": {
             "max": 30
         },
@@ -112,9 +103,6 @@
             "char": 130,
             "priority": 80,
             "memorable": false
-        },
-        "stats": {
-            "speed": 475
         },
         "destroyTimer": {
             "waitTime": 1000

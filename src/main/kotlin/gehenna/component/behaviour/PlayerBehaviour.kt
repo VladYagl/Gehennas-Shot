@@ -5,11 +5,11 @@ import gehenna.core.Action
 import gehenna.core.Entity
 import kotlinx.coroutines.channels.Channel
 
-data class PlayerBehaviour(override val entity: Entity) : Behaviour() {
+data class PlayerBehaviour(override val entity: Entity, public override val speed: Int = 100) : Behaviour() {
     private val channel = Channel<Action>(Channel.CONFLATED)
     private var repeatAction: Action? = null
 
-    override suspend fun action(): Action {
+    override suspend fun behave(): Action {
         if (lastResult?.succeeded == false) repeatAction = null
         return repeatAction ?: channel.receive()
     }

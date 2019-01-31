@@ -1,38 +1,31 @@
 package gehenna.component
 
-import gehenna.component.behaviour.Behaviour
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
 import gehenna.level.Level
 import gehenna.utils.Point
-import gehenna.utils.at
 import gehenna.utils.random
 
 data class Glyph(
-    override val entity: Entity,
-    var char: Char,
-    val priority: Int = 0,
-    val memorable: Boolean = true
+        override val entity: Entity,
+        var char: Char,
+        val priority: Int = 0,
+        val memorable: Boolean = true
 ) : Component()
 
 data class Obstacle(
-    override val entity: Entity,
-    var blockMove: Boolean = false,
-    var blockView: Boolean = false,
-    var blockPath: Boolean = blockMove
+        override val entity: Entity,
+        var blockMove: Boolean = false,
+        var blockView: Boolean = false,
+        var blockPath: Boolean = blockMove
 ) : Component()
 
 data class Floor(override val entity: Entity) : Component()
 
-data class Stats(
-    override val entity: Entity,
-    val speed: Int = 100
-) : Component()
-
 data class Health(
-    override val entity: Entity,
-    val max: Int
+        override val entity: Entity,
+        val max: Int
 ) : Component() {
     object Death : Entity.Event
 
@@ -65,9 +58,9 @@ data class Stairs(override val entity: Entity, var destination: Pair<Level, Poin
 data class Item(override val entity: Entity, val volume: Int) : Component()
 
 data class Inventory(
-    override val entity: Entity,
-    val maxVolume: Int,
-    private val items: ArrayList<Item> = ArrayList()
+        override val entity: Entity,
+        val maxVolume: Int,
+        private val items: ArrayList<Item> = ArrayList()
 ) : Component() {
     private var currentVolume = 0
 
@@ -99,8 +92,8 @@ data class Inventory(
 }
 
 data class ChooseOneItem(
-    override val entity: Entity,
-    private val items: ArrayList<Item> = ArrayList()
+        override val entity: Entity,
+        private val items: ArrayList<Item> = ArrayList()
 ) : Component() {
     init {
         subscribe<Entity.Finish> {

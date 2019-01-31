@@ -104,9 +104,9 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private fun updateInfo() {
         ui.info.writeLine("In game time: " + game.time, 1)
-        val glyph = game.player<Glyph>()!!
-        val pos = game.player<Position>()!!
-        val storage = game.player<Inventory>()!!
+        val glyph = game.player.one<Glyph>()
+        val pos = game.player.one<Position>()
+        val storage = game.player.one<Inventory>()
         ui.info.writeLine("Player glyph = ${glyph.char}|${glyph.priority}", 2)
         ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
         ui.info.writeLine("Player hp = " + game.player<Health>()?.current, 4)
@@ -174,8 +174,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //TODO: Animations
         priority.forEach { it.fill(minPriority) }
         val behaviours = ArrayList<PredictableBehaviour>()
-        val playerPos = game.player<Position>()!!
-        val stats = game.player<Stats>()!!
+        val playerPos = game.player.one<Position>()
+        val playerBehaviour = game.player.one<PlayerBehaviour>()
         val level = playerPos.level
         moveCamera(playerPos)
 
@@ -202,7 +202,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         behaviours.forEach { behaviour ->
             var color = ui.world.fgColor * 0.5
             val prediction =
-                    level.predictWithGlyph(behaviour, game.player<PlayerBehaviour>()!!.waitTime + stats.speed.toLong())
+                    level.predictWithGlyph(behaviour, playerBehaviour.waitTime + playerBehaviour.speed.toLong())
             prediction.forEach { (pos, glyph) ->
                 if (game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos)) {
                     color *= 0.85

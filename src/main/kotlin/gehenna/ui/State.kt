@@ -89,7 +89,7 @@ private class Normal(private val context: UIContext) : State() {
                 context.action = Wait
                 this
             } else {
-                val playerPos = context.player<Position>()!!
+                val playerPos = context.player.one<Position>()
                 // check for closed do
                 playerPos.level[playerPos + input.dir].firstNotNullResult {
                     if (it<Door>()?.closed == true) it<Door>() else null
@@ -110,7 +110,7 @@ private class Normal(private val context: UIContext) : State() {
             this
         }
         Input.Fire -> {
-            val inventory = context.player<Inventory>()!!
+            val inventory = context.player.one<Inventory>()
             val gun = inventory.all().firstNotNullResult { it.entity.any<Gun>() }
             if (gun == null) {
                 context.log.add("You don't have any guns!")
@@ -118,7 +118,7 @@ private class Normal(private val context: UIContext) : State() {
             } else Aim(context, gun)
         }
         Input.Pickup -> {
-            val pos = context.player<Position>()!!
+            val pos = context.player.one<Position>()
             val items = pos.neighbors.mapNotNull { it<Item>() }
             if (items.isEmpty()) {
                 context.log.add("There is no items to pickup(((")
@@ -146,7 +146,7 @@ private class Aim(context: UIContext, private val gun: Gun) : Direction(context)
 
 private class UseDoor(context: UIContext, private val close: Boolean) : Direction(context) {
     override fun onDir(dir: Dir): State {
-        val playerPos = context.player<Position>()!!
+        val playerPos = context.player.one<Position>()
         playerPos.level[playerPos + dir].firstNotNullResult { it<Door>() }?.let { door ->
             context.action = gehenna.action.UseDoor(door, close)
         } ?: context.log.add("there is no door")
@@ -167,14 +167,14 @@ class End(private val context: UIContext) : State() {
 //TODO: Why it's not an action??
 private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
     override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Pickup(items, context.player()!!)
+        context.action = gehenna.action.Pickup(items, context.player.one())
         return Normal(context)
     }
 }
 
-private class Drop(context: UIContext) : Select<Item>(context, context.player<Inventory>()!!.all(), "Drop what?") {
+private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().all(), "Drop what?") {
     override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Drop(items, context.player()!!, context.player()!!) //wtf is this??? kill me pls
+        context.action = gehenna.action.Drop(items, context.player.one(), context.player.one()) //wtf is this??? kill me pls
         return Normal(context)
     }
 }
@@ -193,8 +193,8 @@ private class Console(private val context: UIContext) : State() {
             try {
                 val words = command.split(' ')
                 when (words[0]) {
-                    "spawn" -> context.player<Position>()!!.spawnHere(context.factory.new(words[1]))
-                    "give" -> context.player<Inventory>()!!.add(context.factory.new(words[1])()!!)
+                    "spawn" -> context.player.one<Position>().spawnHere(context.factory.new(words[1]))
+                    "give" -> context.player.one<Inventory>().add(context.factory.new(words[1])()!!)
                 }
             } catch (e: Throwable) {
                 context.printException(e)

@@ -2,7 +2,6 @@ package gehenna.utils
 
 import gehenna.utils.Point.Companion.zero
 import kotlin.math.sign
-import kotlin.random.Random
 
 interface Point {
     val x: Int
@@ -42,14 +41,14 @@ data class Dir(override val x: Int, override val y: Int) : Point {
     val turnLeft get() = Dir[(Dir.indexOf(dir) + Dir.size - 1) % Dir.size]
 
     companion object : List<Dir> by listOf(
-        1 on 0,
-        1 on 1,
-        0 on 1,
-        -1 on 1,
-        -1 on 0,
-        -1 on -1,
-        0 on -1,
-        1 on -1
+            1 on 0,
+            1 on 1,
+            0 on 1,
+            -1 on 1,
+            -1 on 0,
+            -1 on -1,
+            0 on -1,
+            1 on -1
     ) {
         val east = this[0]
         val southeast = this[1]
@@ -73,7 +72,7 @@ data class Dir(override val x: Int, override val y: Int) : Point {
             north -> "north"
             northeast -> "northeast"
             zero -> "zero"
-            else -> throw Exception("Unknown direction")
+            else -> throw Exception("This is not a direction [$x on $y]???")
         }
     }
 }

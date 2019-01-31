@@ -2,13 +2,10 @@ package gehenna.level
 
 import gehenna.action.Collide
 import gehenna.action.Move
-import gehenna.action.scaleTime
 import gehenna.component.Glyph
 import gehenna.component.Position
-import gehenna.component.Stats
 import gehenna.component.behaviour.BulletBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
-import gehenna.core.ActionQueue
 import gehenna.core.Entity
 import gehenna.utils.Point
 import gehenna.utils.Size
@@ -16,23 +13,23 @@ import gehenna.utils.at
 
 abstract class Level(size: Size) : FovLevel(size) {
     fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
+        // todo all calls calculate duration in a wrong way (duration != speed)
         // TODO : LIST OF PAIR ------ SHIT
         behaviour as BulletBehaviour
         val realEntity = behaviour.entity
-        var fakePos = realEntity<Position>()!!.copy(entity = Entity.world)
-        var fakeGlyph = realEntity<Glyph>()!!.copy(entity = Entity.world)
+        var fakePos = realEntity.one<Position>().copy(entity = Entity.world)
+        var fakeGlyph = realEntity.one<Glyph>().copy(entity = Entity.world)
 
-        val speed = realEntity<Stats>()?.speed ?: 100
         var time = behaviour.waitTime
         var dir = behaviour.dir
         val prediction = ArrayList<Pair<Point, Glyph>>()
 
         loop@ while (time < duration) {
             val action = behaviour.predict(fakePos, dir)
-            time += scaleTime(action.time, speed)
+            time += action.time
             val (x, y) = when (action) {
                 is Move -> fakePos + action.dir
-                is Collide -> action.victim<Position>()!!
+                is Collide -> action.victim.one<Position>()
                 is BulletBehaviour.Bounce -> {
                     dir = action.bounce(fakePos)
                     fakeGlyph = fakeGlyph.copy(char = behaviour.dirChar(dir))

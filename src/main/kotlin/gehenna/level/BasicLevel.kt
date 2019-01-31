@@ -45,7 +45,7 @@ abstract class BasicLevel(val size: Size) {
     }
 
     fun remove(entity: Entity) {
-        val pos = entity<Position>()!!
+        val pos = entity.one<Position>()
         entity.remove(pos)
     }
 

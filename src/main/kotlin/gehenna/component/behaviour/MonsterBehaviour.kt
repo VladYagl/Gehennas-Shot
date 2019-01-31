@@ -8,10 +8,10 @@ import gehenna.core.Entity
 import gehenna.utils.*
 import java.lang.Math.abs
 
-data class MonsterBehaviour(override val entity: Entity, override var waitTime: Long = 0) : Behaviour() {
+data class MonsterBehaviour(override val entity: Entity, override var waitTime: Long = 0, override val speed: Int = 100) : Behaviour() {
     private var target: Position? = null
     private val dangerZone = HashSet<Point>()
-    private val pos get() = entity<Position>()!!
+    private val pos get() = entity.one<Position>()
 
     private fun updateSenses() {
         dangerZone.clear()
@@ -26,7 +26,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
             }
         }
         bullets.forEach { bullet ->
-            dangerZone.addAll(pos.level.predict(bullet, entity<Stats>()?.speed?.toLong() ?: 100))
+            dangerZone.addAll(pos.level.predict(bullet, speed.toLong()))
         }
     }
 
@@ -74,7 +74,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
 
     private fun randomMove(): Action = safeRandom() ?: Move(entity, Dir.random(random))
 
-    override suspend fun action(): Action {
+    override suspend fun behave(): Action {
         if (lastResult?.succeeded == false) {
             return randomMove()
         }

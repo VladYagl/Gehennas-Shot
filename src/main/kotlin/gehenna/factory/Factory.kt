@@ -7,6 +7,6 @@ interface Factory<T> {
 }
 
 interface JsonFactory<T> : Factory<T> {
-    fun loadJson(stream: InputStream)
+    fun loadJson(input: Pair<InputStream, String>)
 }
 

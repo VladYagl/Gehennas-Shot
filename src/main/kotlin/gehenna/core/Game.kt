@@ -1,12 +1,12 @@
 package gehenna.core
 
-import gehenna.action.scaleTime
-import gehenna.component.*
+import gehenna.component.Effect
+import gehenna.component.Logger
+import gehenna.component.Senses
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevelBuilder
-import gehenna.level.StubLevelBuilder
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -48,7 +48,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
             actionQueue.remove(first)
             val result = first.action().perform(this)
             first.lastResult = result
-            first.waitTime += scaleTime(result.time, first.entity<Stats>()?.speed ?: 100)
+            first.waitTime += result.time
             if (result.addToQueue) actionQueue.add(first) //todo:            dont add destroy timer again
 
             val sight = player<Senses.Sight>()

@@ -1,5 +1,6 @@
 package gehenna.core
 
+import gehenna.exceptions.EntityMustHaveOneException
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
@@ -33,12 +34,16 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         }.firstOrNull()
     }
 
-    inline fun <reified T : Component> one(): T? {
-        val children = components.mapNotNull {
-            T::class.safeCast(it.value)
+    inline fun <reified T : Component> one(): T {
+        return if (T::class.isFinal) {
+            components[T::class] as T? ?: throw EntityMustHaveOneException(name, T::class)
+        } else {
+            val children = components.mapNotNull {
+                T::class.safeCast(it.value)
+            }
+            if (children.size == 1) children.first() // todo: concurrent shit this doesn't look perfect
+            else throw EntityMustHaveOneException(name, T::class)
         }
-        if (children.size == 1) return children.first()
-        else throw Exception("Expected that entity $name should have only one component of type ${T::class}")
     }
 
     inline fun <reified T : Component> has(): Boolean {

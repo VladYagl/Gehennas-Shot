@@ -5,7 +5,7 @@ import com.beust.klaxon.Converter
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
 import java.awt.Color
-import java.awt.Color.*
+import java.awt.Color.lightGray
 import java.io.InputStream
 
 class Settings {
@@ -61,12 +61,13 @@ private object FontConverter : Converter {
 
 private val klaxon = Klaxon().converter(ColorConverter).converter(FontConverter)
 
-fun streamResource(name: String): InputStream {
-    return (Thread::currentThread)().contextClassLoader.getResourceAsStream(name)!!
+fun streamResource(name: String): Pair<InputStream, String> {
+    //todo: Pair --- sucks
+    return Pair((Thread::currentThread)().contextClassLoader.getResourceAsStream(name)!!, name)
 }
 
-fun loadSettings(stream: InputStream): Settings? {
-    return klaxon.parse<Settings>(stream)
+fun loadSettings(input: Pair<InputStream, String>): Settings? {
+    return klaxon.parse<Settings>(input.first)
 }
 
 fun main(args: Array<String>) {

@@ -4,6 +4,7 @@ import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
 import gehenna.level.Level
+import gehenna.utils.Dir
 import gehenna.utils.Point
 import gehenna.utils.random
 
@@ -49,7 +50,7 @@ data class Logger(override val entity: Entity) : Component() {
 
     init {
         //todo this is nice, but I need to filter out things somehow
-        //subscribe<Senses.Sight.Saw> { if (it.entity.all<Behaviour>().isNotEmpty()) add("${it.entity} comes to view") }
+        //subscribe<Senses.Sight.Saw> { if (it.entity.items<Behaviour>().isNotEmpty()) add("${it.entity} comes to view") }
     }
 }
 
@@ -60,9 +61,11 @@ data class Item(override val entity: Entity, val volume: Int) : Component()
 data class Inventory(
         override val entity: Entity,
         val maxVolume: Int,
-        private val items: ArrayList<Item> = ArrayList()
+        private val items: ArrayList<Item> = ArrayList(),
+        var gun: Item? = null
 ) : Component() {
-    private var currentVolume = 0
+    var currentVolume = items.sumBy { it.volume }
+        private set
 
     fun add(item: Item): Boolean {
         if (item.volume + currentVolume > maxVolume) {
@@ -74,13 +77,23 @@ data class Inventory(
     }
 
     fun remove(item: Item) {
+        if (gun?.entity == item.entity) gun = null
         currentVolume -= item.volume
         items.remove(item)
     }
 
-    fun all() = items.toList()
+    fun equip(item: Item?) {
+        gun = item
+    }
+
+    fun unequip() {
+        gun = null
+    }
+
+    fun items() = items.toList()
 
     init {
+        gun?.let { add(it) }
         subscribe<Health.Death> {
             entity<Position>()?.let { pos ->
                 items.forEach { item ->
@@ -117,6 +130,20 @@ data class Door(override val entity: Entity, var closed: Boolean = true) : Compo
 
     fun open() = change(true)
     fun close() = change(false)
+}
+
+data class DirectionalGlyph(override val entity: Entity, val glyphs: Map<Dir, Char>) : Component() {
+    init {
+        subscribe<Entity.NewComponent<*>> {
+            if (it.component is Position) {
+                it.component.lastDir?.let { dir ->
+                    entity<Glyph>()?.let { glyph ->
+                        glyph.char = glyphs[dir] ?: glyph.char
+                    }
+                }
+            }
+        }
+    }
 }
 
 sealed class Senses : Component() {

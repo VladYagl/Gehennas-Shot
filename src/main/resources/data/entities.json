@@ -40,9 +40,8 @@
         },
         "inventory": {
             "maxVolume": 200,
-            "items": [
-                "pistol"
-            ]
+            "items": [],
+            "gun": "pistol"
         },
         "chooseOneItem": {
             "items": [
@@ -76,9 +75,8 @@
         },
         "inventory": {
             "maxVolume": 200,
-            "items": [
-                "rifle"
-            ]
+            "items": [],
+            "gun": "rifle"
         },
         "chooseOneItem": {
             "items": [
@@ -106,6 +104,19 @@
         },
         "destroyTimer": {
             "waitTime": 1000
+        },
+        "directionalGlyph": {
+            "glyphs": {
+                "zero": 123,
+                "east": 130,
+                "southeast": 131,
+                "south": 132,
+                "southwest": 133,
+                "west": 134,
+                "northwest": 135,
+                "north": 136,
+                "northeast": 137
+            }
         }
     },
 

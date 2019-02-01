@@ -12,7 +12,7 @@ import kotlin.random.Random
 
 abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
     private class EmptyFactory<T> : Factory<T> {
-        override fun new(name: String): T = throw Exception("this is empty factory")
+        override fun new(name: String): T = throw NotImplementedError("This is empty factory")
     }
 
     protected var factory: Factory<Entity> = EmptyFactory()
@@ -67,7 +67,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
             if (get(point).isEmpty())
                 for (dir in Dir) {
                     if (safeGet((point) + dir).isNotEmpty()
-                        && safeGet((point) + dir).none { it<Obstacle>()?.blockMove == true }
+                            && safeGet((point) + dir).none { it<Obstacle>()?.blockMove == true }
                     ) {
                         wall(point)
                         break

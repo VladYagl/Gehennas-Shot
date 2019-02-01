@@ -11,6 +11,7 @@ sealed class Input {
     object Fire : Input()
     object Pickup : Input()
     object Drop : Input()
+    object Equip : Input()
     object Cancel : Input()
     object Accept : Input()
     object ClimbStairs : Input()

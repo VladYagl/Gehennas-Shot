@@ -111,10 +111,11 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
         ui.info.writeLine("Player hp = " + game.player<Health>()?.current, 4)
         ui.info.writeLine("Effects = " + game.player.all<Effect>(), 5)
-        ui.info.writeLine("Inventory", 8, Alignment.center, ui.info.fgColor, Color.darkGray)
-        repeat(10) { i -> ui.info.clearLine(9 + i) }
-        storage.all().forEachIndexed { index, item ->
-            ui.info.writeLine(item.entity.toString(), 9 + index)
+        ui.info.writeLine("Inventory ${storage.currentVolume}/${storage.maxVolume}", 8, bg = Color.darkGray)
+        ui.info.writeLine("Equipped gun: ${storage.gun?.entity}", 9, Alignment.left, bg = Color.darkGray)
+        repeat(10) { i -> ui.info.clearLine(10 + i) }
+        storage.items().forEachIndexed { index, item ->
+            ui.info.writeLine(item.entity.toString(), 10 + index)
         }
 
         repeat(10) { i -> ui.info.clearLine(31 + i) }

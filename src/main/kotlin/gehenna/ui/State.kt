@@ -111,9 +111,9 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Fire -> {
             val inventory = context.player.one<Inventory>()
-            val gun = inventory.all().firstNotNullResult { it.entity.any<Gun>() }
+            val gun = inventory.gun?.entity?.invoke<Gun>()
             if (gun == null) {
-                context.log.add("You don't have any guns!")
+                context.log.add("You didn't equip any guns!")
                 this
             } else Aim(context, gun)
         }
@@ -126,6 +126,7 @@ private class Normal(private val context: UIContext) : State() {
             } else Pickup(context, items)
         }
         Input.Drop -> Drop(context)
+        Input.Equip -> Equip(context)
         Input.ClimbStairs -> {
             context.action = ClimbStairs(context.player)
             this
@@ -164,7 +165,6 @@ class End(private val context: UIContext) : State() {
     }
 }
 
-//TODO: Why it's not an action??
 private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
     override fun onAccept(items: List<Item>): State {
         context.action = gehenna.action.Pickup(items, context.player.one())
@@ -172,9 +172,17 @@ private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(conte
     }
 }
 
-private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().all(), "Drop what?") {
+private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Drop what?") {
     override fun onAccept(items: List<Item>): State {
         context.action = gehenna.action.Drop(items, context.player.one(), context.player.one()) //wtf is this??? kill me pls
+        return Normal(context)
+    }
+}
+
+private class Equip(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Equip what?") {
+    //todo: why it's selects multiple??? --- crash if 0
+    override fun onAccept(items: List<Item>): State {
+        context.action = gehenna.action.Equip(items.firstOrNull(), context.player.one())
         return Normal(context)
     }
 }

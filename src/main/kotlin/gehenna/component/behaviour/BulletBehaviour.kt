@@ -3,7 +3,6 @@ package gehenna.component.behaviour
 import gehenna.action.Collide
 import gehenna.action.Destroy
 import gehenna.action.Move
-import gehenna.component.Glyph
 import gehenna.component.Health
 import gehenna.component.Position
 import gehenna.core.Action
@@ -27,8 +26,6 @@ data class BulletBehaviour(
         return BulletBehaviour(entity, dir, damage, speed, waitTime)
     }
 
-    fun dirChar(d: Dir = dir) = (130 + Dir.indexOf(d)).toChar()
-
     data class Bounce(private val entity: Entity, val dir: Dir) : Action(30) {
         fun bounce(pos: Position): Dir {
             val (x, y) = dir
@@ -49,7 +46,6 @@ data class BulletBehaviour(
         override fun perform(context: Context): ActionResult {
             val behaviour = entity<BulletBehaviour>()
             behaviour?.dir = bounce(entity.one())
-            entity<Glyph>()?.char = behaviour?.dirChar() ?: 130.toChar()
             return end()
         }
     }
@@ -69,13 +65,6 @@ data class BulletBehaviour(
         if (lastResult?.succeeded == false) {
             return Destroy(entity)
         }
-        val pos = entity.one<Position>()
-        return predictImpl(pos, dir)
-    }
-
-    init {
-        subscribe<Entity.Add> {
-            entity<Glyph>()?.char = dirChar()
-        }
+        return predictImpl(entity.one(), dir)
     }
 }

@@ -13,6 +13,7 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
     object Add : Event
     object Remove : Event
     object Finish : Event
+    data class NewComponent<T : Component>(val component: T) : Event
 
     fun emit(event: Event) {
         components.values.toList().forEach { it.onEvent(event) }
@@ -50,14 +51,21 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         return invoke<T>() != null
     }
 
-    fun add(component: Component) {
+    inline fun <reified T : Component> add(component: T) {
+        //todo : add by T::class (to for example avoid need of any)
         components[component::class] = component
         component.onEvent(Add)
+        emit(NewComponent<T>(component))
     }
 
     fun remove(component: Component) {
-        components.remove(component::class)
         component.onEvent(Remove)
+        components.remove(component::class)
+    }
+
+    inline fun <reified T : Component> remove() {
+        components[T::class]?.onEvent(Remove)
+        components.remove(T::class)
     }
 
     fun clean() {

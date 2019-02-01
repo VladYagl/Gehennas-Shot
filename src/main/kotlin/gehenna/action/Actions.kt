@@ -94,23 +94,30 @@ data class ClimbStairs(private val entity: Entity) : Action(100) {
                 }
         pos.level.remove(entity)
         destination.first.spawn(entity, destination.second)
-        entity<Logger>()?.add("You've climbed stairs to " + stairs.destination)
+        entity<Logger>()?.add("You've climbed stairs to " + stairs.destination?.first)
         return end()
     }
 }
 
-data class Pickup(private val items: List<Item>, private val inventory: Inventory) : Action(100) {
+data class Pickup(private val items: List<Item>, private val inventory: Inventory) : Action(45) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
-            item.entity.remove(item.entity.one<Position>())
+            item.entity.remove<Position>()
             inventory.add(item)
         }
         return end()
     }
 }
 
+data class Equip(private val item: Item?, private val inventory: Inventory) : Action(15) {
+    override fun perform(context: Context): ActionResult {
+        inventory.equip(item)
+        return end()
+    }
+}
+
 data class Drop(private val items: List<Item>, private val inventory: Inventory, private val pos: Position) :
-        Action(100) {
+        Action(45) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
             inventory.remove(item)

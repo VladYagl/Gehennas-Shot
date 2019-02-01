@@ -1,6 +1,6 @@
 package gehenna.ui
 
-import gehenna.utils.*
+import gehenna.utils.Dir
 import gehenna.utils.Dir.Companion.east
 import gehenna.utils.Dir.Companion.north
 import gehenna.utils.Dir.Companion.northeast
@@ -10,6 +10,7 @@ import gehenna.utils.Dir.Companion.southeast
 import gehenna.utils.Dir.Companion.southwest
 import gehenna.utils.Dir.Companion.west
 import gehenna.utils.Dir.Companion.zero
+import gehenna.utils.on
 import java.awt.KeyEventDispatcher
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.*
@@ -43,6 +44,7 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                     ',',
                     'g' -> listener.onInput(Input.Pickup)
                     'd' -> listener.onInput(Input.Drop)
+                    'e' -> listener.onInput(Input.Equip)
                     '>',
                     '<' -> listener.onInput(Input.ClimbStairs)
                     'o' -> listener.onInput(Input.Open)

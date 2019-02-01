@@ -1,6 +1,5 @@
 package gehenna.component.behaviour
 
-import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.Move
 import gehenna.component.*
 import gehenna.core.Action
@@ -31,8 +30,7 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
     }
 
     private fun shoot(target: Position): Action? {
-        return entity<Inventory>()?.all()
-                ?.firstNotNullResult { it.entity.any<Gun>() }
+        return entity<Inventory>()?.gun?.entity?.invoke<Gun>()
                 ?.let { gun ->
                     if (target == target.entity<Position>()) {
                         val diff = target - pos

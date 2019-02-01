@@ -13,9 +13,9 @@ class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>()
     override fun build(): DungeonLevel {
         val previous = DungeonLevel::class.safeCast(this.previous)
         return DungeonLevel(
-            size,
-            backPoint ?: random.nextPoint(3, 3, 5, 5),
-            (previous?.depth ?: -1) + 1
+                size,
+                backPoint ?: random.nextPoint(3, 3, 5, 5),
+                (previous?.depth ?: -1) + 1
         ).apply {
             previous?.let { previous ->
                 val stairs = factory.new("stairsUp")

@@ -3,16 +3,20 @@ package gehenna.component
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.Level
+import gehenna.utils.Dir
 import gehenna.utils.Point
 
 data class Position(
-    override val x: Int,
-    override val y: Int,
-    val level: Level,
-    override val entity: Entity
+        override val x: Int,
+        override val y: Int,
+        val level: Level,
+        override val entity: Entity,
+        private val lastPoint: Point? = null
 ) : Component(), Point {
 
-    constructor(point: Point, level: Level, entity: Entity) : this(point.x, point.y, level, entity)
+    constructor(point: Point, level: Level, entity: Entity, lastPoint: Point? = null) : this(point.x, point.y, level, entity, lastPoint)
+
+    val lastDir: Dir? get() = lastPoint?.let { (this - it).dir }
 
     fun move(point: Point) {
         level.move(entity, point)

@@ -1,10 +1,12 @@
 package gehenna.factory
 
+import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
 import gehenna.component.Item
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.exceptions.*
+import gehenna.utils.Dir
 import gehenna.utils.nextStringList
 import org.reflections.Reflections
 import java.io.InputStream
@@ -13,6 +15,7 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.jvmErasure
 
 //FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
 //TODO: Throw proper exceptions of where error happens and why
@@ -23,6 +26,7 @@ class EntityFactory : JsonFactory<Entity> {
     private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
     private val projection = KTypeProjection.invariant(Item::class.createType())
     private val itemListType = ArrayList::class.createType(listOf(projection))
+    private val itemType = Item::class.createType(nullable = true)
 
     private inner class ComponentBuilder(
             private val constructor: KFunction<Component>,
@@ -32,13 +36,34 @@ class EntityFactory : JsonFactory<Entity> {
             args[constructor.parameters[0]] = entity
             return constructor.callBy(
                     args.mapValues { (parameter, value) ->
-                        if (parameter.type == itemListType) {
-                            @Suppress("UNCHECKED_CAST")
-                            (value as List<String>).map {
-                                new(it)<Item>() ?: throw NotAnItemException(it)
+                        when (parameter.type) {
+                            itemListType -> {
+                                @Suppress("UNCHECKED_CAST")
+                                (value as List<String>).map {
+                                    new(it)<Item>() ?: throw NotAnItemException(it)
+                                }
                             }
-                        } else {
-                            value
+                            itemType -> {
+                                new(value as String)<Item>()
+                            }
+                            else -> {
+                                when (parameter.type.jvmErasure) {
+                                    Map::class -> (value as JsonObject).map.mapKeys { (key, _) ->
+                                        if (parameter.type.arguments[0].type == (Dir::class).createType()) {
+                                            Dir.firstOrNull { it.toString() == key } ?: Dir.zero
+                                        } else {
+                                            key
+                                        }
+                                    }.mapValues { (_, value) ->
+                                        if (parameter.type.arguments[1].type == (Char::class).createType()) {
+                                            (value as Int).toChar()
+                                        } else {
+                                            value
+                                        }
+                                    }
+                                    else -> value
+                                }
+                            }
                         }
                     }
             )
@@ -72,7 +97,13 @@ class EntityFactory : JsonFactory<Entity> {
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
                     itemListType -> nextStringList()
-                    else -> UnknownTypeException(parameter.type)
+                    itemType -> nextString()
+                    else -> {
+                        when (parameter.type.jvmErasure) {
+                            Map::class -> nextObject()
+                            else -> throw UnknownTypeException(parameter.type)
+                        }
+                    }
                 }
                 args[parameter] = value
             }

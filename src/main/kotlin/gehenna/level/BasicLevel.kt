@@ -35,8 +35,8 @@ abstract class BasicLevel(val size: Size) {
 
     fun spawnAtStart(entity: Entity) = spawn(entity, startPosition)
 
-    fun spawn(entity: Entity, at: Point) {
-        entity.add(Position(at, this as Level, entity))
+    fun spawn(entity: Entity, at: Point, lastPoint: Point? = null) {
+        entity.add(Position(at, this as Level, entity, lastPoint))
     }
 
     fun spawn(pos: Position) {
@@ -45,8 +45,7 @@ abstract class BasicLevel(val size: Size) {
     }
 
     fun remove(entity: Entity) {
-        val pos = entity.one<Position>()
-        entity.remove(pos)
+        entity.remove<Position>()
     }
 
     fun remove(pos: Position) {
@@ -55,8 +54,9 @@ abstract class BasicLevel(val size: Size) {
     }
 
     fun move(entity: Entity, to: Point) {
+        val lastPoint = entity<Position>()
         remove(entity)
-        spawn(entity, to)
+        spawn(entity, to, lastPoint)
     }
 
     fun obstacle(point: Point): Entity? {

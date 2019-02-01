@@ -2,6 +2,7 @@ package gehenna.level
 
 import gehenna.action.Collide
 import gehenna.action.Move
+import gehenna.component.DirectionalGlyph
 import gehenna.component.Glyph
 import gehenna.component.Position
 import gehenna.component.behaviour.BulletBehaviour
@@ -17,8 +18,9 @@ abstract class Level(size: Size) : FovLevel(size) {
         // TODO : LIST OF PAIR ------ SHIT
         behaviour as BulletBehaviour
         val realEntity = behaviour.entity
+        val realGlyph = realEntity.one<Glyph>() // TODO ???
         var fakePos = realEntity.one<Position>().copy(entity = Entity.world)
-        var fakeGlyph = realEntity.one<Glyph>().copy(entity = Entity.world)
+        val directionalGlyph = realEntity<DirectionalGlyph>()
 
         var time = behaviour.waitTime
         var dir = behaviour.dir
@@ -32,12 +34,14 @@ abstract class Level(size: Size) : FovLevel(size) {
                 is Collide -> action.victim.one<Position>()
                 is BulletBehaviour.Bounce -> {
                     dir = action.bounce(fakePos)
-                    fakeGlyph = fakeGlyph.copy(char = behaviour.dirChar(dir))
                     fakePos
                 }
                 else -> continue@loop
             }
-            prediction.add((x at y) to fakeGlyph)
+            val glyph = directionalGlyph?.glyphs?.get(dir)?.let {
+                realGlyph.copy(entity = Entity.world, char = it)
+            } ?: realGlyph.copy(entity = Entity.world)
+            prediction.add((x at y) to glyph)
             fakePos = fakePos.copy(x = x, y = y)
         }
 

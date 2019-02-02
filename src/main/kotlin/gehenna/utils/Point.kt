@@ -1,6 +1,8 @@
 package gehenna.utils
 
 import gehenna.utils.Point.Companion.zero
+import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sign
 
 interface Point {
@@ -12,6 +14,7 @@ interface Point {
 
     val dir: Dir get() = x.sign on y.sign
     val size: Size get() = Size(x, y)
+    val max: Int get() = max(abs(x), abs(y))
 
     infix fun until(to: Point): List<Point> {
         return ((x until to.x) * (y until to.y)).map { it.point }

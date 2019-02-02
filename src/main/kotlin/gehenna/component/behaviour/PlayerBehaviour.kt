@@ -5,7 +5,7 @@ import gehenna.core.Action
 import gehenna.core.Entity
 import kotlinx.coroutines.channels.Channel
 
-data class PlayerBehaviour(override val entity: Entity, public override val speed: Int = 100) : Behaviour() {
+data class PlayerBehaviour(override val entity: Entity, public override val speed: Int = 100) : CharacterBehaviour() {
     private val channel = Channel<Action>(Channel.CONFLATED)
     private var repeatAction: Action? = null
 

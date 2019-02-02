@@ -1,6 +1,8 @@
 package gehenna.ui
 
 import gehenna.component.*
+import gehenna.component.behaviour.CharacterBehaviour
+import gehenna.component.behaviour.MonsterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.Entity
@@ -102,6 +104,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
+    private val enemies = ArrayList<CharacterBehaviour>()
     private fun updateInfo() {
         ui.info.writeLine("In game time: " + game.time, 1)
         val glyph = game.player.one<Glyph>()
@@ -116,6 +119,14 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         repeat(10) { i -> ui.info.clearLine(10 + i) }
         storage.items().forEachIndexed { index, item ->
             ui.info.writeLine(item.entity.toString(), 10 + index)
+        }
+
+        repeat(10) { i -> ui.info.clearLine(21 + i) }
+        ui.info.writeLine("Enemies", 20, Alignment.center, ui.info.fgColor, Color.darkGray)
+        enemies.forEachIndexed { index, enemy ->
+            val target = MonsterBehaviour::class.safeCast(enemy)?.target?.entity
+            val hp = enemy.entity<Health>()
+            ui.info.writeLine("${enemy.entity}>$target [${hp?.current} / ${hp?.max}]", 21 + index)
         }
 
         repeat(10) { i -> ui.info.clearLine(31 + i) }
@@ -174,6 +185,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //TODO: Try drawing whole level and then moving it
         //TODO: Animations
         priority.forEach { it.fill(minPriority) }
+        enemies.clear()
         val behaviours = ArrayList<PredictableBehaviour>()
         val playerPos = game.player.one<Position>()
         val playerBehaviour = game.player.one<PlayerBehaviour>()
@@ -184,6 +196,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, point ->
                 entity.any<PredictableBehaviour>()?.let { behaviours.add(it) }
+                if (entity != game.player)
+                    entity.any<CharacterBehaviour>()?.let { enemies.add(it) }
                 entity<Glyph>()?.let { glyph ->
                     if (glyph.memorable) level.remember(point, glyph, game.time)
                     putGlyph(glyph, point)

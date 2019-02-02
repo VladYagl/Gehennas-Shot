@@ -116,30 +116,41 @@ data class ChooseOneItem(
     }
 }
 
-data class Door(override val entity: Entity, var closed: Boolean = true) : Component() {
-    //todo -> it can add glyph and obstacle if there is no
+data class Door(
+        override val entity: Entity,
+        val closedChar: Char,
+        val openChar: Char,
+        var closed: Boolean = true
+) : Component() {
+    private val char get() = if (closed) closedChar else openChar
+
+    private val obstacle = Obstacle(entity, blockMove = closed, blockView = closed, blockPath = false)
+    private val glyph = Glyph(entity, char = char, priority = 10)
+    override val children: List<Component> = listOf(obstacle, glyph, Floor(entity))
+
     fun change(closed: Boolean) {
-        entity<Obstacle>()?.apply {
+        obstacle.apply {
             blockMove = closed
             blockView = closed
             entity<Position>()?.update()
         }
-        entity<Glyph>()?.apply { char = (if (closed) '+' else 254.toChar()) } // todo
         this.closed = closed
+        glyph.apply { char = this@Door.char }
     }
 
     fun open() = change(true)
     fun close() = change(false)
 }
 
-data class DirectionalGlyph(override val entity: Entity, val glyphs: Map<Dir, Char>) : Component() {
+data class DirectionalGlyph(override val entity: Entity, val glyphs: Map<Dir, Char>, val priority: Int = 10, val memorable: Boolean = false) : Component() {
+    private val glyph = Glyph(entity, glyphs[Dir.zero] ?: '?', priority, memorable)
+    override val children: List<Component> = listOf(glyph)
+
     init {
         subscribe<Entity.NewComponent<*>> {
             if (it.component is Position) {
                 it.component.lastDir?.let { dir ->
-                    entity<Glyph>()?.let { glyph ->
-                        glyph.char = glyphs[dir] ?: glyph.char
-                    }
+                    glyph.char = glyphs[dir] ?: glyph.char
                 }
             }
         }

@@ -16,8 +16,17 @@
         "inventory": {
             "maxVolume": 200,
             "items": [
-                "death_grips_2",
                 "pistol"
+            ]
+        },
+        "chooseOneItem": {
+            "items": [
+                "toy",
+                "death_grips_1",
+                "death_grips_2",
+                "death_grips_3",
+                "death_grips_4",
+                "death_grips_5"
             ]
         },
         "sight": {
@@ -57,7 +66,7 @@
             "range": 25
         },
         "MonsterBehaviour": {
-            "waitTime": 50
+            "faction": "bandits"
         }
     },
 
@@ -92,16 +101,19 @@
             "range": 25
         },
         "MonsterBehaviour": {
-            "waitTime": 50
+            "faction": "bandits"
+        }
+    },
+
+    "soloBandit": {
+        "name": "prisoner",
+        "super": "bandit",
+        "MonsterBehaviour": {
+            "faction": "solo"
         }
     },
 
     "bullet": {
-        "glyph": {
-            "char": 130,
-            "priority": 80,
-            "memorable": false
-        },
         "destroyTimer": {
             "waitTime": 1000
         },
@@ -116,7 +128,9 @@
                 "northwest": 135,
                 "north": 136,
                 "northeast": 137
-            }
+            },
+            "priority": 80,
+            "memorable": false
         }
     },
 
@@ -157,17 +171,10 @@
     },
 
     "door": {
-        "glyph": {
-            "char": 43,
-            "priority": 10
-        },
-        "obstacle": {
-            "blockView": true,
-            "blockMove": true,
-            "blockPath": false
-        },
-        "door": {},
-        "floor": {}
+        "door": {
+            "closedChar": 43,
+            "openChar": 254
+        }
     },
 
     "nothing": {}

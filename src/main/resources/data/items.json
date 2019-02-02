@@ -18,8 +18,28 @@
         }
     },
 
+    "death_grips_1": {
+        "name": "Death Grips - Exmilitary",
+        "super": "album"
+    },
+
     "death_grips_2": {
         "name": "Death Grips - The Money Store",
+        "super": "album"
+    },
+
+    "death_grips_3": {
+        "name": "Death Grips - Government Plates",
+        "super": "album"
+    },
+
+    "death_grips_4": {
+        "name": "Death Grips - No Love Deep Web",
+        "super": "album"
+    },
+
+    "death_grips_5": {
+        "name": "Death Grips - The Powers That B",
         "super": "album"
     },
 

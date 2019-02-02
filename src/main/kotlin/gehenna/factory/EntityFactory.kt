@@ -3,8 +3,7 @@ package gehenna.factory
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
 import gehenna.component.Item
-import gehenna.core.Component
-import gehenna.core.Entity
+import gehenna.core.*
 import gehenna.exceptions.*
 import gehenna.utils.Dir
 import gehenna.utils.nextStringList
@@ -29,7 +28,7 @@ class EntityFactory : JsonFactory<Entity> {
     private val itemType = Item::class.createType(nullable = true)
 
     private inner class ComponentBuilder(
-            private val constructor: KFunction<Component>,
+            val constructor: KFunction<Component>,
             private val args: HashMap<KParameter, Any>
     ) {
         fun build(entity: Entity): Component {
@@ -37,6 +36,11 @@ class EntityFactory : JsonFactory<Entity> {
             return constructor.callBy(
                     args.mapValues { (parameter, value) ->
                         when (parameter.type) {
+                            Faction::class.createType() -> {
+                                val name = value as String
+                                if (name == "solo") SoloFaction
+                                else NamedFaction(name)
+                            }
                             itemListType -> {
                                 @Suppress("UNCHECKED_CAST")
                                 (value as List<String>).map {
@@ -96,6 +100,7 @@ class EntityFactory : JsonFactory<Entity> {
                     Long::class.createType() -> nextLong()
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
+                    Faction::class.createType() -> nextString()
                     itemListType -> nextStringList()
                     itemType -> nextString()
                     else -> {
@@ -121,11 +126,16 @@ class EntityFactory : JsonFactory<Entity> {
                     "name" -> entityName = nextString()
                     "super" -> {
                         val parent = nextString()
-                        list.addAll(
-                                entities[parent]?.components ?: throw UnknownSuperException(parent)
-                        )
+                        list.addAll(entities[parent]?.components ?: throw UnknownSuperException(parent))
                     }
-                    else -> list.add(nextComponent(name))
+                    else -> {
+                        val component = nextComponent(name)
+                        list.toList().forEach {
+                            if (it.constructor == component.constructor)
+                                list.remove(it)
+                        }
+                        list.add(component)
+                    }
                 }
             }
         }

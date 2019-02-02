@@ -4,26 +4,37 @@ import gehenna.action.Move
 import gehenna.component.*
 import gehenna.core.Action
 import gehenna.core.Entity
+import gehenna.core.Faction
+import gehenna.exceptions.EntityMustHaveOneException
 import gehenna.utils.*
 import java.lang.Math.abs
 
-data class MonsterBehaviour(override val entity: Entity, override var waitTime: Long = 0, override val speed: Int = 100) : Behaviour() {
-    private var target: Position? = null
+data class MonsterBehaviour(
+        override val entity: Entity,
+        override val faction: Faction,
+        override var waitTime: Long = random.nextLong(100),
+        override val speed: Int = 100) : CharacterBehaviour() {
+    var target: Position? = null
     private val dangerZone = HashSet<Point>()
     private val pos get() = entity.one<Position>()
 
     private fun updateSenses() {
         dangerZone.clear()
         val bullets = ArrayList<PredictableBehaviour>()
+        var newTarget: Position? = null
         entity.all<Senses>().forEach { sense ->
             sense.visitFov { obj, point ->
                 if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(point)
                 obj<BulletBehaviour>()?.let { bullets.add(it) }
-                if (obj.name == "player") {
-                    target = obj()
+                obj.any<CharacterBehaviour>()?.let { behaviour ->
+                    if (faction.isEnemy(behaviour.faction)
+                            && obj != entity
+                            && newTarget?.let { (it - pos).max > (point - pos).max } != false)
+                        newTarget = obj()
                 }
             }
         }
+        newTarget?.let { target = it }
         bullets.forEach { bullet ->
             dangerZone.addAll(pos.level.predict(bullet, speed.toLong()))
         }
@@ -75,6 +86,11 @@ data class MonsterBehaviour(override val entity: Entity, override var waitTime: 
     override suspend fun behave(): Action {
         if (lastResult?.succeeded == false) {
             return randomMove()
+        }
+        try {
+            pos
+        } catch (e: EntityMustHaveOneException) {
+            println("mem")
         }
         updateSenses()
         return dodge() ?: target?.let { shoot(it) ?: goto(it) ?: randomMove() } ?: randomMove()

@@ -5,6 +5,8 @@ import gehenna.component.ActiveComponent
 import gehenna.component.Position
 import gehenna.core.Action
 import gehenna.core.Entity
+import gehenna.core.Faction
+import gehenna.core.SoloFaction
 import gehenna.utils.Dir
 import gehenna.utils.random
 
@@ -20,6 +22,10 @@ abstract class Behaviour(protected open val speed: Int = 100) : ActiveComponent(
     }
 
     protected abstract suspend fun behave(): Action
+}
+
+abstract class CharacterBehaviour : Behaviour() {
+    open val faction: Faction = SoloFaction
 }
 
 abstract class PredictableBehaviour : Behaviour() {

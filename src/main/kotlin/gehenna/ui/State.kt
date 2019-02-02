@@ -103,7 +103,7 @@ private class Normal(private val context: UIContext) : State() {
         }
         is Input.Run -> {
             if (input.dir == Dir.zero) {
-                context.action = Move(context.player, input.dir)
+                context.action = Move(context.player, input.dir) // todo: this is [Shit+.] == '>'  ???
             } else {
                 context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
             }
@@ -128,7 +128,10 @@ private class Normal(private val context: UIContext) : State() {
         Input.Drop -> Drop(context)
         Input.Equip -> Equip(context)
         Input.ClimbStairs -> {
-            context.action = ClimbStairs(context.player)
+            val pos = context.player.one<Position>()
+            pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
+                context.action = ClimbStairs(context.player, stairs)
+            } ?: context.log.add("There is no stairs here")
             this
         }
         Input.Open -> UseDoor(context, false)
@@ -180,7 +183,7 @@ private class Drop(context: UIContext) : Select<Item>(context, context.player.on
 }
 
 private class Equip(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Equip what?") {
-    //todo: why it's selects multiple??? --- crash if 0
+    //todo: why it's selects multiple???
     override fun onAccept(items: List<Item>): State {
         context.action = gehenna.action.Equip(items.firstOrNull(), context.player.one())
         return Normal(context)

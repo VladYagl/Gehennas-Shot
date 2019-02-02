@@ -6,7 +6,7 @@ import gehenna.component.Senses
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
-import gehenna.level.StubLevelBuilder
+import gehenna.level.DungeonLevelBuilder
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -15,8 +15,8 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     override val actionQueue = ActionQueue
     override val time: Long get() = globalTime + (actionQueue.firstOrNull()?.waitTime ?: 0)
 
-//    override fun newLevelBuilder() = DungeonLevelBuilder()
-    override fun newLevelBuilder() = StubLevelBuilder()
+        override fun newLevelBuilder() = DungeonLevelBuilder()
+//    override fun newLevelBuilder() = StubLevelBuilder()
             .withFactory(factory)
             .withPartFactory(partFactory)
             .withSize(8 * 8, 7 * 8)
@@ -29,7 +29,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
 
     fun isPlayerNext(): Boolean = actionQueue.firstOrNull() == player<PlayerBehaviour>()
 
-    // TODO: Think about energy randomization / but maybe i don't really need one
+    // TODO: Think about energy randomization / but maybe i don't really need one / you can add this in scale time inside behaviour/characterBehaviour
     suspend fun update() {
         actionQueue.firstOrNull()?.let { first ->
             val time = first.waitTime
@@ -40,7 +40,6 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
                     it.duration -= time
                     if (it.duration <= 0) {
                         it.entity.remove(it)
-//                        ActionQueue.remove(it)
                     }
                 }
             }
@@ -49,12 +48,12 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
             val result = first.action().perform(this)
             first.lastResult = result
             first.waitTime += result.time
-            if (result.addToQueue) actionQueue.add(first) //todo:            dont add destroy timer again
+            if (result.addToQueue) actionQueue.add(first)
 
             val sight = player<Senses.Sight>()
             sight?.visitFov { _, _ -> }
             result.logEntries.forEach { entry ->
-                if (player.all<Senses>().any { entry.sense.isInstance(it) }) { // fixme
+                if (player.all<Senses>().any { entry.sense.isInstance(it) }) {
                     when (entry.sense) {
                         Senses.Sight::class -> {
                             if (sight?.isVisible(entry.position!!) == true) {

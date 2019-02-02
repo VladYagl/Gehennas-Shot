@@ -103,7 +103,7 @@ abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
         cellular.automaton(2, 5, 2)
         cellular.automaton(2, 7, 1)
         cellular.cells[point.x / 3, point.y / 3] = false
-        cellular.spawnTo(zero, this) // todo zero point
+        cellular.spawnTo(zero, this)
 //        real.automaton(8, 5, 1)
         real.spawnTo(zero, this)
     }

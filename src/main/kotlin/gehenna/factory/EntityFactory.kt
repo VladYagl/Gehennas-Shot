@@ -17,7 +17,6 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmErasure
 
 //FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
-//TODO: Throw proper exceptions of where error happens and why
 class EntityFactory : JsonFactory<Entity> {
     private val entities = HashMap<String, EntityBuilder>()
 
@@ -152,7 +151,7 @@ class EntityFactory : JsonFactory<Entity> {
                         try {
                             entities[name] = reader.nextEntity()
                         } catch (e: Throwable) {
-                            throw EntityReadException(name, e)
+                            throw ReadException(name, e)
                         }
                     }
                 }
@@ -163,7 +162,7 @@ class EntityFactory : JsonFactory<Entity> {
     }
 
     override fun new(name: String): Entity {
-        return entities[name]?.build(name)?.also { it.emit(Entity.Finish) } ?: throw NoSuchEntityException(name)
+        return entities[name]?.build(name)?.also { it.emit(Entity.Finish) } ?: throw NoSuchBuilderException(name)
     }
 }
 

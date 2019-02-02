@@ -1,6 +1,5 @@
 package gehenna.action
 
-import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.component.*
 import gehenna.component.behaviour.BulletBehaviour
 import gehenna.core.Action
@@ -81,11 +80,9 @@ data class ApplyEffect(private val entity: Entity, private val effect: Effect) :
     }
 }
 
-data class ClimbStairs(private val entity: Entity) : Action(100) {
-    //todo Maybe pass stairs?
+data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) : Action(100) {
     override fun perform(context: Context): ActionResult {
         val pos = entity.one<Position>()
-        val stairs = pos.neighbors.firstNotNullResult { it<Stairs>() } ?: return fail()
         val destination = stairs.destination ?: context.newLevelBuilder()
                 .withPrevious(pos.level)
                 .withBackPoint(pos)

@@ -49,8 +49,8 @@ data class Logger(override val entity: Entity) : Component() {
     }
 
     init {
-        //todo this is nice, but I need to filter out things somehow
-        //subscribe<Senses.Sight.Saw> { if (it.entity.items<Behaviour>().isNotEmpty()) add("${it.entity} comes to view") }
+        //todo: better but still need some filtering
+        //subscribe<Senses.Sight.Saw> { if (it.entity.all<CharacterBehaviour>().isNotEmpty()) add("${it.entity} comes to view") }
     }
 }
 

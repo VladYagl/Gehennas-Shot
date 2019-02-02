@@ -3,6 +3,10 @@ package gehenna.factory
 import com.beust.klaxon.JsonReader
 import com.beust.klaxon.Klaxon
 import gehenna.core.Entity
+import gehenna.exceptions.FactoryReadException
+import gehenna.exceptions.NoSuchBuilderException
+import gehenna.exceptions.ReadException
+import gehenna.exceptions.UnknownEntityConfigException
 import gehenna.utils.Point
 import gehenna.utils.at
 import java.io.InputStream
@@ -23,7 +27,7 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
                         when (entity) {
                             is String -> list.add((x at y) to EntityConfig.Name(entity))
                             is List<*> -> list.add((x at y) to EntityConfig.Choice(entity as List<String>))
-                            else -> throw Exception("Unknown entity config: $entity")
+                            else -> throw UnknownEntityConfigException(entity.toString())
                         }
                     }
                 }
@@ -34,18 +38,26 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
 
     override fun loadJson(input: Pair<InputStream, String>) {
         val (stream, file) = input
-        JsonReader(stream.reader()).use { reader ->
-            reader.beginObject {
-                while (reader.hasNext()) {
-                    val name = reader.nextName()
-                    reader.lexer.nextToken() // consume ':'
-                    klaxon.parse<LevelConfig>(reader)?.let { config ->
-                        levels.put(name, config.toPart(factory))
+        try {
+            JsonReader(stream.reader()).use { reader ->
+                reader.beginObject {
+                    while (reader.hasNext()) {
+                        val name = reader.nextName()
+                        reader.lexer.nextToken() // consume ':'
+                        try {
+                            klaxon.parse<LevelConfig>(reader)?.let { config ->
+                                levels.put(name, config.toPart(factory))
+                            }
+                        } catch (e: Exception) {
+                            throw ReadException(name, e)
+                        }
                     }
                 }
             }
+        } catch (e: Throwable) {
+            throw FactoryReadException(file, e)
         }
     }
 
-    override fun new(name: String) = levels[name] ?: throw Exception("no such part: $name")
+    override fun new(name: String) = levels[name] ?: throw NoSuchBuilderException(name)
 }

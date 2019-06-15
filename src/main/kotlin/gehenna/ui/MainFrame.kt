@@ -1,6 +1,7 @@
 package gehenna.ui
 
 import gehenna.utils.Size
+import gehenna.utils.showError
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -88,6 +89,7 @@ class MainFrame : JFrame(), UI {
     }
 
     override fun printException(e: Throwable) {
+        showError(e) // todo: make this switchable
         info.writeLine(e.message ?: "no message", info.heightInCharacters - 3, fg = Color.RED)
         info.writeLine(e.toString(), info.heightInCharacters - 2, fg = Color.RED)
     }

@@ -16,8 +16,12 @@ abstract class State {
     }
 }
 
-private abstract class Select<T>(protected val context: UIContext, private val items: List<T>, title: String) :
-        State() {
+private abstract class Select<T>(
+        protected val context: UIContext,
+        private val items: List<T>,
+        title: String,
+        private val selectMultiple: Boolean = true
+) : State() {
     private val select = BooleanArray(items.size) { false }
     private val window = context.newWindow(100, 30)
 
@@ -34,16 +38,22 @@ private abstract class Select<T>(protected val context: UIContext, private val i
     }
 
     override fun handleInput(input: Input) = when (input) {
+        //TODO: well actually I probably want to select items with hjkl
         is Input.Char -> {
             if (input.char in 'a'..'z') {
                 val index = input.char - 'a'
                 if (index < select.size) {
-                    select[index] = !select[index]
-                    updateItem(index)
-                    window.repaint()
-                }
-            }
-            this
+                    if (selectMultiple) {
+                        select[index] = !select[index]
+                        updateItem(index)
+                        window.repaint()
+                        this
+                    } else {
+                        context.removeWindow(window)
+                        onAccept(listOf(items[index]))
+                    }
+                } else this
+            } else this
         }
         is Input.Accept -> {
             context.removeWindow(window)
@@ -182,7 +192,7 @@ private class Drop(context: UIContext) : Select<Item>(context, context.player.on
     }
 }
 
-private class Equip(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Equip what?") {
+private class Equip(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Equip what?", false) {
     //todo: why it's selects multiple???
     override fun onAccept(items: List<Item>): State {
         context.action = gehenna.action.Equip(items.firstOrNull(), context.player.one())

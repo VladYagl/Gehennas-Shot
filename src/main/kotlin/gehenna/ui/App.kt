@@ -46,7 +46,6 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        showError(exception)
         ui.printException(exception)
     }
 

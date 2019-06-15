@@ -24,6 +24,7 @@ class GehennaPanel(
         clear(' ', 0, y, widthInCharacters, 1)
     }
 
+    //todo: write text with auto line breaks
     override fun writeLine(line: String, y: Int, alignment: Alignment, fg: Color, bg: Color) {
         val text = if (line.length < widthInCharacters) line else line.take(widthInCharacters - 3) + "..."
         clearLine(y)

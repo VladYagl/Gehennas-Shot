@@ -113,6 +113,23 @@
         }
     },
 
+    "dummy": {
+        "name": "dummy",
+        "glyph": {
+            "char": 10,
+            "priority": 100,
+            "memorable": false
+        },
+        "obstacle": {
+            "blockView": false,
+            "blockMove": true,
+            "blockPath": false
+        },
+        "health": {
+            "max": 30
+        }
+    },
+
     "bullet": {
         "destroyTimer": {
             "waitTime": 1000

@@ -172,10 +172,15 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val priority = IntArray(ui.worldSize) { minPriority }
     private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(point)) {
+            val g = if (cursorShown && cursor == point) {
+                Glyph(Entity.world, 'X', 1000_000)
+            } else {
+                glyph
+            }
             val viewPoint = viewPoint(point)
-            if (glyph.priority > priority[viewPoint]) {
-                ui.world.putChar(glyph.char, viewPoint.x, viewPoint.y, fg, bg)
-                priority[viewPoint] = glyph.priority
+            if (g.priority > priority[viewPoint]) {
+                ui.world.putChar(g.char, viewPoint.x, viewPoint.y, fg, bg)
+                priority[viewPoint] = g.priority
             }
         }
     }
@@ -229,5 +234,21 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     override fun onInput(input: Input) {
         if (input == Input.Quit) System.exit(0)
         state = state.handleInput(input)
+    }
+
+    private var cursor: Point = 0 at 0
+    private var cursorShown: Boolean = false
+    private val cursorGlyph = Glyph(Entity.world, 'X', 1000_000)
+
+    fun showCursor() {
+        cursorShown = true
+    }
+
+    fun hideCursor() {
+        cursorShown = false
+    }
+
+    fun setCursor(point: Point) {
+        cursor = point
     }
 }

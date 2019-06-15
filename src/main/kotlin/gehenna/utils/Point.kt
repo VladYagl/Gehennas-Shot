@@ -78,6 +78,10 @@ data class Dir(override val x: Int, override val y: Int) : Point {
             else -> throw Exception("This is not a direction [$x on $y]???")
         }
     }
+
+    operator fun times(k: Int): Point {
+        return x * k at y * k
+    }
 }
 
 data class Size(val width: Int, val height: Int) : Point {

@@ -2,7 +2,7 @@ package gehenna.ui
 
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
-import gehenna.utils.Size
+import gehenna.utils.*
 import java.awt.Color
 
 class GehennaPanel(

@@ -1,7 +1,7 @@
 package gehenna.ui
 
-import gehenna.utils.Size
-import gehenna.utils.showError
+import gehenna.utils.*
+import gehenna.utils.Point
 import java.awt.*
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -25,25 +25,25 @@ class MainFrame : JFrame(), UI {
         val logWidth = width - (infoWidth + 1) * font.width
         val worldHeight = height - (logHeight + 1) * font.height
         log = GehennaPanel(
-            logWidth / font.width,
-            logHeight,
-            settings.font,
-            settings.foregroundColor,
-            settings.backgroundColor
+                logWidth / font.width,
+                logHeight,
+                settings.font,
+                settings.foregroundColor,
+                settings.backgroundColor
         )
         info = GehennaPanel(
-            infoWidth,
-            height / font.height,
-            settings.font,
-            settings.foregroundColor,
-            settings.backgroundColor
+                infoWidth,
+                height / font.height,
+                settings.font,
+                settings.foregroundColor,
+                settings.backgroundColor
         )
         world = GehennaPanel(
-            logWidth / worldFont.width,
-            worldHeight / worldFont.height,
-            settings.worldFont,
-            settings.foregroundColor,
-            settings.backgroundColor
+                logWidth / worldFont.width,
+                worldHeight / worldFont.height,
+                settings.worldFont,
+                settings.foregroundColor,
+                settings.backgroundColor
         )
 
         add(mainPane)
@@ -145,4 +145,8 @@ class MainFrame : JFrame(), UI {
         log.forceRepaint()
         mainPane.repaint()
     }
+
+    override fun showCursor() = app.showCursor()
+    override fun hideCursor() = app.hideCursor()
+    override fun setCursor(point: Point) = app.setCursor(point)
 }

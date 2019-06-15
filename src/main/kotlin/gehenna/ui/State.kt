@@ -6,9 +6,11 @@ import gehenna.action.Move
 import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
+import gehenna.core.Sense
 import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
+import gehenna.utils.at
 
 abstract class State {
     open fun handleInput(input: Input): State = this
@@ -237,26 +239,37 @@ private class Console(private val context: UIContext) : State() {
 }
 
 private class Examine(private val context: UIContext) : State() {
-    //todo: cursor always there
-    val cursor = context.factory.new("cursor")
+    //todo: get cursor from ui
+    var cursor: Point = context.player.one<Position>()
+    val level: Level = context.player.one<Position>().level
 
     private fun print() {
-        context.log.add("Here is: " + cursor.one<Position>().neighbors.joinToString(separator = ", ") { it.name })
+        context.setCursor(cursor)
+        if (context.player.all<Senses>().any { it.isVisible(cursor) }) { // todo: this throws error when our of bounds
+            context.log.add("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
+        } else {
+            context.log.add("You can't see this shit")
+        }
     }
 
     init {
-        context.player.one<Position>().spawnHere(cursor)
+        context.showCursor()
         print()
     }
 
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
-            cursor.one<Position>().move(cursor.one<Position>() + input.dir)
+            cursor += input.dir
+            print()
+            this
+        }
+        is Input.Run -> {
+            cursor += input.dir * 5
             print()
             this
         }
         is Input.Cancel -> {
-            cursor.remove<Position>()
+            context.hideCursor()
             Normal(context)
         }
         else -> {

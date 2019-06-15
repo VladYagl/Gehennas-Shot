@@ -72,19 +72,19 @@ private abstract class Select<T>(
 
     abstract fun onAccept(items: List<T>): State
     open fun onCancel(): State {
-        context.log.add("Never mind")
+        context.log.addTemp("Never mind")
         return Normal(context)
     }
 }
 
 private abstract class Direction(protected val context: UIContext) : State() {
     init {
-        context.log.add("Fire in which direction?")
+        context.log.addTemp("In which direction?")
     }
 
     abstract fun onDir(dir: Dir): State
     open fun onCancel(): State {
-        context.log.add("Never mind")
+        context.log.addTemp("Never mind")
         return Normal(context)
     }
 
@@ -127,7 +127,7 @@ private class Normal(private val context: UIContext) : State() {
             val inventory = context.player.one<Inventory>()
             val gun = inventory.gun?.entity?.invoke<Gun>()
             if (gun == null) {
-                context.log.add("You didn't equip any guns!")
+                context.log.addTemp("You don't have a gun equipped")
                 this
             } else Aim(context, gun)
         }
@@ -135,7 +135,7 @@ private class Normal(private val context: UIContext) : State() {
             val pos = context.player.one<Position>()
             val items = pos.neighbors.mapNotNull { it<Item>() }
             if (items.isEmpty()) {
-                context.log.add("There is no items to pickup(((")
+                context.log.addTemp("There is no items to pickup(((")
                 this
             } else Pickup(context, items)
         }
@@ -145,7 +145,7 @@ private class Normal(private val context: UIContext) : State() {
             val pos = context.player.one<Position>()
             pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
                 context.action = ClimbStairs(context.player, stairs)
-            } ?: context.log.add("There is no stairs here")
+            } ?: context.log.addTemp("There is no stairs here")
             this
         }
         Input.Open -> UseDoor(context, false)
@@ -168,7 +168,7 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
         val playerPos = context.player.one<Position>()
         playerPos.level[playerPos + dir].firstNotNullResult { it<Door>() }?.let { door ->
             context.action = gehenna.action.UseDoor(door, close)
-        } ?: context.log.add("there is no door")
+        } ?: context.log.addTemp("There is no door.")
         return Normal(context)
     }
 }
@@ -185,22 +185,22 @@ class End(private val context: UIContext) : State() {
 
 private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
     override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Pickup(items, context.player.one())
+        context.action = gehenna.action.Pickup(context.player, items)
         return Normal(context)
     }
 }
 
 private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Drop what?") {
     override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Drop(items, context.player.one(), context.player.one()) //wtf is this??? kill me pls
+        context.action = gehenna.action.Drop(context.player, items)
         return Normal(context)
     }
 }
 
-private class Equip(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Equip what?", false) {
+private class Equip(context: UIContext) : Select<Item?>(context, context.player.one<Inventory>().items() + (null as Item?), "Equip what?", false) {
     //todo: why it's selects multiple???
-    override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Equip(items.firstOrNull(), context.player.one())
+    override fun onAccept(items: List<Item?>): State {
+        context.action = gehenna.action.Equip(context.player, items.firstOrNull())
         return Normal(context)
     }
 }
@@ -245,10 +245,10 @@ private class Examine(private val context: UIContext) : State() {
 
     private fun print() {
         context.setCursor(cursor)
-        if (context.player.all<Senses>().any { it.isVisible(cursor) }) { // todo: this throws error when our of bounds
-            context.log.add("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
+        if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
+            context.log.addTemp("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
         } else {
-            context.log.add("You can't see this shit")
+            context.log.addTemp("You can't see this shit")
         }
     }
 

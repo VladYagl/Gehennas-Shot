@@ -5,6 +5,7 @@ import gehenna.action.Destroy
 import gehenna.action.Move
 import gehenna.component.Health
 import gehenna.component.Position
+import gehenna.component.Reflecting
 import gehenna.core.Action
 import gehenna.core.ActionResult
 import gehenna.core.Context
@@ -30,13 +31,13 @@ data class BulletBehaviour(
         fun bounce(pos: Position): Dir {
             val (x, y) = dir
             val (newx, newy) = pos + dir
-            val h = pos.level.obstacle(newx - x at newy)
-            val v = pos.level.obstacle(newx at newy - y)
-            return if (h != null && v != null) {
+            val h = pos.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
+            val v = pos.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
+            return if (h && v) {
                 -x on -y
-            } else if (h != null) {
+            } else if (h) {
                 +x on -y
-            } else if (v != null) {
+            } else if (v) {
                 -x on +y
             } else {
                 -x on -y
@@ -53,10 +54,10 @@ data class BulletBehaviour(
     override fun predictImpl(pos: Position, dir: Dir): Action {
         val obstacle = pos.level.obstacle(pos + dir)
         if (obstacle != null) {
-            if (obstacle.has<Health>()) {
-                return Collide(entity, obstacle, damage)
+            if (obstacle.has<Reflecting>()) {
+                return Bounce(entity, dir)
             }
-            return Bounce(entity, dir)
+            return Collide(entity, obstacle, damage)
         }
         return Move(entity, dir)
     }

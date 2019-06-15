@@ -11,18 +11,18 @@
     },
 
     "font": {
-        "file": "tilesets/Curses_640x300diag.png",
-        "width": 8,
-        "height": 12
+        "file": "tilesets/Curses_1280x600diag.png",
+        "width": 16,
+        "height": 24
     },
     "worldFont": {
-        "file": "tilesets/Bisasam_16x16.png",
-        "width": 16,
-        "height": 16
+        "file": "tilesets/Bisasam_32x32.png",
+        "width": 32,
+        "height": 32
     },
 
-    "width": 1200,
-    "height": 600,
+    "width": 1600,
+    "height": 1000,
 
     "infoWidth": 30,
     "logHeight": 8

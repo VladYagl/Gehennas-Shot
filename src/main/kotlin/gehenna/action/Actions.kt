@@ -83,10 +83,7 @@ data class ApplyEffect(private val entity: Entity, private val effect: Effect) :
 data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) : Action(100) {
     override fun perform(context: Context): ActionResult {
         val pos = entity.one<Position>()
-        val destination = stairs.destination ?: context.newLevelBuilder()
-                .withPrevious(pos.level)
-                .withBackPoint(pos)
-                .build().let { level ->
+        val destination = stairs.destination ?: context.levelFactory.new(pos.level, pos).let { level ->
                     (level to level.startPosition).also { stairs.destination = it }
                 }
         pos.level.remove(entity)
@@ -96,30 +93,39 @@ data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) :
     }
 }
 
-data class Pickup(private val items: List<Item>, private val inventory: Inventory) : Action(45) {
+data class Pickup(private val entity: Entity, private val items: List<Item>) : Action(45) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
             item.entity.remove<Position>()
-            inventory.add(item)
+            entity.one<Inventory>().add(item)
+        }
+        entity<Logger>()?.add("You've picked up: " + items.joinToString { it.entity.name })
+        return end()
+    }
+}
+
+data class Equip(private val entity: Entity, private val item: Item?) : Action(15) {
+    override fun perform(context: Context): ActionResult {
+        val inventory = entity.one<Inventory>()
+        val old = inventory.gun
+        inventory.equip(item)
+        if (item != null) {
+            entity<Logger>()?.add("You have equipped a ${item.entity.name}")
+        } else {
+            entity<Logger>()?.add("You unequipped a ${old?.entity?.name}")
         }
         return end()
     }
 }
 
-data class Equip(private val item: Item?, private val inventory: Inventory) : Action(15) {
-    override fun perform(context: Context): ActionResult {
-        inventory.equip(item)
-        return end()
-    }
-}
-
-data class Drop(private val items: List<Item>, private val inventory: Inventory, private val pos: Position) :
+data class Drop(private val entity: Entity, private val items: List<Item>, private val pos: Position = entity.one()) :
         Action(45) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
-            inventory.remove(item)
+            entity.one<Inventory>().remove(item)
             pos.spawnHere(item.entity)
         }
+        entity<Logger>()?.add("You have dropped: " + items.joinToString { it.entity.name })
         return end()
     }
 }

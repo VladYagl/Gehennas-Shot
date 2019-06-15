@@ -6,7 +6,9 @@ import gehenna.component.Senses
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
-import gehenna.level.DungeonLevelBuilder
+import gehenna.level.DungeonLevelFactory
+import gehenna.level.Level
+import gehenna.utils.Size
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -14,16 +16,13 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     private var globalTime: Long = 0
     override val actionQueue = ActionQueue
     override val time: Long get() = globalTime + (actionQueue.firstOrNull()?.waitTime ?: 0)
-
-        override fun newLevelBuilder() = DungeonLevelBuilder()
-//    override fun newLevelBuilder() = StubLevelBuilder()
-            .withFactory(factory)
-            .withPartFactory(partFactory)
-            .withSize(8 * 8, 7 * 8)
+    override val levelFactory = DungeonLevelFactory(this)
+    override val levels = ArrayList<Level>()
 
     fun init() {
         player = factory.new("player")
-        val level = newLevelBuilder().build()
+        levelFactory.size = Size(8 * 8, 7 * 8)
+        val level = levelFactory.new()
         level.spawnAtStart(player)
     }
 

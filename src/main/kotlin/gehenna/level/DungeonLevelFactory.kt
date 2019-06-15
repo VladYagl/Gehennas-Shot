@@ -1,6 +1,7 @@
 package gehenna.level
 
 import gehenna.component.Stairs
+import gehenna.core.Context
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.east
 import gehenna.utils.Dir.Companion.south
@@ -8,16 +9,15 @@ import gehenna.utils.Dir.Companion.southeast
 import gehenna.utils.Point.Companion.zero
 import kotlin.reflect.full.safeCast
 
-class DungeonLevelBuilder : BaseLevelBuilder<DungeonLevelBuilder.DungeonLevel>() {
-
-    override fun build(): DungeonLevel {
-        val previous = DungeonLevel::class.safeCast(this.previous)
+class DungeonLevelFactory(context: Context) : BaseLevelFactory<DungeonLevelFactory.DungeonLevel>(context) {
+    override fun build(previous: Level?, backPoint: Point?): DungeonLevel {
+        val dungeonPrev = DungeonLevel::class.safeCast(previous)
         return DungeonLevel(
                 size,
                 backPoint ?: random.nextPoint(3, 3, 5, 5),
-                (previous?.depth ?: -1) + 1
+                (dungeonPrev?.depth ?: -1) + 1
         ).apply {
-            previous?.let { previous ->
+            dungeonPrev?.let { previous ->
                 val stairs = factory.new("stairsUp")
                 stairs<Stairs>()?.destination = previous to (backPoint ?: previous.startPosition)
                 spawn(stairs, startPosition)

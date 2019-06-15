@@ -159,7 +159,8 @@
         "obstacle": {
             "blockView": true,
             "blockMove": true
-        }
+        },
+        "reflecting": {}
     },
 
     "floor": {
@@ -191,7 +192,8 @@
         "door": {
             "closedChar": 43,
             "openChar": 254
-        }
+        },
+        "reflecting": {}
     },
 
     "nothing": {}

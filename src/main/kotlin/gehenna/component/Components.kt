@@ -44,8 +44,15 @@ data class Health(
 
 data class Logger(override val entity: Entity) : Component() {
     val log = ArrayList<String>()
+    var tempMessage: String? = null
+
     fun add(text: String) {
         log.add(text)
+        tempMessage = null
+    }
+
+    fun addTemp(text: String) {
+        tempMessage = text
     }
 
     init {
@@ -57,6 +64,8 @@ data class Logger(override val entity: Entity) : Component() {
 data class Stairs(override val entity: Entity, var destination: Pair<Level, Point>? = null) : Component()
 
 data class Item(override val entity: Entity, val volume: Int) : Component()
+
+data class Reflecting(override val entity: Entity) : Component()
 
 data class Inventory(
         override val entity: Entity,

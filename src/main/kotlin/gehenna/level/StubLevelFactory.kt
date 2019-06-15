@@ -1,13 +1,14 @@
 package gehenna.level
 
+import gehenna.core.Context
 import gehenna.utils.Point
 import gehenna.utils.Point.Companion.zero
 import gehenna.utils.Size
 import gehenna.utils.at
 import gehenna.utils.random
 
-class StubLevelBuilder : BaseLevelBuilder<StubLevelBuilder.StubLevel>() {
-    override fun build(): StubLevel {
+class StubLevelFactory(context: Context) : BaseLevelFactory<StubLevelFactory.StubLevel>(context) {
+    override fun build(previous: Level?, backPoint: Point?): StubLevel {
         return StubLevel(size, 10 at 10).apply {
             box(zero, size)
             rect(zero, size)

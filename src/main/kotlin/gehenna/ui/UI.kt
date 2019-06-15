@@ -21,7 +21,7 @@ interface Window {
 interface UI {
     fun printException(e: Throwable)
     fun update()
-    fun updateLog(messages: ArrayList<String>)
+    fun updateLog(messages: List<String>)
     fun newWindow(size: Size): Window
     fun newWindow(width: Int, height: Int): Window
     fun removeWindow(window: Window)

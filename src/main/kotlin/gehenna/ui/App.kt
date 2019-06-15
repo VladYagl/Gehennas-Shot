@@ -9,7 +9,7 @@ import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
-import gehenna.level.DungeonLevelBuilder
+import gehenna.level.DungeonLevelFactory
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
@@ -63,7 +63,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                     uiJob.join()
                     false
                 }
-                DungeonLevelBuilder.DungeonLevel::class.safeCast(game.player<Position>()?.level)?.depth == 2 -> { //fixme
+                DungeonLevelFactory.DungeonLevel::class.safeCast(game.player<Position>()?.level)?.depth == 2 -> { //fixme
                     state = End(context)
                     val window = ui.newWindow(19, 4)
                     window.writeLine("WE WON ZULUL", 1, Alignment.center)
@@ -98,8 +98,10 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private fun updateLog() {
-        game.player<Logger>()?.log?.let { messages ->
-            ui.updateLog(messages)
+        val log = game.player<Logger>()
+        log?.log?.let { messages ->
+            val temp = log.tempMessage
+            ui.updateLog(if (temp != null) messages + temp else messages)
         }
     }
 

@@ -102,7 +102,7 @@ class MainFrame : JFrame(), UI {
         mainPane.paintImmediately()
     }
 
-    override fun updateLog(messages: ArrayList<String>) {
+    override fun updateLog(messages: List<String>) {
         log.clear()
         messages.takeLast(logHeight).forEachIndexed { index, s ->
             log.writeLine(s, index)

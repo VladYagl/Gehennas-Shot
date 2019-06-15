@@ -2,6 +2,7 @@ package gehenna.level
 
 import gehenna.component.Floor
 import gehenna.component.Obstacle
+import gehenna.core.Context
 import gehenna.core.Entity
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
@@ -10,29 +11,18 @@ import gehenna.utils.Point.Companion.zero
 import kotlin.math.abs
 import kotlin.random.Random
 
-abstract class BaseLevelBuilder<T : Level> : LevelBuilder<T> {
-    private class EmptyFactory<T> : Factory<T> {
-        override fun new(name: String): T = throw NotImplementedError("This is empty factory")
+abstract class BaseLevelFactory<T : Level>(protected val context: Context) : LevelFactory<T> {
+    protected var factory: Factory<Entity> = context.factory
+    protected var partFactory: Factory<LevelPart> = context.partFactory
+    var size: Size = Size(5 * 8, 6 * 8)
+
+    final override fun new(previous: Level?, backPoint: Point?): T {
+        val level = this.build(previous, backPoint)
+        context.levels.add(level)
+        return level
     }
 
-    protected var factory: Factory<Entity> = EmptyFactory()
-    protected var partFactory: Factory<LevelPart> = EmptyFactory()
-    protected var size: Size = Size(5 * 8, 6 * 8)
-
-    protected var previous: Level? = null
-    protected var backPoint: Point? = null
-
-    override fun withPrevious(level: Level) = also { this.previous = level }
-
-    override fun withBackPoint(point: Point) = also { this.backPoint = point }
-
-    fun withFactory(factory: Factory<Entity>) = also { this.factory = factory }
-
-    fun withPartFactory(partFactory: Factory<LevelPart>) = also { this.partFactory = partFactory }
-
-    fun withSize(size: Size) = also { this.size = size }
-
-    fun withSize(width: Int, height: Int) = also { this.size = Size(width, height) }
+    protected abstract fun build(previous: Level?, backPoint: Point?): T
 
     protected fun Level.corridor(from: Point, dir: Dir, len: Int = 0, door: Boolean = false) {
         if (!inBounds(from) || get(from).isNotEmpty()) return

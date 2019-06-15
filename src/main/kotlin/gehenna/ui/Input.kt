@@ -20,4 +20,5 @@ sealed class Input {
     object Quit : Input()
     object Console : Input()
     object Backspace : Input()
+    object Examine : Input()
 }

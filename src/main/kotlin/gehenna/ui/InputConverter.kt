@@ -50,6 +50,7 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                     'o' -> listener.onInput(Input.Open)
                     'c' -> listener.onInput(Input.Close)
                     '`' -> listener.onInput(Input.Console)
+                    ';' -> listener.onInput(Input.Examine)
                 }
             }
             KeyEvent.KEY_PRESSED -> {

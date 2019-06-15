@@ -6,7 +6,9 @@ import gehenna.action.Move
 import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
+import gehenna.level.Level
 import gehenna.utils.Dir
+import gehenna.utils.Point
 
 abstract class State {
     open fun handleInput(input: Input): State = this
@@ -147,6 +149,7 @@ private class Normal(private val context: UIContext) : State() {
         Input.Open -> UseDoor(context, false)
         Input.Close -> UseDoor(context, true)
         Input.Console -> Console(context)
+        Input.Examine -> Examine(context)
         else -> this
     }
 }
@@ -230,5 +233,34 @@ private class Console(private val context: UIContext) : State() {
         }
         is Input.Cancel -> Normal(context)
         else -> this
+    }
+}
+
+private class Examine(private val context: UIContext) : State() {
+    //todo: cursor always there
+    val cursor = context.factory.new("cursor")
+
+    private fun print() {
+        context.log.add("Here is: " + cursor.one<Position>().neighbors.joinToString(separator = ", ") { it.name })
+    }
+
+    init {
+        context.player.one<Position>().spawnHere(cursor)
+        print()
+    }
+
+    override fun handleInput(input: Input) = when (input) {
+        is Input.Direction -> {
+            cursor.one<Position>().move(cursor.one<Position>() + input.dir)
+            print()
+            this
+        }
+        is Input.Cancel -> {
+            cursor.remove<Position>()
+            Normal(context)
+        }
+        else -> {
+            this
+        }
     }
 }

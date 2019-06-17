@@ -1,5 +1,6 @@
 package gehenna.ui
 
+import com.beust.klaxon.Klaxon
 import gehenna.component.*
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.MonsterBehaviour
@@ -51,6 +52,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private suspend fun gameLoop(uiJob: Job): Boolean {
         return withContext(gameContext) {
+            println(Klaxon().toJsonString(game.player.one<Health>()))
+
             game.update()
 
             when {

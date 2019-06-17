@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.3.31"
-    id("kotlinx-serialization") version "1.3.31"
+//    id("kotlinx-serialization") version "1.3.31"
     id("com.github.johnrengelman.shadow") version "4.0.1"
     idea
 }
@@ -22,8 +22,8 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
     implementation(kotlin("test"))
-    implementation(kotlin("serialization"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
+//    implementation(kotlin("serialization"))
+//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.0")
     implementation("org.reflections:reflections:0.9.11")
     implementation("com.github.xaguzman:pathfinding:0.2.6")

@@ -35,7 +35,7 @@ class EntityFactory : JsonFactory<Entity> {
             return constructor.callBy(
                     args.mapValues { (parameter, value) ->
                         when (parameter.type) {
-                            Faction::class.createType() -> {
+                            Faction::class.createType() -> { // todo: this needed to be managed by faction
                                 val name = value as String
                                 if (name == "solo") SoloFaction
                                 else NamedFaction(name)
@@ -49,23 +49,21 @@ class EntityFactory : JsonFactory<Entity> {
                             itemType -> {
                                 new(value as String)<Item>()
                             }
-                            else -> {
-                                when (parameter.type.jvmErasure) {
-                                    Map::class -> (value as JsonObject).map.mapKeys { (key, _) ->
-                                        if (parameter.type.arguments[0].type == (Dir::class).createType()) {
-                                            Dir.firstOrNull { it.toString() == key } ?: Dir.zero
-                                        } else {
-                                            key
-                                        }
-                                    }.mapValues { (_, value) ->
-                                        if (parameter.type.arguments[1].type == (Char::class).createType()) {
-                                            (value as Int).toChar()
-                                        } else {
-                                            value
-                                        }
+                            else -> when (parameter.type.jvmErasure) {
+                                Map::class -> (value as JsonObject).map.mapKeys { (key, _) ->
+                                    if (parameter.type.arguments[0].type == (Dir::class).createType()) {
+                                        Dir.firstOrNull { it.toString() == key } ?: Dir.zero
+                                    } else {
+                                        key
                                     }
-                                    else -> value
+                                }.mapValues { (_, value) ->
+                                    if (parameter.type.arguments[1].type == (Char::class).createType()) {
+                                        (value as Int).toChar()
+                                    } else {
+                                        value
+                                    }
                                 }
+                                else -> value
                             }
                         }
                     }

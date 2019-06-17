@@ -39,7 +39,6 @@ private object ColorConverter : Converter {
     }
 
     override fun fromJson(jv: JsonValue) = Color(jv.objInt("r"), jv.objInt("g"), jv.objInt("b"))
-
 }
 
 private object FontConverter : Converter {
@@ -56,7 +55,6 @@ private object FontConverter : Converter {
     }
 
     override fun fromJson(jv: JsonValue) = AsciiFont(jv.objString("file"), jv.objInt("width"), jv.objInt("height"))
-
 }
 
 private val klaxon = Klaxon().converter(ColorConverter).converter(FontConverter)

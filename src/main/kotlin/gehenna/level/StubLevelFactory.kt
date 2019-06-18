@@ -8,8 +8,9 @@ import gehenna.utils.at
 import gehenna.utils.random
 
 class StubLevelFactory(context: Context) : BaseLevelFactory<StubLevelFactory.StubLevel>(context) {
-    override fun build(previous: Level?, backPoint: Point?): StubLevel {
-        return StubLevel(size, 10 at 10).apply {
+    override fun build(previous: Level?, backPoint: Point?): Pair<StubLevel, Point> {
+        val startPosition = 10 at 10
+        return Pair(StubLevel(size).apply {
             box(zero, size)
             rect(zero, size)
             box(zero, Size(16, 16))
@@ -24,8 +25,8 @@ class StubLevelFactory(context: Context) : BaseLevelFactory<StubLevelFactory.Stu
 //            for (pos in (11 to 11) until (width - 1 to height - 1)) {
 //                spawn(factory.new("bandit"), pos)
 //            }
-        }
+        }, startPosition)
     }
 
-    class StubLevel(size: Size, override val startPosition: Point) : Level(size)
+    class StubLevel(size: Size) : Level(size)
 }

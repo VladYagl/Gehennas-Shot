@@ -127,7 +127,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         repeat(10) { i -> ui.info.clearLine(21 + i) }
         ui.info.writeLine("Enemies", 20, Alignment.center, ui.info.fgColor, Color.darkGray)
         enemies.forEachIndexed { index, enemy ->
-            val target = MonsterBehaviour::class.safeCast(enemy)?.target?.entity
+//            val target = MonsterBehaviour::class.safeCast(enemy)?.target?.entity
             val hp = enemy.entity<Health>()
             ui.info.writeLine("${enemy.entity} | ${enemy.waitTime} [${hp?.current} / ${hp?.max}]", 21 + index)
         }

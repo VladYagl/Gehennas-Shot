@@ -16,13 +16,13 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
     protected var partFactory: Factory<LevelPart> = context.partFactory
     var size: Size = Size(5 * 8, 6 * 8)
 
-    final override fun new(previous: Level?, backPoint: Point?): T {
-        val level = this.build(previous, backPoint)
+    final override fun new(previous: Level?, backPoint: Point?): Pair<T, Point> {
+        val (level, point) = this.build(previous, backPoint)
         context.levels.add(level)
-        return level
+        return Pair(level, point)
     }
 
-    protected abstract fun build(previous: Level?, backPoint: Point?): T
+    protected abstract fun build(previous: Level?, backPoint: Point?): Pair<T, Point>
 
     protected fun Level.corridor(from: Point, dir: Dir, len: Int = 0, door: Boolean = false) {
         if (!inBounds(from) || get(from).isNotEmpty()) return
@@ -74,8 +74,7 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         spawn(factory.new("floor"), at)
     }
 
-    protected fun Level.automaton(point: Point, k: Int) {
-//        val random = Random(seed)
+    protected fun Level.automaton(point: Point) {
         val real = CellularPart(size) { floor(it) }
         for ((i, j) in size.range) real.cells[i, j] = true
         val cellular = CellularPart(Size(size.width / 3, size.height / 3)) {
@@ -86,15 +85,12 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         }
         for ((i, j) in Size(size.width / 3, size.height / 3).range) {
             fun norm(x: Int) = Math.pow(x.toDouble(), 0.5)
-            val d = norm(abs(i - point.x / 3) + abs(point.y / 3 - j))
-//            cellular.cells[i, j] = random.nextDouble() >= norm(width / 3 + height / 3) / d * 0.2 + 0.1
             if (Random.nextDouble() < 0.4) cellular.cells[i, j] = true
         }
         cellular.automaton(2, 5, 2)
         cellular.automaton(2, 7, 1)
         cellular.cells[point.x / 3, point.y / 3] = false
         cellular.spawnTo(zero, this)
-//        real.automaton(8, 5, 1)
         real.spawnTo(zero, this)
     }
 

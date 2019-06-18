@@ -84,8 +84,8 @@ data class ApplyEffect(private val entity: Entity, private val effect: Effect) :
 data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) : Action(100) {
     override fun perform(context: Context): ActionResult {
         val pos = entity.one<Position>()
-        val destination = stairs.destination ?: context.levelFactory.new(pos.level, pos).let { level ->
-            (level to level.startPosition).also { stairs.destination = it }
+        val destination = stairs.destination ?: context.levelFactory.new(pos.level, pos).let { (level, pos) ->
+            (level to pos).also { stairs.destination = it }
         }
         pos.level.remove(entity)
         destination.first.spawn(entity, destination.second)

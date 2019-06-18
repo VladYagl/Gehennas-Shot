@@ -54,6 +54,7 @@ class SaveManager(saveFileName: String) {
             })
 
     fun saveContext(context: Context) {
+        //todo: better do something like with levels
         val saveContext = SaveContext(
                 context.levels as List<DungeonLevelFactory.DungeonLevel>,
                 context.levels.map { it.getAll() }.flatten()

@@ -10,21 +10,20 @@ import gehenna.utils.Point.Companion.zero
 import kotlin.reflect.full.safeCast
 
 class DungeonLevelFactory(context: Context) : BaseLevelFactory<DungeonLevelFactory.DungeonLevel>(context) {
-    override fun build(previous: Level?, backPoint: Point?): DungeonLevel {
+    override fun build(previous: Level?, backPoint: Point?): Pair<DungeonLevel, Point> {
         val dungeonPrev = DungeonLevel::class.safeCast(previous)
-        return DungeonLevel(
-                size,
-                backPoint ?: random.nextPoint(3, 3, 5, 5),
-                (dungeonPrev?.depth ?: -1) + 1
-        ).apply {
-            dungeonPrev?.let { previous ->
-                val stairs = factory.new("stairsUp")
-                stairs<Stairs>()?.destination = previous to (backPoint ?: previous.startPosition)
-                spawn(stairs, startPosition)
+        val startPosition = backPoint ?: random.nextPoint(3, 3, 5, 5)
+        return Pair(DungeonLevel(size, (dungeonPrev?.depth ?: -1) + 1).apply {
+            previous?.let {
+                backPoint?.let {
+                    val stairs = factory.new("stairsUp")
+                    stairs<Stairs>()?.destination = previous to backPoint
+                    spawn(stairs, startPosition)
+                }
             }
 
             while (true) {
-                automaton(startPosition, depth)
+                automaton(startPosition)
                 for (p in (size - (1 at 1)).size.range) {
                     if (has(p) && has(p + southeast) && !has(p + east) && !has(p + south)) {
                         part(p.x - 2 at p.y - 2, "se_connector")
@@ -82,10 +81,10 @@ class DungeonLevelFactory(context: Context) : BaseLevelFactory<DungeonLevelFacto
 //            spawn(factory.new("stairsDown"), startPosition)
 //            spawn(factory.new("rifle"), startPosition)
 //            spawn(factory.new("pistol"), startPosition)
-        }
+        }, startPosition)
     }
 
-    class DungeonLevel(size: Size, override val startPosition: Point, val depth: Int = 0) : Level(size) {
+    class DungeonLevel(size: Size, val depth: Int = 0) : Level(size) {
         override fun toString(): String = "Dungeon Level #$depth"
     }
 }

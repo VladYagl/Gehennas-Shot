@@ -22,8 +22,8 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     fun init() {
         player = factory.new("player")
         levelFactory.size = Size(8 * 8, 7 * 8)
-        val level = levelFactory.new()
-        level.spawnAtStart(player)
+        val (level, pos) = levelFactory.new()
+        level.spawn(player, pos)
     }
 
     fun isPlayerNext(): Boolean = actionQueue.firstOrNull() == player<PlayerBehaviour>()

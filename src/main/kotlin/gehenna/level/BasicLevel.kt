@@ -8,7 +8,6 @@ import gehenna.core.Entity
 import gehenna.utils.*
 
 abstract class BasicLevel(val size: Size) {
-    abstract val startPosition: Point
     protected val cells = Array(size) { HashSet<Entity>() }
     private var memory = Array(size) { 0L to null as Glyph? }
 
@@ -37,8 +36,6 @@ abstract class BasicLevel(val size: Size) {
     fun safeGet(point: Point): Set<Entity> {
         return if (inBounds(point)) cells[point] else emptySet()
     }
-
-    fun spawnAtStart(entity: Entity) = spawn(entity, startPosition)
 
     fun spawn(entity: Entity, at: Point, lastPoint: Point? = null) {
         entity.add(Position(at, this as Level, entity, lastPoint))

@@ -127,10 +127,7 @@ class EntityFactory : JsonFactory<Entity> {
                     }
                     else -> {
                         val component = nextComponent(name)
-                        list.toList().forEach {
-                            if (it.constructor == component.constructor)
-                                list.remove(it)
-                        }
+                        list.removeAll { it.constructor == component.constructor }
                         list.add(component)
                     }
                 }

@@ -8,6 +8,7 @@ import gehenna.core.Context
 import gehenna.core.Entity
 import gehenna.utils.Dir
 import gehenna.utils.Dir.Companion.zero
+import gehenna.utils.minOf
 
 object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()
@@ -34,7 +35,7 @@ data class Move(private val entity: Entity, val dir: Dir) : Action(100) {
 
 object Wait : Action() {
     override fun perform(context: Context): ActionResult {
-        return ActionResult(context.actionQueue.map { it.waitTime }.min()?.plus(1) ?: 0, true, log)
+        return ActionResult(context.actionQueue.minOf { it.waitTime }?.plus(1) ?: 0, true, log)
     }
 }
 
@@ -84,8 +85,8 @@ data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) :
     override fun perform(context: Context): ActionResult {
         val pos = entity.one<Position>()
         val destination = stairs.destination ?: context.levelFactory.new(pos.level, pos).let { level ->
-                    (level to level.startPosition).also { stairs.destination = it }
-                }
+            (level to level.startPosition).also { stairs.destination = it }
+        }
         pos.level.remove(entity)
         destination.first.spawn(entity, destination.second)
         entity<Logger>()?.add("You've climbed stairs to " + stairs.destination?.first)

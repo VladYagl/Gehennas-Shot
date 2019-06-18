@@ -18,8 +18,8 @@ sealed class EntityConfig {
 class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private val factory: Factory<Entity>) :
     LevelPart {
     override val size = Size(
-        entities.map { it.first.x }.max() ?: 0,
-        entities.map { it.first.y }.max() ?: 0
+        entities.maxOf { it.first.x } ?: 0,
+        entities.maxOf { it.first.y } ?: 0
     )
 
     override fun spawnTo(to: Point, level: BasicLevel) {

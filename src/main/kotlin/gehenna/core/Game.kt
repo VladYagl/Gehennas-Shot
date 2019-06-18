@@ -33,7 +33,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         actionQueue.firstOrNull()?.let { first ->
             val time = first.waitTime
             globalTime += time
-            actionQueue.asSequence().forEach {
+            actionQueue.toList().forEach {
                 it.waitTime -= time
                 if (it is Effect) {
                     it.duration -= time

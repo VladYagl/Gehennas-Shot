@@ -31,6 +31,14 @@ operator fun <T, S> Iterable<T>.times(other: Iterable<S>): List<Pair<T, S>> {
     return cartesianProduct(other) { first, second -> first to second }
 }
 
+fun <T, S: Comparable<S>> Iterable<T>.minOf(func: (T) -> S): S? {
+    return asSequence().map { func(it) }.min()
+}
+
+fun <T, S: Comparable<S>> Iterable<T>.maxOf(func: (T) -> S): S? {
+    return asSequence().map { func(it) }.max()
+}
+
 fun <T, S, V> Iterable<T>.cartesianProduct(other: Iterable<S>, transformer: (first: T, second: S) -> V): List<V> {
     return flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
 }

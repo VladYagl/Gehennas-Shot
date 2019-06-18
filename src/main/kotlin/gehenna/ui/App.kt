@@ -51,7 +51,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         return withContext(gameContext) {
             val saver = SaveManager("save.json")
 //            saver.saveContext(game)
-            saver.loadContext(game)
+//            saver.loadContext(game)
 
             game.update()
 
@@ -224,14 +224,13 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //predict
         behaviours.forEach { behaviour ->
             var color = ui.world.fgColor * 0.5
-            val prediction =
-                    level.predictWithGlyph(behaviour, playerBehaviour.waitTime + playerBehaviour.speed.toLong())
-            prediction.forEach { (pos, glyph) ->
-                if (game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos)) {
-                    color *= 0.85
-                    putGlyph(glyph, pos, max(color, Color(40, 40, 40))) //todo constant
-                }
-            }
+            level.predictWithGlyph(behaviour, playerBehaviour.waitTime + playerBehaviour.speed.toLong())
+                    .asSequence()
+                    .filter { (pos, _) -> game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos) }
+                    .forEach { (pos, glyph) ->
+                        color *= 0.85
+                        putGlyph(glyph, pos, max(color, Color(40, 40, 40))) //todo constant
+                    }
         }
     }
 

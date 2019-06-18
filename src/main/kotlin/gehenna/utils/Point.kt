@@ -32,7 +32,8 @@ interface Point {
     }
 }
 
-private data class PointImpl(override val x: Int, override val y: Int) : Point
+//todo: I can't make it private cause klaxon can't reflect on it and it is used in DungeonLevel
+data class PointImpl(override val x: Int, override val y: Int) : Point
 
 data class Dir(override val x: Int, override val y: Int) : Point {
     init {

@@ -6,11 +6,9 @@ import gehenna.action.Move
 import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
-import gehenna.core.Sense
 import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
-import gehenna.utils.at
 
 abstract class State {
     open fun handleInput(input: Input): State = this
@@ -190,14 +188,14 @@ private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(conte
     }
 }
 
-private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().items(), "Drop what?") {
+private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().contents, "Drop what?") {
     override fun onAccept(items: List<Item>): State {
         context.action = gehenna.action.Drop(context.player, items)
         return Normal(context)
     }
 }
 
-private class Equip(context: UIContext) : Select<Item?>(context, context.player.one<Inventory>().items() + (null as Item?), "Equip what?", false) {
+private class Equip(context: UIContext) : Select<Item?>(context, context.player.one<Inventory>().contents + (null as Item?), "Equip what?", false) {
     //todo: why it's selects multiple???
     override fun onAccept(items: List<Item?>): State {
         context.action = gehenna.action.Equip(context.player, items.firstOrNull())

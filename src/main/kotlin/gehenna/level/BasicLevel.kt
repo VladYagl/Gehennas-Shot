@@ -12,6 +12,11 @@ abstract class BasicLevel(val size: Size) {
     protected val cells = Array(size) { HashSet<Entity>() }
     private var memory = Array(size) { 0L to null as Glyph? }
 
+    //todo remove
+    fun getAll(): List<Entity> {
+        return cells.flatten().flatten()
+    }
+
     operator fun get(point: Point): Set<Entity> {
         return cells[point]
     }

@@ -31,7 +31,7 @@ data class Health(
     object Death : Entity.Event
 
     var current = max
-        private set
+//        private set //todo
 
     fun dealDamage(amount: Int) {
         current -= amount
@@ -99,7 +99,8 @@ data class Inventory(
         gun = null
     }
 
-    fun items() = items.toList()
+    val contents
+        get() = items.toList()
 
     init {
         gun?.let { add(it) }

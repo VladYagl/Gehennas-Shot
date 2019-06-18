@@ -35,7 +35,7 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
 
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         when (e.id) {
-            KeyEvent.KEY_TYPED -> {
+            KEY_TYPED -> {
                 when (e.keyChar) {
                     'Q' -> listener.onInput(Input.Quit)
                     'f' -> listener.onInput(Input.Fire)
@@ -53,7 +53,7 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                 if (e.keyChar != '\b') //fixme
                     listener.onInput(Input.Char(e.keyChar)) // todo: sometimes it can cause double action
             }
-            KeyEvent.KEY_PRESSED -> {
+            KEY_PRESSED -> {
                 getDir(e.keyCode)?.let { dir ->
                     if (!e.isShiftDown) {
                         listener.onInput(Input.Direction(dir))

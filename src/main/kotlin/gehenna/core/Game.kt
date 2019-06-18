@@ -33,7 +33,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         actionQueue.firstOrNull()?.let { first ->
             val time = first.waitTime
             globalTime += time
-            actionQueue.toList().forEach {
+            actionQueue.asSequence().forEach {
                 it.waitTime -= time
                 if (it is Effect) {
                     it.duration -= time
@@ -51,13 +51,13 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
 
             val sight = player<Senses.Sight>()
             sight?.visitFov { _, _ -> }
-            result.logEntries.forEach { entry ->
-                if (player.all<Senses>().any { entry.sense.isInstance(it) }) {
-                    when (entry.sense) {
-                        Senses.Sight::class -> {
-                            if (sight?.isVisible(entry.position!!) == true) {
-                                player<Logger>()?.add(entry.text)
-                            }
+            result.logEntries.asSequence().filter { entry: LogEntry ->
+                player.all<Senses>().any { entry.sense.isInstance(it) }
+            }.forEach { entry ->
+                when (entry.sense) {
+                    Senses.Sight::class -> {
+                        if (sight?.isVisible(entry.position!!) == true) {
+                            player<Logger>()?.add(entry.text)
                         }
                     }
                 }

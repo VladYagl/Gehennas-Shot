@@ -1,13 +1,10 @@
 package gehenna.ui
 
-import com.beust.klaxon.Klaxon
 import gehenna.component.*
-import gehenna.component.behaviour.CharacterBehaviour
-import gehenna.component.behaviour.MonsterBehaviour
-import gehenna.component.behaviour.PlayerBehaviour
-import gehenna.component.behaviour.PredictableBehaviour
+import gehenna.component.behaviour.*
 import gehenna.core.Entity
 import gehenna.core.Game
+import gehenna.core.SaveManager
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelFactory
@@ -52,7 +49,9 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private suspend fun gameLoop(uiJob: Job): Boolean {
         return withContext(gameContext) {
-            println(Klaxon().toJsonString(game.player.one<Health>()))
+            val saver = SaveManager("save.json")
+//            saver.saveContext(game)
+            saver.loadContext(game)
 
             game.update()
 
@@ -121,7 +120,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.writeLine("Inventory ${storage.currentVolume}/${storage.maxVolume}", 8, bg = Color.darkGray)
         ui.info.writeLine("Equipped gun: ${storage.gun?.entity}", 9, Alignment.left, bg = Color.darkGray)
         repeat(10) { i -> ui.info.clearLine(10 + i) }
-        storage.items().forEachIndexed { index, item ->
+        storage.contents.forEachIndexed { index, item ->
             ui.info.writeLine(item.entity.toString(), 10 + index)
         }
 

@@ -50,8 +50,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private suspend fun gameLoop(uiJob: Job): Boolean {
         return withContext(gameContext) {
             val saver = SaveManager("save.json")
-//            saver.saveContext(game)
-//            saver.loadContext(game)
+            saver.saveContext(game)
+            saver.loadContext(game)
 
             game.update()
 
@@ -65,7 +65,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                     uiJob.join()
                     false
                 }
-                DungeonLevelFactory.DungeonLevel::class.safeCast(game.player<Position>()?.level)?.depth == 2 -> { //fixme
+                game.player<Position>()?.level?.depth == 2 -> {
                     state = End(context)
                     val window = ui.newWindow(19, 4)
                     window.writeLine("WE WON ZULUL", 1, Alignment.center)

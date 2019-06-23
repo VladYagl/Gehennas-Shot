@@ -12,7 +12,7 @@ import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.at
 
-abstract class Level(size: Size) : FovLevel(size) {
+class Level(size: Size, val depth: Int = 0) : FovLevel(size) {
     fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
         // todo all calls calculate duration in a wrong way (duration != speed)
         // TODO : LIST OF PAIR ------ SHIT
@@ -50,5 +50,7 @@ abstract class Level(size: Size) : FovLevel(size) {
 
     fun predict(realBehaviour: PredictableBehaviour, duration: Long): List<Point> =
             predictWithGlyph(realBehaviour as BulletBehaviour, duration).unzip().first
+
+    override fun toString(): String = "Dungeon Level #$depth"
 }
 

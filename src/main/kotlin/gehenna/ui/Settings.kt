@@ -2,6 +2,7 @@ package gehenna.ui
 
 import asciiPanel.AsciiFont
 import com.beust.klaxon.Converter
+import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
 import java.awt.Color
@@ -29,13 +30,11 @@ private object ColorConverter : Converter {
     override fun canConvert(cls: Class<*>) = cls == Color::class.java
 
     override fun toJson(value: Any): String = (value as Color).let {
-        """
-        {
-            "r" : ${it.red},
-            "g" : ${it.green},
-            "b" : ${it.blue}
-        }
-        """.trimIndent()
+        JsonObject(mapOf(
+                "r" to it.red,
+                "g" to it.green,
+                "b" to it.blue
+        )).toJsonString()
     }
 
     override fun fromJson(jv: JsonValue) = Color(jv.objInt("r"), jv.objInt("g"), jv.objInt("b"))
@@ -45,13 +44,11 @@ private object FontConverter : Converter {
     override fun canConvert(cls: Class<*>) = cls == AsciiFont::class.java
 
     override fun toJson(value: Any): String = (value as AsciiFont).let {
-        """
-        {
-            "file" : "${it.fontFilename}",
-            "width" : ${it.width},
-            "height" : ${it.height}
-        }
-        """.trimIndent()
+        JsonObject(mapOf(
+                "r" to it.fontFilename,
+                "g" to it.width,
+                "b" to it.height
+        )).toJsonString()
     }
 
     override fun fromJson(jv: JsonValue) = AsciiFont(jv.objString("file"), jv.objInt("width"), jv.objInt("height"))

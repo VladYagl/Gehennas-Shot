@@ -9,11 +9,10 @@ import gehenna.utils.Dir.Companion.southeast
 import gehenna.utils.Point.Companion.zero
 import kotlin.reflect.full.safeCast
 
-class DungeonLevelFactory(context: Context) : BaseLevelFactory<DungeonLevelFactory.DungeonLevel>(context) {
-    override fun build(previous: Level?, backPoint: Point?): Pair<DungeonLevel, Point> {
-        val dungeonPrev = DungeonLevel::class.safeCast(previous)
+class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
+    override fun build(previous: Level?, backPoint: Point?): Pair<Level, Point> {
         val startPosition = backPoint ?: random.nextPoint(3, 3, 5, 5)
-        return Pair(DungeonLevel(size, (dungeonPrev?.depth ?: -1) + 1).apply {
+        return Pair(Level(size, (previous?.depth ?: -1) + 1).apply {
             previous?.let {
                 backPoint?.let {
                     val stairs = factory.new("stairsUp")
@@ -82,9 +81,5 @@ class DungeonLevelFactory(context: Context) : BaseLevelFactory<DungeonLevelFacto
 //            spawn(factory.new("rifle"), startPosition)
 //            spawn(factory.new("pistol"), startPosition)
         }, startPosition)
-    }
-
-    class DungeonLevel(size: Size, val depth: Int = 0) : Level(size) {
-        override fun toString(): String = "Dungeon Level #$depth"
     }
 }

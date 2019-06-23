@@ -17,6 +17,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmErasure
 
 //FIXME : THIS DEFINITELY NEEDS SOME TESTING !!!
+//todo: make something similar to save manager
 class EntityFactory : JsonFactory<Entity> {
     private val entities = HashMap<String, EntityBuilder>()
 

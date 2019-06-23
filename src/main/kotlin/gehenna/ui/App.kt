@@ -51,7 +51,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         return withContext(gameContext) {
             val saver = SaveManager("save.json")
             saver.saveContext(game)
-            saver.loadContext(game)
+            saver.loadContext()
 
             game.update()
 

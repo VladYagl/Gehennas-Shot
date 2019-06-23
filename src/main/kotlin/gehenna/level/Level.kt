@@ -11,8 +11,10 @@ import gehenna.core.Entity
 import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.at
+import java.util.*
+import kotlin.collections.ArrayList
 
-class Level(size: Size, val depth: Int = 0) : FovLevel(size) {
+class Level(size: Size, val depth: Int = 0, val id: String = UUID.randomUUID().toString()) : FovLevel(size) {
     fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
         // todo all calls calculate duration in a wrong way (duration != speed)
         // TODO : LIST OF PAIR ------ SHIT

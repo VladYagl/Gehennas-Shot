@@ -1,5 +1,6 @@
 package gehenna.component
 
+import com.beust.klaxon.Json
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
@@ -70,7 +71,7 @@ data class Reflecting(override val entity: Entity) : Component()
 data class Inventory(
         override val entity: Entity,
         val maxVolume: Int,
-        private val items: ArrayList<Item> = ArrayList(),
+        val items: ArrayList<Item> = ArrayList(),
         var gun: Item? = null
 ) : Component() {
     var currentVolume = items.sumBy { it.volume }

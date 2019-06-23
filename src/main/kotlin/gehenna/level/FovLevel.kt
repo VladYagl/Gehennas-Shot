@@ -11,15 +11,16 @@ import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
 import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
+import java.io.ObjectInputStream
 
 abstract class FovLevel(size: Size) : BasicLevel(size) {
     //fov
     private val transparent = DoubleArray(size) { 0.0 }
-    private val fovAlgorithm = PrecisePermissive()
+    @Transient private val fovAlgorithm = PrecisePermissive()
 
     //path find
-    private val navGrid = NavigationGrid(Array(size) { GridCell() }, true)
-    private val pathFinderOptions = GridFinderOptions(
+    @Transient private val navGrid = NavigationGrid(Array(size) { GridCell() }, true)
+    @Transient private val pathFinderOptions = GridFinderOptions(
         true,
         false,
         ChebyshevDistance(),
@@ -27,7 +28,7 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
         1.0F,
         1.0F
     )
-    private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
+    @Transient private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 
     fun findPath(from: Point, to: Point): List<Point>? {
         return pathFinder.findPath(from.x, from.y, to.x, to.y, navGrid)?.map { it.x at it.y }
@@ -88,5 +89,21 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
         override fun visitImpl(point: Point) {
             cells[point].forEach { visitor(it, point) }
         }
+    }
+
+    private fun readObject(inputStream: ObjectInputStream) {
+        inputStream.defaultReadObject()
+
+        this.setVal("fovAlgorithm", PrecisePermissive())
+        this.setVal("navGrid", NavigationGrid(Array(size) { GridCell() }, true))
+        this.setVal("pathFinderOptions", GridFinderOptions(
+                true,
+                false,
+                ChebyshevDistance(),
+                false,
+                1.0F,
+                1.0F
+        ))
+        this.setVal("pathFinder", AStarGridFinder(GridCell::class.java, pathFinderOptions))
     }
 }

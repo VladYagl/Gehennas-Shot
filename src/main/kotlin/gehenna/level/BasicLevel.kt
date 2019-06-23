@@ -6,8 +6,9 @@ import gehenna.component.Obstacle
 import gehenna.component.Position
 import gehenna.core.Entity
 import gehenna.utils.*
+import java.io.Serializable
 
-abstract class BasicLevel(val size: Size) {
+abstract class BasicLevel(val size: Size): Serializable {
     protected val cells = Array(size) { HashSet<Entity>() }
     private var memory = Array(size) { 0L to null as Glyph? }
 

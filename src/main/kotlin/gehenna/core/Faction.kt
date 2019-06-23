@@ -1,6 +1,8 @@
 package gehenna.core
 
-interface Faction {
+import java.io.Serializable
+
+interface Faction: Serializable {
     fun isEnemy(other: Faction): Boolean
     fun isFriend(other: Faction): Boolean
 }

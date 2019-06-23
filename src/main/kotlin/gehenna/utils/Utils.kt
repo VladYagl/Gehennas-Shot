@@ -62,3 +62,9 @@ fun min(a: Color, b: Color): Color {
 operator fun Color.compareTo(other: Color): Int {
     return (this.red + this.blue + this.green).compareTo(other.red + other.green + other.blue)
 }
+
+inline fun <reified T> T.setVal(name: String, value: Any?) {
+    val field = T::class.java.getDeclaredField(name)
+    field.isAccessible = true
+    field.set(this, value)
+}

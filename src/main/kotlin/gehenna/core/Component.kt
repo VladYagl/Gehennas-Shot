@@ -1,6 +1,8 @@
 package gehenna.core
 
-abstract class Component {
+import java.io.Serializable
+
+abstract class Component: Serializable {
     abstract val entity: Entity
     protected val handlers = ArrayList<(Entity.Event) -> Unit>()
     open val children: List<Component> = emptyList()

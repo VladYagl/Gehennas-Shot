@@ -24,12 +24,12 @@ dependencies {
     implementation(kotlin("test"))
 //    implementation(kotlin("serialization"))
 //    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
+//    implementation("com.github.VladYagl:klaxon:failing_constructors-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.0")
     implementation("org.reflections:reflections:0.9.11")
     implementation("com.github.xaguzman:pathfinding:0.2.6")
-//    implementation("com.beust:klaxon:5.0.5")
+    implementation("com.beust:klaxon:5.0.5")
     implementation("com.github.trystan:AsciiPanel:ac179b1")
-    implementation("com.github.VladYagl:klaxon:failing_constructors-SNAPSHOT")
     implementation(files("lib/rlforj.0.2.jar"))
 }
 

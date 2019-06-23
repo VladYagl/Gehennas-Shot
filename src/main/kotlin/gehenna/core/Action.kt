@@ -2,8 +2,9 @@ package gehenna.core
 
 import gehenna.component.Position
 import gehenna.component.Senses
+import java.io.Serializable
 
-abstract class Action(open var time: Long = 100, open val addToQueue: Boolean = true) {
+abstract class Action(open var time: Long = 100, open val addToQueue: Boolean = true): Serializable {
     abstract fun perform(context: Context): ActionResult
 
     protected val log = ArrayList<LogEntry>()

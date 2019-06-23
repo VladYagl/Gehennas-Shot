@@ -1,11 +1,12 @@
 package gehenna.utils
 
 import gehenna.utils.Point.Companion.zero
+import java.io.Serializable
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
 
-interface Point {
+interface Point: Serializable {
     val x: Int
     val y: Int
     operator fun minus(other: Point): Point = PointImpl(x - other.x, y - other.y)
@@ -32,8 +33,7 @@ interface Point {
     }
 }
 
-//todo: I can't make it private cause klaxon can't reflect on it and it is used in DungeonLevel
-data class PointImpl(override val x: Int, override val y: Int) : Point
+private data class PointImpl(override val x: Int, override val y: Int) : Point
 
 data class Dir(override val x: Int, override val y: Int) : Point {
     init {

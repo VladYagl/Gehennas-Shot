@@ -1,14 +1,17 @@
 package gehenna.core
 
-import com.beust.klaxon.Json
 import gehenna.exceptions.EntityMustHaveOneException
+import gehenna.utils.setVal
+import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
+import java.io.ObjectOutputStream
+import java.io.ObjectInputStream
+
 
 //FIXME : CANT HAVE SAME COMPONENT TYPE TWICE
-data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUID.randomUUID().toString()) {
-    @Json(ignored = true)
+data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUID.randomUUID().toString()) : Serializable {
     val components = HashMap<KClass<out Component>, Component>()
 
     interface Event
@@ -82,6 +85,22 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
 
     companion object {
         val world = Entity("World")
+    }
+
+    private fun writeObject(outputStream: ObjectOutputStream) {
+        outputStream.writeObject(name)
+        outputStream.writeObject(id)
+        outputStream.writeObject(components.values.toList())
+    }
+
+    private fun readObject(inputStream: ObjectInputStream) {
+        this.setVal("name", inputStream.readObject())
+        this.setVal("id", inputStream.readObject())
+        this.setVal("components", HashMap<KClass<out Component>, Component>())
+        val components = inputStream.readObject() as List<Component>
+        components.forEach {
+            this.components[it::class] = it
+        }
     }
 }
 

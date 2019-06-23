@@ -4,7 +4,6 @@ import gehenna.component.*
 import gehenna.component.behaviour.*
 import gehenna.core.Entity
 import gehenna.core.Game
-import gehenna.core.SaveManager
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelFactory
@@ -18,6 +17,7 @@ import kotlin.system.measureNanoTime
 class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val minPriority = Int.MIN_VALUE
 
+    private val saver = SaveManager("save.dat")
     private val factory = EntityFactory()
     private val levelFactory = LevelPartFactory(factory)
     private val game = Game(factory, levelFactory)
@@ -31,6 +31,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         factory.loadJson(streamResource("data/items.json"))
         levelFactory.loadJson(streamResource("data/rooms.json"))
         game.init()
+//        game.initFromSave(saver.loadContext())
 
 //        game.player<Logger>()?.add("Welcome to Gehenna's Shot")
         game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
@@ -49,10 +50,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private suspend fun gameLoop(uiJob: Job): Boolean {
         return withContext(gameContext) {
-            val saver = SaveManager("save.json")
-            saver.saveContext(game)
-            saver.loadContext()
-
+//            if (game.isPlayerNext()) saver.saveContext(game)
             game.update()
 
             when {
@@ -235,7 +233,10 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     override fun onInput(input: Input) {
-        if (input == Input.Quit) System.exit(0)
+        if (input == Input.Quit) {
+            saver.saveContext(game)
+            System.exit(0)
+        }
         state = state.handleInput(input)
     }
 

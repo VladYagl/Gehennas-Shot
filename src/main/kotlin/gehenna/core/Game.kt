@@ -1,5 +1,6 @@
 package gehenna.core
 
+import gehenna.component.ActiveComponent
 import gehenna.component.Effect
 import gehenna.component.Logger
 import gehenna.component.Senses
@@ -8,6 +9,7 @@ import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevelFactory
 import gehenna.level.Level
+import gehenna.utils.SaveData
 import gehenna.utils.Size
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
@@ -24,6 +26,19 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         levelFactory.size = Size(8 * 8, 7 * 8)
         val (level, pos) = levelFactory.new()
         level.spawn(player, pos)
+    }
+
+    fun initFromSave(saveData: SaveData) {
+        levels.addAll(saveData.levels)
+        player = saveData.player
+        globalTime = saveData.time
+        levels.forEach {
+            it.getAll().forEach {entity ->
+                entity.any<ActiveComponent>()?.let { activeComponent ->
+                    actionQueue.add(activeComponent)
+                }
+            }
+        }
     }
 
     fun isPlayerNext(): Boolean = actionQueue.firstOrNull() == player<PlayerBehaviour>()

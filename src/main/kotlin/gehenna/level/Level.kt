@@ -11,6 +11,7 @@ import gehenna.core.Entity
 import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.at
+import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
 

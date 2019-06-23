@@ -1,6 +1,5 @@
 package gehenna.component
 
-import com.beust.klaxon.Json
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
@@ -175,7 +174,7 @@ sealed class Senses : Component() {
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
         private var seen = HashMap<Entity, Long>()
         private var count = 0L
-        private var fov: FovLevel.FovBoard? = null
+        @Transient private var fov: FovLevel.FovBoard? = null
         override fun visitFov(visitor: (Entity, Point) -> Unit) {
             val pos = entity<Position>()
             fov = pos?.level?.visitFov(pos, range) { target, point ->

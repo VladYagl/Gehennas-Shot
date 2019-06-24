@@ -7,6 +7,7 @@ import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
 import gehenna.utils.random
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 data class Glyph(
         override val entity: Entity,
@@ -158,10 +159,8 @@ data class DirectionalGlyph(override val entity: Entity, val glyphs: Map<Dir, Ch
 
     init {
         subscribe<Entity.NewComponent<*>> {
-            if (it.component is Position) {
-                it.component.lastDir?.let { dir ->
-                    glyph.char = glyphs[dir] ?: glyph.char
-                }
+            it.component.safeAs<Position>()?.lastDir?.let { dir ->
+                glyph.char = glyphs[dir] ?: glyph.char
             }
         }
     }

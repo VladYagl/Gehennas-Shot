@@ -20,7 +20,7 @@ fun showError(e: Throwable) {
 val random = Random.Default
 fun Random.nextPoint(size: Size) = nextPoint(0, 0, size.width, size.height)
 fun Random.nextPoint(x: Int, y: Int, width: Int, height: Int) = nextInt(x, x + width) at nextInt(y, y + height)
-fun Random.next4way(vararg dir: Dir? = emptyArray()): Dir {
+fun Random.next4way(vararg dir: Dir = emptyArray()): Dir {
     while (true) {
         val rand = Dir[nextInt(4) * 2]
         if (rand !in dir) return rand

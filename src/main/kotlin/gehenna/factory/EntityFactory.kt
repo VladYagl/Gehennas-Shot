@@ -5,8 +5,10 @@ import com.beust.klaxon.JsonReader
 import gehenna.component.Item
 import gehenna.core.*
 import gehenna.exceptions.*
+import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.nextStringList
+import gehenna.utils.toDice
 import org.reflections.Reflections
 import java.io.InputStream
 import kotlin.reflect.KFunction
@@ -36,6 +38,9 @@ class EntityFactory : JsonFactory<Entity> {
             return constructor.callBy(
                     args.mapValues { (parameter, value) ->
                         when (parameter.type) {
+                            Dice::class.createType() -> {
+                                (value as String).toDice()
+                            }
                             Faction::class.createType() -> { // todo: this needed to be managed by faction
                                 val name = value as String
                                 if (name == "solo") SoloFaction
@@ -99,6 +104,7 @@ class EntityFactory : JsonFactory<Entity> {
                     String::class.createType() -> nextString()
                     Char::class.createType() -> nextInt().toChar()
                     Faction::class.createType() -> nextString()
+                    Dice::class.createType() -> nextString()
                     itemListType -> nextStringList()
                     itemType -> nextString()
                     else -> {

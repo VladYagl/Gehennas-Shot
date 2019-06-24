@@ -8,11 +8,11 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 
-data class SaveData(
-        val levels: List<Level>,
-        val player: Entity,
-        val time: Long
-): Serializable
+class SaveData(context: Context) : Serializable {
+    val levels = context.levels
+    val player = context.player
+    val time = context.time
+}
 
 class SaveManager(saveFileName: String) {
 
@@ -20,7 +20,7 @@ class SaveManager(saveFileName: String) {
 
     fun saveContext(context: Context) {
         ObjectOutputStream(saveFile.outputStream()).use { stream ->
-            stream.writeObject(SaveData(context.levels, context.player, context.time))
+            stream.writeObject(SaveData(context))
         }
         println("DONE!!")
     }

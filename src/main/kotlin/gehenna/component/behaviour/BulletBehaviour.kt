@@ -10,6 +10,7 @@ import gehenna.core.Action
 import gehenna.core.ActionResult
 import gehenna.core.Context
 import gehenna.core.Entity
+import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.at
 import gehenna.utils.on
@@ -18,7 +19,7 @@ import gehenna.utils.on
 data class BulletBehaviour(
         override val entity: Entity,
         var dir: Dir,
-        private val damage: Int,
+        private val damage: Dice,
         override val speed: Int,
         override var waitTime: Long = 0
 ) : PredictableBehaviour() {

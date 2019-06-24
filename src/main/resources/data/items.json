@@ -61,9 +61,9 @@
     "pistol": {
         "gun": {
             "bullet": "bullet",
-            "damage": 10,
-            "delay": 80,
-            "speed": 475
+            "damage": "2d5",
+            "delay": 25,
+            "speed": 666
         },
         "item": {
             "volume": 15
@@ -76,11 +76,11 @@
     "rifle": {
         "gun": {
             "bullet": "bullet",
-            "damage": 10,
-            "delay": 80,
-            "speed": 475,
+            "damage": "d10",
+            "delay": 40,
+            "speed": 850,
             "burst": true,
-            "burstCount": 6,
+            "burstCount": 3,
             "time": 50
         },
         "item": {

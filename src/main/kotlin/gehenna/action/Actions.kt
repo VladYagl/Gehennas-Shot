@@ -6,6 +6,7 @@ import gehenna.core.Action
 import gehenna.core.ActionResult
 import gehenna.core.Context
 import gehenna.core.Entity
+import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.Dir.Companion.zero
 import gehenna.utils.minOf
@@ -43,7 +44,7 @@ data class Shoot(
         private val pos: Position,
         private val dir: Dir,
         private val bulletName: String,
-        private val damage: Int,
+        private val damage: Dice,
         private val delay: Long,
         private val speed: Int,
         override var time: Long = 100L
@@ -63,11 +64,12 @@ data class Destroy(private val entity: Entity) : Action(0, false) {
     }
 }
 
-data class Collide(val entity: Entity, val victim: Entity, val damage: Int) : Action(100, false) {
+data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : Action(100, false) {
     override fun perform(context: Context): ActionResult {
-        victim<Logger>()?.add("You were hit by ${entity.name} for $damage damage")
-                ?: log("$victim were hit by $entity for $damage damage", victim())
-        victim<Health>()?.dealDamage(damage)
+        val damageRoll = damage.roll()
+        victim<Logger>()?.add("You were hit by $entity for $damageRoll damage")
+                ?: log("$victim were hit by $entity for $damageRoll damage", victim())
+        victim<Health>()?.dealDamage(damageRoll)
         entity.clean()
         return end()
     }

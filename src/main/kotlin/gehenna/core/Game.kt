@@ -33,7 +33,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
         player = saveData.player
         globalTime = saveData.time
         levels.forEach {
-            it.getAll().forEach {entity ->
+            it.getAll().forEach { entity ->
                 entity.any<ActiveComponent>()?.let { activeComponent ->
                     actionQueue.add(activeComponent)
                 }

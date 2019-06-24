@@ -5,12 +5,13 @@ import gehenna.action.Shoot
 import gehenna.core.Action
 import gehenna.core.Component
 import gehenna.core.Entity
+import gehenna.utils.Dice
 import gehenna.utils.Dir
 
 data class Gun(
         override val entity: Entity,
         private val bullet: String,
-        private val damage: Int,
+        private val damage: Dice,
         private val speed: Int,
         private val delay: Long,
         private val burst: Boolean = false,

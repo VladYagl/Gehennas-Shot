@@ -219,6 +219,9 @@ private class Console(private val context: UIContext) : State() {
                 when (words[0]) {
                     "spawn" -> context.player.one<Position>().spawnHere(context.factory.new(words[1]))
                     "give" -> context.player.one<Inventory>().add(context.factory.new(words[1])()!!)
+                    "find" -> context.log.addTemp(
+                            context.player.one<Position>().level.getAll().find { it.name == words[1] }?.invoke<Position>().toString()
+                    )
                 }
             } catch (e: Throwable) {
                 context.printException(e)

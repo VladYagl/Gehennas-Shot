@@ -11,7 +11,7 @@ import gehenna.utils.Dir
 data class Gun(
         override val entity: Entity,
         private val bullet: String,
-        private val damage: Dice,
+        val damage: Dice,
         private val speed: Int,
         private val delay: Long,
         private val burst: Boolean = false,

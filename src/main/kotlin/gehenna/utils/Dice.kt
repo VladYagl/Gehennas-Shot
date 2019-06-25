@@ -2,12 +2,16 @@ package gehenna.utils
 
 import java.io.Serializable
 import java.lang.Exception
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-interface Dice: Serializable {
-    fun roll(): Int
+private const val runs = 100_000
+
+abstract class Dice : Serializable {
+    abstract fun roll(): Int
 
     fun visualise(): String {
-        val histogram = (1..100000).groupingBy {
+        val histogram = (1..runs).groupingBy {
             roll()
         }.eachCount()
         val max = histogram.values.max()!!
@@ -16,24 +20,47 @@ interface Dice: Serializable {
         }.joinToString(separator = "\n")
     }
 
-    data class Const(val value: Int) : Dice {
+    val mean: Double by lazy { (1..runs).map { roll() }.sum().toDouble() / runs }
+    val std: Double by lazy { sqrt((1..runs).map { roll().toDouble().pow(2) }.sum() / runs - mean.pow(2)) }
+
+    data class Const(val value: Int) : Dice() {
         override fun roll() = value
+
+        override fun toString(): String {
+            return "$value"
+        }
     }
 
-    data class SingleDice(val sides: Int) : Dice {
+    data class SingleDice(val sides: Int) : Dice() {
         override fun roll() = random.nextInt(1, sides + 1)
+
+        override fun toString(): String {
+            return "d$sides"
+        }
     }
 
-    data class Multiplication(val dice: Dice, val count: Int) : Dice {
+    data class Multiplication(val dice: Dice, val count: Int) : Dice() {
         override fun roll() = (0 until count).map { dice.roll() }.sum()
+
+        override fun toString(): String {
+            return "$count$dice"
+        }
     }
 
-    data class Addition(val a: Dice, val b: Dice) : Dice {
+    data class Addition(val a: Dice, val b: Dice) : Dice() {
         override fun roll() = a.roll() + b.roll()
+
+        override fun toString(): String {
+            return "$a+$b"
+        }
     }
 
-    data class Subtraction(val a: Dice, val b: Dice) : Dice {
+    data class Subtraction(val a: Dice, val b: Dice) : Dice() {
         override fun roll() = a.roll() - b.roll()
+
+        override fun toString(): String {
+            return "$a-$b"
+        }
     }
 
     operator fun plus(other: Dice) = Addition(this, other)
@@ -65,7 +92,7 @@ interface Dice: Serializable {
             var i = 0
             while (i < string.length) {
                 when (val char = string[i]) {
-                    '+', '(', ')' -> {
+                    '-', '+', '(', ')' -> {
                         tokens.add(char)
                     }
                     in '0'..'9' -> {
@@ -91,10 +118,15 @@ interface Dice: Serializable {
 
         private fun parseSum(): Dice {
             var dice = parseSingle()
-            while (next() == '+') {
+            val next = next()
+            while (next == '+' || next == '-') {
                 pos++
-                val next = parseSingle()
-                dice += next
+                val b = parseSingle()
+                if (next == '+') {
+                    dice += b
+                } else {
+                    dice -= b
+                }
             }
             return dice
         }
@@ -140,7 +172,9 @@ fun main() {
 //    println(Dice.fromString("d6 + d8"))
 //    println("d20 + d10 + d30 + d40".toDice().visualise())
 //
-    println("d10".toDice().visualise())
-    println("2d5".toDice().visualise())
+//    println("d10".toDice().visualise())
+//    println("2d5".toDice().visualise())
+    println("2d5".toDice().mean)
+    println("2d5".toDice().std)
 }
 

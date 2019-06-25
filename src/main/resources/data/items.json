@@ -76,7 +76,7 @@
     "rifle": {
         "gun": {
             "bullet": "bullet",
-            "damage": "d10",
+            "damage": "d11",
             "delay": 40,
             "speed": 850,
             "burst": true,

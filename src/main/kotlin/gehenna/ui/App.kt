@@ -50,7 +50,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private suspend fun gameLoop(uiJob: Job): Boolean {
         return withContext(gameContext) {
-//            if (game.isPlayerNext()) saver.saveContext(game)
+            //            if (game.isPlayerNext()) saver.saveContext(game)
             game.update()
 
             when {
@@ -106,7 +106,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private val enemies = ArrayList<CharacterBehaviour>()
-    private fun updateInfo() {
+    private fun updateInfo() { //todo stop hardcoding y coordinate
         ui.info.writeLine("In game time: " + game.time, 1)
         val glyph = game.player.one<Glyph>()
         val pos = game.player.one<Position>()
@@ -117,15 +117,17 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.writeLine("Effects = " + game.player.all<Effect>(), 5)
         ui.info.writeLine("Inventory ${storage.currentVolume}/${storage.maxVolume}", 8, bg = Color.darkGray)
         ui.info.writeLine("Equipped gun: ${storage.gun?.entity}", 9, Alignment.left, bg = Color.darkGray)
-        repeat(10) { i -> ui.info.clearLine(10 + i) }
+        val dice = (storage.gun?.entity?.invoke<Gun>())?.damage
+        ui.info.writeLine("Damage: ${dice?.mean?.format(1)}${241.toChar()}${dice?.std?.format(1)} | $dice", 10, Alignment.left, bg = Color.darkGray)
+        repeat(9) { i -> ui.info.clearLine(11 + i) }
         storage.contents.forEachIndexed { index, item ->
-            ui.info.writeLine(item.entity.toString(), 10 + index)
+            ui.info.writeLine(item.entity.toString(), 11 + index)
         }
 
         repeat(10) { i -> ui.info.clearLine(21 + i) }
         ui.info.writeLine("Enemies", 20, Alignment.center, ui.info.fgColor, Color.darkGray)
         enemies.forEachIndexed { index, enemy ->
-//            val target = MonsterBehaviour::class.safeCast(enemy)?.target?.entity
+            //            val target = MonsterBehaviour::class.safeCast(enemy)?.target?.entity
             val hp = enemy.entity<Health>()
             ui.info.writeLine("${enemy.entity} | ${enemy.waitTime} [${hp?.current} / ${hp?.max}]", 21 + index)
         }

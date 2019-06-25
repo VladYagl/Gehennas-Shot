@@ -137,7 +137,7 @@ data class Door(
 
     private val obstacle = Obstacle(entity, blockMove = closed, blockView = closed, blockPath = false)
     private val glyph = Glyph(entity, char = char, priority = 10)
-    override val children: List<Component> = listOf(obstacle, glyph, Floor(entity))
+    override val children: List<Component> = listOf(obstacle, glyph)
 
     fun change(closed: Boolean) {
         obstacle.apply {

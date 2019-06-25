@@ -36,7 +36,7 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         when (e.id) {
             KEY_TYPED -> {
-                when (e.keyChar) {
+                val consumed = when (e.keyChar) {
                     'Q' -> listener.onInput(Input.Quit)
                     'f' -> listener.onInput(Input.Fire)
                     ',',
@@ -49,8 +49,9 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                     'c' -> listener.onInput(Input.Close)
                     '`' -> listener.onInput(Input.Console)
                     ';' -> listener.onInput(Input.Examine)
+                    else -> false
                 }
-                if (e.keyChar != '\b') //fixme
+                if (!consumed && e.keyChar != '\b') //fixme
                     listener.onInput(Input.Char(e.keyChar)) // todo: sometimes it can cause double action
             }
             KEY_PRESSED -> {

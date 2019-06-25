@@ -12,6 +12,7 @@ import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
 import java.awt.Color
 import kotlin.reflect.full.safeCast
+import kotlin.system.exitProcess
 import kotlin.system.measureNanoTime
 
 class App(private val ui: UI, private val settings: Settings) : InputListener {
@@ -26,14 +27,17 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private var time = 0L
     private var count = 0
-    fun start() {
+    fun start(load: Boolean) {
         factory.loadJson(streamResource("data/entities.json"))
         factory.loadJson(streamResource("data/items.json"))
         levelFactory.loadJson(streamResource("data/rooms.json"))
-        game.init()
-//        game.initFromSave(saver.loadContext())
 
-//        game.player<Logger>()?.add("Welcome to Gehenna's Shot")
+        if (load) {
+            game.initFromSave(saver.loadContext())
+        } else {
+            game.init()
+        }
+
         game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
         val uiJob = GlobalScope.launch(exceptionHandler) {
             uiLoop()
@@ -234,12 +238,14 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
-    override fun onInput(input: Input) {
+    override fun onInput(input: Input): Boolean {
         if (input == Input.Quit) {
             saver.saveContext(game)
-            System.exit(0)
+            exitProcess(0)
         }
-        state = state.handleInput(input)
+        val (newState, consumed) = state.handleInput(input)
+        state = newState
+        return consumed
     }
 
     private var cursor: Point = 0 at 0

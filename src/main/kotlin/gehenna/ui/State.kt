@@ -9,9 +9,10 @@ import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
+import kotlin.system.exitProcess
 
 abstract class State {
-    open fun handleInput(input: Input): State = this
+    open fun handleInput(input: Input): Pair<State, Boolean> = this to false
 
     companion object {
         fun create(context: UIContext): State = Normal(context)
@@ -49,23 +50,23 @@ private abstract class Select<T>(
                         select[index] = !select[index]
                         updateItem(index)
                         window.repaint()
-                        this
+                        this to true
                     } else {
                         context.removeWindow(window)
-                        onAccept(listOf(items[index]))
+                        onAccept(listOf(items[index])) to true
                     }
-                } else this
-            } else this
+                } else this to true
+            } else this to false
         }
         is Input.Accept -> {
             context.removeWindow(window)
-            onAccept(items.filterIndexed { index, _ -> select[index] })
+            onAccept(items.filterIndexed { index, _ -> select[index] }) to true
         }
         is Input.Cancel -> {
             context.removeWindow(window)
-            onCancel()
+            onCancel() to true
         }
-        else -> this
+        else -> this to false
     }
 
     abstract fun onAccept(items: List<T>): State
@@ -87,9 +88,9 @@ private abstract class Direction(protected val context: UIContext) : State() {
     }
 
     override fun handleInput(input: Input) = when (input) {
-        is Input.Direction -> onDir(input.dir)
-        is Input.Cancel -> onCancel()
-        else -> this
+        is Input.Direction -> onDir(input.dir) to true
+        is Input.Cancel -> onCancel() to true
+        else -> this to false
     }
 }
 
@@ -99,7 +100,7 @@ private class Normal(private val context: UIContext) : State() {
         is Input.Direction -> {
             if (input.dir == Dir.zero) {
                 context.action = Wait
-                this
+                this to true
             } else {
                 val playerPos = context.player.one<Position>()
                 // check for closed do
@@ -110,7 +111,7 @@ private class Normal(private val context: UIContext) : State() {
                 } ?: run {
                     context.action = Move(context.player, input.dir)
                 }
-                this
+                this to true
             }
         }
         is Input.Run -> {
@@ -119,38 +120,38 @@ private class Normal(private val context: UIContext) : State() {
             } else {
                 context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
             }
-            this
+            this to true
         }
         Input.Fire -> {
             val inventory = context.player.one<Inventory>()
             val gun = inventory.gun?.entity?.invoke<Gun>()
             if (gun == null) {
                 context.log.addTemp("You don't have a gun equipped")
-                this
-            } else Aim(context, gun)
+                this to true
+            } else Aim(context, gun) to true
         }
         Input.Pickup -> {
             val pos = context.player.one<Position>()
             val items = pos.neighbors.mapNotNull { it<Item>() }
             if (items.isEmpty()) {
                 context.log.addTemp("There is no items to pickup(((")
-                this
-            } else Pickup(context, items)
+                this to true
+            } else Pickup(context, items) to true
         }
-        Input.Drop -> Drop(context)
-        Input.Equip -> Equip(context)
+        Input.Drop -> Drop(context) to true
+        Input.Equip -> Equip(context) to true
         Input.ClimbStairs -> {
             val pos = context.player.one<Position>()
             pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
                 context.action = ClimbStairs(context.player, stairs)
             } ?: context.log.addTemp("There is no stairs here")
-            this
+            this to true
         }
-        Input.Open -> UseDoor(context, false)
-        Input.Close -> UseDoor(context, true)
-        Input.Console -> Console(context)
-        Input.Examine -> Examine(context)
-        else -> this
+        Input.Open -> UseDoor(context, false) to true
+        Input.Close -> UseDoor(context, true) to true
+        Input.Console -> Console(context) to true
+        Input.Examine -> Examine(context) to true
+        else -> this to false
     }
 }
 
@@ -174,10 +175,9 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
 class End(private val context: UIContext) : State() {
     override fun handleInput(input: Input) = when (input) {
         Input.Accept, Input.Cancel -> {
-            System.exit(0)
-            this
+            exitProcess(0)
         }
-        else -> this
+        else -> this to false
     }
 }
 
@@ -211,7 +211,7 @@ private class Console(private val context: UIContext) : State() {
         is Input.Char -> {
             command += input.char
             window.writeLine(command, 0, alignment = Alignment.left)
-            this
+            this to true
         }
         is Input.Accept -> {
             try {
@@ -227,15 +227,18 @@ private class Console(private val context: UIContext) : State() {
                 context.printException(e)
             }
             context.removeWindow(window)
-            Normal(context)
+            Normal(context) to true
         }
         is Input.Backspace -> {
             command = command.dropLast(1)
             window.writeLine(command, 0, alignment = Alignment.left)
-            this
+            this to true
         }
-        is Input.Cancel -> Normal(context)
-        else -> this
+        is Input.Cancel -> {
+            context.removeWindow(window)
+            Normal(context) to true
+        }
+        else -> this to false
     }
 }
 
@@ -262,19 +265,19 @@ private class Examine(private val context: UIContext) : State() {
         is Input.Direction -> {
             cursor += input.dir
             print()
-            this
+            this to true
         }
         is Input.Run -> {
             cursor += input.dir * 5
             print()
-            this
+            this to true
         }
         is Input.Cancel -> {
             context.hideCursor()
-            Normal(context)
+            Normal(context) to true
         }
         else -> {
-            this
+            this to false
         }
     }
 }

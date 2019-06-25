@@ -1,13 +1,13 @@
 package gehenna.component
 
-import gehenna.core.Component
-import gehenna.core.Entity
+import gehenna.core.*
 import gehenna.level.FovLevel
 import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
 import gehenna.utils.random
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import kotlin.math.min
 
 data class Glyph(
         override val entity: Entity,
@@ -41,6 +41,11 @@ data class Health(
             entity.clean() // FIXME: If player dies his logger is cleared too
         }
     }
+
+    fun heal(amount: Int) {
+        current += amount
+        current = min(current, max)
+    }
 }
 
 data class Logger(override val entity: Entity) : Component() {
@@ -64,7 +69,13 @@ data class Logger(override val entity: Entity) : Component() {
 
 data class Stairs(override val entity: Entity, var destination: Pair<Level, Point>? = null) : Component()
 
-data class Item(override val entity: Entity, val volume: Int) : Component()
+data class Item(override val entity: Entity, val volume: Int) : Component() {
+    var inventory: Inventory? = null
+
+    init {
+        subscribe<Entity.Remove> { inventory?.remove(this) }
+    }
+}
 
 data class Reflecting(override val entity: Entity) : Component()
 
@@ -83,6 +94,7 @@ data class Inventory(
         }
         currentVolume += item.volume
         items.add(item)
+        item.inventory = this
         return true
     }
 
@@ -90,6 +102,7 @@ data class Inventory(
         if (gun?.entity == item.entity) gun = null
         currentVolume -= item.volume
         items.remove(item)
+        item.inventory = null
     }
 
     fun equip(item: Item?) {
@@ -105,6 +118,7 @@ data class Inventory(
 
     init {
         gun?.let { add(it) }
+        //todo: Do you need death? You can call it on entity.remove?
         subscribe<Health.Death> {
             entity<Position>()?.let { pos ->
                 items.forEach { item ->
@@ -173,7 +187,9 @@ sealed class Senses : Component() {
     data class Sight(override val entity: Entity, val range: Int) : Senses() {
         private var seen = HashMap<Entity, Long>()
         private var count = 0L
-        @Transient private var fov: FovLevel.FovBoard? = null
+        @Transient
+        private var fov: FovLevel.FovBoard? = null
+
         override fun visitFov(visitor: (Entity, Point) -> Unit) {
             val pos = entity<Position>()
             fov = pos?.level?.visitFov(pos, range) { target, point ->

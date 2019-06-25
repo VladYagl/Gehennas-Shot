@@ -89,5 +89,17 @@
         "glyph": {
             "char": 139
         }
+    },
+
+    "healthPack": {
+        "healthPack": {
+            "value": 15
+        },
+        "item": {
+            "volume": 20
+        },
+        "glyph": {
+            "char": 3
+        }
     }
 }

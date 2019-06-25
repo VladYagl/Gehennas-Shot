@@ -43,6 +43,7 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
                     'g' -> listener.onInput(Input.Pickup)
                     'd' -> listener.onInput(Input.Drop)
                     'e' -> listener.onInput(Input.Equip)
+                    'a' -> listener.onInput(Input.Use)
                     '>',
                     '<' -> listener.onInput(Input.ClimbStairs)
                     'o' -> listener.onInput(Input.Open)

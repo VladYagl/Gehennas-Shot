@@ -139,6 +139,7 @@ private class Normal(private val context: UIContext) : State() {
             } else Pickup(context, items) to true
         }
         Input.Drop -> Drop(context) to true
+        Input.Use -> Use(context) to true
         Input.Equip -> Equip(context) to true
         Input.ClimbStairs -> {
             val pos = context.player.one<Position>()
@@ -196,9 +197,15 @@ private class Drop(context: UIContext) : Select<Item>(context, context.player.on
 }
 
 private class Equip(context: UIContext) : Select<Item?>(context, context.player.one<Inventory>().contents + (null as Item?), "Equip what?", false) {
-    //todo: why it's selects multiple???
     override fun onAccept(items: List<Item?>): State {
         context.action = gehenna.action.Equip(context.player, items.firstOrNull())
+        return Normal(context)
+    }
+}
+
+private class Use(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().contents, "Use what?", false) {
+    override fun onAccept(items: List<Item>): State {
+        context.action = items.first().entity.any<Consumable>()?.apply(context.player)
         return Normal(context)
     }
 }

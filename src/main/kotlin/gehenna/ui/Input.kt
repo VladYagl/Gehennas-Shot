@@ -10,6 +10,7 @@ sealed class Input {
     data class Char(val char: kotlin.Char) : Input()
     object Fire : Input()
     object Pickup : Input()
+    object Use : Input()
     object Drop : Input()
     object Equip : Input()
     object Cancel : Input()

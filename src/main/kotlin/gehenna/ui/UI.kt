@@ -37,5 +37,5 @@ interface UI {
 }
 
 interface InputListener {
-    fun onInput(input: Input)
+    fun onInput(input: Input): Boolean
 }

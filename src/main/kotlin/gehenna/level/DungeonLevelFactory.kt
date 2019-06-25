@@ -1,5 +1,6 @@
 package gehenna.level
 
+import gehenna.component.Floor
 import gehenna.component.Stairs
 import gehenna.core.Context
 import gehenna.utils.*
@@ -22,6 +23,11 @@ class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
                     }
                     if (!has(p) && !has(p + southeast) && has(p + east) && has(p + south)) {//fixme
                         part(p.x - 2 at p.y - 2, "sw_connector")
+                    }
+                }
+                size.range.forEach {
+                    while (get(it).count { entity -> entity.has<Floor>() } > 1) {
+                        remove(get(it).find { entity -> entity.has<Floor>() }!!) // todo: this remove double floors | maybe you can do it better
                     }
                 }
                 val floor = size.range.count { isWalkable(it) }

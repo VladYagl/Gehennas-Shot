@@ -27,14 +27,17 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private var time = 0L
     private var count = 0
-    fun start() {
+    fun start(load: Boolean) {
         factory.loadJson(streamResource("data/entities.json"))
         factory.loadJson(streamResource("data/items.json"))
         levelFactory.loadJson(streamResource("data/rooms.json"))
-        game.init()
-//        game.initFromSave(saver.loadContext())
 
-//        game.player<Logger>()?.add("Welcome to Gehenna's Shot")
+        if (load) {
+            game.initFromSave(saver.loadContext())
+        } else {
+            game.init()
+        }
+
         game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
         val uiJob = GlobalScope.launch(exceptionHandler) {
             uiLoop()

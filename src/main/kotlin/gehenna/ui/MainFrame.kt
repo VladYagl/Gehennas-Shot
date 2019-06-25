@@ -77,14 +77,33 @@ class MainFrame : JFrame(), UI {
         world.clear()
         info.clear()
         log.clear()
-
         app = App(this, settings)
-        addComponentListener(object : ComponentAdapter() {
-            override fun componentShown(e: ComponentEvent?) {
-                app.start()
-            }
-        })
 
+
+        val menuWindow = newWindow(15, 3)
+        menuWindow.writeLine("n: New game", 0)
+        menuWindow.writeLine("l: Load game", 1)
+
+        var inputConverter: InputConverter? = null
+        val listener = object : InputListener {
+            override fun onInput(input: Input) = when (input) {
+                is Input.Char -> {
+                    if (input.char == 'n' || input.char == 'l') {
+                        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(inputConverter)
+                        removeWindow(menuWindow)
+                        startGame(input.char == 'l')
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+        inputConverter = InputConverter(listener)
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(inputConverter)
+    }
+
+    private fun startGame(load: Boolean) {
+        app.start(load)
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(InputConverter(app))
     }
 

@@ -1,6 +1,7 @@
 package gehenna.component.behaviour
 
 import gehenna.action.Move
+import gehenna.action.Pickup
 import gehenna.component.*
 import gehenna.core.Action
 import gehenna.core.Entity
@@ -52,6 +53,16 @@ data class MonsterBehaviour(
                 }
     }
 
+    private fun pickup(): Action? { //todo find items and go to them
+        return entity<Position>()?.neighbors?.mapNotNull { it<Item>() }?.let { items ->
+            if (items.isNotEmpty()) {
+                Pickup(entity, items)
+            } else {
+                null
+            }
+        }
+    }
+
     private fun goto(target: Position): Action? {
         return pos.findPath(target)?.firstOrNull()?.let { next ->
             val dir = next.x - pos.x on next.y - pos.y
@@ -87,12 +98,7 @@ data class MonsterBehaviour(
         if (lastResult?.succeeded == false) {
             return randomMove()
         }
-        try {
-            pos
-        } catch (e: EntityMustHaveOneException) {
-            println("mem")
-        }
         updateSenses()
-        return dodge() ?: target?.let { shoot(it) ?: goto(it) ?: randomMove() } ?: randomMove()
+        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: randomMove()
     }
 }

@@ -9,6 +9,7 @@ import gehenna.core.Entity
 import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.Dir.Companion.zero
+import gehenna.utils._Actor
 import gehenna.utils.minOf
 
 object Think : Action(0) {
@@ -67,8 +68,7 @@ data class Destroy(private val entity: Entity) : Action(0, false) {
 data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : Action(100, false) {
     override fun perform(context: Context): ActionResult {
         val damageRoll = damage.roll()
-        victim<Logger>()?.add("You were hit by $entity for $damageRoll damage")
-                ?: log("$victim were hit by $entity for $damageRoll damage", victim())
+        logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
         victim<Health>()?.dealDamage(damageRoll)
         entity.clean()
         return end()
@@ -77,7 +77,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : A
 
 data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(100) {
     override fun perform(context: Context): ActionResult {
-        entity<Logger>()?.add("Your start ${effect::class.simpleName}") ?: log("$entity starts $effect", entity())
+        logFor(entity, "$_Actor start[s] ${effect::class.simpleName}")
         entity.add(effect)
         return end()
     }
@@ -91,7 +91,7 @@ data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) :
         }
         pos.level.remove(entity)
         destination.first.spawn(entity, destination.second)
-        entity<Logger>()?.add("You've climbed stairs to " + stairs.destination?.first)
+        logFor(entity, "$_Actor climbed stairs to " + stairs.destination?.first)
         return end()
     }
 }
@@ -102,7 +102,7 @@ data class Pickup(private val entity: Entity, private val items: List<Item>) : A
             item.entity.remove<Position>()
             entity.one<Inventory>().add(item)
         }
-        entity<Logger>()?.add("You've picked up: " + items.joinToString { it.entity.name })
+        logFor(entity, "$_Actor picked up: " + items.joinToString { it.entity.name })
         return end()
     }
 }
@@ -113,9 +113,9 @@ data class Equip(private val entity: Entity, private val item: Item?) : Action(1
         val old = inventory.gun
         inventory.equip(item)
         if (item != null) {
-            entity<Logger>()?.add("You have equipped a ${item.entity.name}")
+            logFor(entity, "$_Actor have equipped a ${item.entity.name}")
         } else {
-            entity<Logger>()?.add("You unequipped a ${old?.entity?.name}")
+            logFor(entity, "$_Actor unequipped a ${old?.entity?.name}")
         }
         return end()
     }
@@ -128,7 +128,7 @@ data class Drop(private val entity: Entity, private val items: List<Item>, priva
             entity.one<Inventory>().remove(item)
             pos.spawnHere(item.entity)
         }
-        entity<Logger>()?.add("You have dropped: " + items.joinToString { it.entity.name })
+        logFor(entity, "$_Actor have dropped: ${items.joinToString { it.entity.name }}")
         return end()
     }
 }

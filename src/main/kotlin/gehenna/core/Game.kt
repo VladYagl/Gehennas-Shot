@@ -67,10 +67,10 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
             val sight = player<Senses.Sight>()
             sight?.visitFov { _, _ -> }
             result.logEntries.asSequence().filter { entry: LogEntry ->
-                player.all<Senses>().any { entry.sense.isInstance(it) }
+                player.all<Senses>().any { entry.sense == it::class.simpleName }
             }.forEach { entry ->
                 when (entry.sense) {
-                    Senses.Sight::class -> {
+                    Senses.Sight::class.simpleName -> {
                         if (sight?.isVisible(entry.position!!) == true) {
                             player<Logger>()?.add(entry.text)
                         }

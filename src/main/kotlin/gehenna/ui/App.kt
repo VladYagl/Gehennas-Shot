@@ -28,16 +28,20 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private var time = 0L
     private var count = 0
     fun start(load: Boolean) {
+        println("Loading factories...")
         factory.loadJson(streamResource("data/entities.json"))
         factory.loadJson(streamResource("data/items.json"))
         levelFactory.loadJson(streamResource("data/rooms.json"))
 
         if (load) {
+            println("Loading levels from save...")
             game.initFromSave(saver.loadContext())
         } else {
+            println("Creating game levels...")
             game.init()
         }
 
+        println("Running main loop...")
         game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
         val uiJob = GlobalScope.launch(exceptionHandler) {
             uiLoop()
@@ -83,7 +87,6 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val gameContext = newSingleThreadContext("GameContext")
     private suspend fun uiLoop() {
         while (true) {
-//        for (i in repaint) {
             val fps = 1000_000_000L / measureNanoTime {
                 time = game.time
                 withContext(gameContext) {
@@ -204,7 +207,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         val level = playerPos.level
         moveCamera(playerPos)
 
-        //visit fov
+        //visit fov //todo: if I add hearing this should not draw from it
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, point ->
                 entity.any<PredictableBehaviour>()?.let { behaviours.add(it) }
@@ -240,8 +243,12 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     override fun onInput(input: Input): Boolean {
         if (input == Input.Quit) {
-            saver.saveContext(game)
-            exitProcess(0)
+            GlobalScope.launch(exceptionHandler) {
+                ui.loadingWindow("SAVING") {
+                    saver.saveContext(game)
+                }
+                exitProcess(0)
+            }
         }
         val (newState, consumed) = state.handleInput(input)
         state = newState

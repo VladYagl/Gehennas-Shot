@@ -5,7 +5,7 @@ import gehenna.component.Senses
 import java.io.Serializable
 import kotlin.reflect.KClass
 
-typealias Sense = KClass<out Senses>
+typealias Sense = String
 
 data class LogEntry(val text: String, val position: Position?, val sense: Sense): Serializable
 

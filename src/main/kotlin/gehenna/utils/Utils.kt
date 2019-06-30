@@ -68,5 +68,3 @@ inline fun <reified T> T.setVal(name: String, value: Any?) {
     field.isAccessible = true
     field.set(this, value)
 }
-
-fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)

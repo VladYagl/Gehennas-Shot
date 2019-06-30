@@ -1,10 +1,13 @@
 package gehenna.ui
 
-import gehenna.utils.*
 import gehenna.utils.Point
-import java.awt.*
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
+import gehenna.utils.Size
+import gehenna.utils.showError
+import kotlinx.coroutines.*
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.KeyboardFocusManager
 import javax.swing.*
 
 class MainFrame : JFrame(), UI {
@@ -67,6 +70,7 @@ class MainFrame : JFrame(), UI {
     }
 
     init {
+        println("Creating Main Frame...")
         title = "Gehenna's Shot"
         isResizable = false
 
@@ -77,6 +81,8 @@ class MainFrame : JFrame(), UI {
         world.clear()
         info.clear()
         log.clear()
+
+        println("Creating App...")
         app = App(this, settings)
 
 
@@ -89,8 +95,10 @@ class MainFrame : JFrame(), UI {
             override fun onInput(input: Input) = when (input) {
                 is Input.Char -> {
                     if (input.char == 'n' || input.char == 'l') {
+                        println("You pressed \'N\'")
                         KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(inputConverter)
                         removeWindow(menuWindow)
+                        println("Starting game...")
                         startGame(input.char == 'l')
                     }
                     true
@@ -147,6 +155,24 @@ class MainFrame : JFrame(), UI {
         panel.background = mainPane.background
         window.clear()
         return window
+    }
+
+    override suspend fun <T> loadingWindow(text: String, task: () -> T): T {
+        return withContext(Dispatchers.Default) {
+            val window = newWindow(text.length + 3, 2)
+            window.writeLine(text, 0)
+            val job = async { task() }
+            launch {
+                var count = 0
+                while (!job.isCompleted) {
+                    window.putChar(listOf('-', '\\', '|', '/')[count++ % 3], text.length + 1, 0)
+                    delay(100)
+                }
+            }
+            val result = job.await()
+            removeWindow(window)
+            result
+        }
     }
 
     override fun removeWindow(window: Window) {

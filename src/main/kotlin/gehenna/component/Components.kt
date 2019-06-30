@@ -218,6 +218,7 @@ sealed class Senses : Component() {
     }
 
     data class Hearing(override val entity: Entity) : Senses() {
+        //todo: is visible should return true in radius, so you can add stuff like hearing gun shots
         override fun isVisible(point: Point): Boolean = false
         override fun visitFov(visitor: (Entity, Point) -> Unit) {} // TODO
     }

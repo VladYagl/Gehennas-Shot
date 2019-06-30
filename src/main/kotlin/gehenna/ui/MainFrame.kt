@@ -166,6 +166,7 @@ class MainFrame : JFrame(), UI {
                 var count = 0
                 while (!job.isCompleted) {
                     window.putChar(listOf('-', '\\', '|', '/')[count++ % 3], text.length + 1, 0)
+                    window.repaint()
                     delay(100)
                 }
             }

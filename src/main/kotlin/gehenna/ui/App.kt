@@ -26,28 +26,31 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private var state = State.create(context)
 
     private var time = 0L
-    private var count = 0
     fun start(load: Boolean) {
-        println("Loading factories...")
-        factory.loadJson(streamResource("data/entities.json"))
-        factory.loadJson(streamResource("data/items.json"))
-        levelFactory.loadJson(streamResource("data/rooms.json"))
-
-        if (load) {
-            println("Loading levels from save...")
-            game.initFromSave(saver.loadContext())
-        } else {
-            println("Creating game levels...")
-            game.init()
-        }
-
-        println("Running main loop...")
-        game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
-        val uiJob = GlobalScope.launch(exceptionHandler) {
-            uiLoop()
-        }
         GlobalScope.launch(exceptionHandler) {
-            while (gameLoop(uiJob)) {
+            ui.loadingWindow("LOADING") {
+                println("Loading factories...")
+                factory.loadJson(streamResource("data/entities.json"))
+                factory.loadJson(streamResource("data/items.json"))
+                levelFactory.loadJson(streamResource("data/rooms.json"))
+
+                if (load) {
+                    println("Loading levels from save...")
+                    game.initFromSave(saver.loadContext())
+                } else {
+                    println("Creating game levels...")
+                    game.init()
+                }
+
+                println("Running main loop...")
+                game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
+                val uiJob = launch(exceptionHandler) {
+                    uiLoop()
+                }
+                launch(exceptionHandler) {
+                    while (gameLoop(uiJob)) {
+                    }
+                }
             }
         }
     }
@@ -94,7 +97,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                 }
                 ui.update()
             }
-            ui.info.writeLine("fps=$fps loop=$count", 0)
+            ui.info.writeLine("fps=$fps", 0)
         }
     }
 
@@ -184,7 +187,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(point)) {
             val g = if (cursorShown && cursor == point) {
-                Glyph(Entity.world, 'X', 1000_000)
+                cursorGlyph
             } else {
                 glyph
             }

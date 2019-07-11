@@ -106,13 +106,13 @@ class MainFrame : JFrame(), UI {
                 else -> false
             }
         }
-        inputConverter = InputConverter(listener)
+        inputConverter = TextInput(listener)
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(inputConverter)
     }
 
     private fun startGame(load: Boolean) {
         app.start(load)
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(InputConverter(app))
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(GameInput(app))
     }
 
     override fun printException(e: Throwable) {

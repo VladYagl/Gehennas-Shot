@@ -10,13 +10,64 @@ import gehenna.utils.Dir.Companion.southeast
 import gehenna.utils.Dir.Companion.southwest
 import gehenna.utils.Dir.Companion.west
 import gehenna.utils.Dir.Companion.zero
-import gehenna.utils.on
 import java.awt.KeyEventDispatcher
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.*
+import java.lang.StringBuilder
 
 //todo exceptions cause it's called from different thread
-class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
+abstract class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
+
+    private fun codeName(code: Int): String? {
+        return when (code) {
+            VK_NUMPAD0 -> "NUM0"
+            VK_NUMPAD1 -> "NUM1"
+            VK_NUMPAD2 -> "NUM2"
+            VK_NUMPAD3 -> "NUM3"
+            VK_NUMPAD4 -> "NUM4"
+            VK_NUMPAD5 -> "NUM5"
+            VK_NUMPAD6 -> "NUM6"
+            VK_NUMPAD7 -> "NUM7"
+            VK_NUMPAD8 -> "NUM8"
+            VK_NUMPAD9 -> "NUM9"
+
+            VK_UP -> "UP"
+            VK_DOWN -> "DOWN"
+            VK_LEFT -> "LEFT"
+            VK_RIGHT -> "RIGHT"
+
+            VK_ESCAPE, VK_CAPS_LOCK -> "ESC"
+            VK_BACK_SPACE -> "BACK_SPACE"
+            VK_ENTER -> "ENTER"
+            VK_SPACE -> "SPACE"
+            else -> null
+        }
+    }
+
+    open val keyMap = HashMap<String, Input>()
+
+    override fun dispatchKeyEvent(e: KeyEvent): Boolean {
+        return when (e.id) {
+            KEY_TYPED -> consumeChar(e.keyChar)?.let { listener.onInput(it) } ?: false
+            KEY_PRESSED -> consumeKey(e)?.let { listener.onInput(it) } ?: run {
+                val command = StringBuilder()
+                keyMap[command
+                        .append(if (e.isAltDown) "!" else "")
+                        .append(if (e.isControlDown) "^" else "")
+                        .append(if (e.isShiftDown) "+" else "")
+                        .append(codeName(e.keyCode) ?: e.keyChar.toLowerCase())
+                        .toString()
+                ]?.let { listener.onInput(it) } ?: false
+            }
+            else -> false
+        }
+    }
+
+    open fun consumeKey(e: KeyEvent): Input? = null
+    open fun consumeChar(char: Char): Input? = null
+}
+
+class GameInput(listener: InputListener) : InputConverter(listener) {
 
     private fun getDir(code: Int): Dir? {
         return when (code) {
@@ -33,47 +84,38 @@ class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
         }
     }
 
-    override fun dispatchKeyEvent(e: KeyEvent): Boolean {
-        when (e.id) {
-            KEY_TYPED -> {
-                val consumed = when (e.keyChar) {
-                    'Q' -> listener.onInput(Input.Quit)
-                    'f' -> listener.onInput(Input.Fire)
-                    ',',
-                    'g' -> listener.onInput(Input.Pickup)
-                    'd' -> listener.onInput(Input.Drop)
-                    'e' -> listener.onInput(Input.Equip)
-                    'a' -> listener.onInput(Input.Use)
-                    '>',
-                    '<' -> listener.onInput(Input.ClimbStairs)
-                    'o' -> listener.onInput(Input.Open)
-                    'c' -> listener.onInput(Input.Close)
-                    '`' -> listener.onInput(Input.Console)
-                    ';' -> listener.onInput(Input.Examine)
-                    else -> false
-                }
-                if (!consumed && e.keyChar != '\b') //fixme
-                    listener.onInput(Input.Char(e.keyChar)) // todo: sometimes it can cause double action
-            }
-            KEY_PRESSED -> {
-                getDir(e.keyCode)?.let { dir ->
-                    if (!e.isShiftDown) {
-                        listener.onInput(Input.Direction(dir))
-                    } else {
-                        listener.onInput(Input.Run(dir))
-                    }
-                }
-                when (e.keyCode) {
-                    VK_ESCAPE, VK_CAPS_LOCK -> listener.onInput(Input.Cancel)
-                    VK_BACK_SPACE -> listener.onInput(Input.Backspace)
-                    VK_ENTER -> listener.onInput(Input.Accept)
-                    VK_UP -> listener.onInput(Input.Direction(0 on -1))
-                    VK_DOWN -> listener.onInput(Input.Direction(0 on 1))
-                    VK_LEFT -> listener.onInput(Input.Direction(-1 on 0))
-                    VK_RIGHT -> listener.onInput(Input.Direction(1 on 0))
-                }
-            }
+    override val keyMap = hashMapOf(
+            "+q" to Input.Quit,
+            "f" to Input.Fire,
+            "," to Input.Pickup,
+            "g" to Input.Pickup,
+            "d" to Input.Drop,
+            "e" to Input.Equip,
+            "a" to Input.Use,
+            "<" to Input.ClimbStairs,
+            "o" to Input.Open,
+            "c" to Input.Close,
+            "`" to Input.Console,
+            "§" to Input.Console,
+            ";" to Input.Examine,
+            "ESC" to Input.Cancel,
+            "ENTER" to Input.Accept
+    )
+
+    override fun consumeKey(e: KeyEvent): Input? {
+        return getDir(e.keyCode)?.let {
+            if (!e.isShiftDown) Input.Direction(it)
+            else Input.Run(it)
         }
-        return false
+    }
+}
+
+class TextInput(listener: InputListener) : InputConverter(listener) {
+    override val keyMap: HashMap<String, Input> = hashMapOf(
+            "BACK_SPACE" to Input.Backspace
+    )
+
+    override fun consumeChar(char: Char): Input {
+        return Input.Char(char)
     }
 }

@@ -4,13 +4,11 @@ import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.showError
 import kotlinx.coroutines.*
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.KeyboardFocusManager
+import java.awt.*
+import java.awt.event.KeyEvent
 import javax.swing.*
 
-class MainFrame : JFrame(), UI {
+class MainFrame : JFrame(), UI, KeyEventDispatcher {
     private val settings = loadSettings(streamResource("data/settings.json"))!!
     private val worldFont = settings.worldFont
     private val font = settings.font
@@ -22,6 +20,8 @@ class MainFrame : JFrame(), UI {
     private val logHeight = settings.logHeight
     private val infoWidth = settings.infoWidth
     override val worldSize: Size get() = world.size
+
+    private val keyEventHandlers = ArrayList<InputConverter>()
     private val app: App
 
     private fun preparePanels() {
@@ -96,7 +96,7 @@ class MainFrame : JFrame(), UI {
                 is Input.Char -> {
                     if (input.char == 'n' || input.char == 'l') {
                         println("You pressed \'N\'")
-                        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(inputConverter)
+                        keyEventHandlers.remove(inputConverter)
                         removeWindow(menuWindow)
                         println("Starting game...")
                         startGame(input.char == 'l')
@@ -107,12 +107,18 @@ class MainFrame : JFrame(), UI {
             }
         }
         inputConverter = TextInput(listener)
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(inputConverter)
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
+        keyEventHandlers.add(inputConverter)
     }
 
     private fun startGame(load: Boolean) {
         app.start(load)
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(GameInput(app))
+        keyEventHandlers.add(GameInput(app))
+    }
+
+    override fun dispatchKeyEvent(e: KeyEvent?): Boolean {
+        return e?.let { event -> keyEventHandlers.lastOrNull()?.dispatchKeyEvent(event) } ?: false
     }
 
     override fun printException(e: Throwable) {

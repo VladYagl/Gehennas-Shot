@@ -26,13 +26,14 @@ private abstract class Select<T>(
         private val selectMultiple: Boolean = true
 ) : State() {
     private val select = BooleanArray(items.size) { false }
-    private val window = context.newWindow(100, 30)
+    private val window = GehennaPanel(100, 30, context.settings)
 
     private fun updateItem(index: Int) {
         window.writeLine("   ${if (select[index]) '+' else '-'} ${'a' + index}: ${items[index]}", 1 + index)
     }
 
     init {
+        context.addWindow(window)
         window.writeLine(title, 0)
         repeat(items.size) { i ->
             updateItem(i)
@@ -211,7 +212,9 @@ private class Use(context: UIContext) : Select<Item>(context, context.player.one
 }
 
 private class Console(private val context: UIContext) : State() {
-    private val window = context.newWindow(100, 2)
+    private val window = GehennaPanel(100, 2, context.settings).also {
+        context.addWindow(it)
+    }
     private var command: String = ""
 
     override fun handleInput(input: Input) = when (input) {

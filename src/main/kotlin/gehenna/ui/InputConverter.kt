@@ -18,6 +18,21 @@ import java.lang.StringBuilder
 //todo exceptions cause it's called from different thread
 abstract class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
 
+    protected fun getDir(code: Int): Dir? {
+        return when (code) {
+            VK_PERIOD, VK_NUMPAD5 -> zero
+            VK_DOWN, VK_J, VK_NUMPAD2 -> south
+            VK_UP, VK_K, VK_NUMPAD8 -> north
+            VK_LEFT, VK_H, VK_NUMPAD4 -> west
+            VK_RIGHT, VK_L, VK_NUMPAD6 -> east
+            VK_Y, VK_NUMPAD7 -> northwest
+            VK_U, VK_NUMPAD9 -> northeast
+            VK_N, VK_NUMPAD3 -> southeast
+            VK_B, VK_NUMPAD1 -> southwest
+            else -> null
+        }
+    }
+
     private fun codeName(code: Int): String? {
         return when (code) {
             VK_NUMPAD0 -> "NUM0"
@@ -69,21 +84,6 @@ abstract class InputConverter(private val listener: InputListener) : KeyEventDis
 
 class GameInput(listener: InputListener) : InputConverter(listener) {
 
-    private fun getDir(code: Int): Dir? {
-        return when (code) {
-            VK_PERIOD, VK_NUMPAD5 -> zero
-            VK_DOWN, VK_J, VK_NUMPAD2 -> south
-            VK_UP, VK_K, VK_NUMPAD8 -> north
-            VK_LEFT, VK_H, VK_NUMPAD4 -> west
-            VK_RIGHT, VK_L, VK_NUMPAD6 -> east
-            VK_Y, VK_NUMPAD7 -> northwest
-            VK_U, VK_NUMPAD9 -> northeast
-            VK_N, VK_NUMPAD3 -> southeast
-            VK_B, VK_NUMPAD1 -> southwest
-            else -> null
-        }
-    }
-
     override val keyMap = hashMapOf(
             "+q" to Input.Quit,
             "f" to Input.Fire,
@@ -97,9 +97,7 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
             "c" to Input.Close,
             "`" to Input.Console,
             "§" to Input.Console,
-            ";" to Input.Examine,
-            "ESC" to Input.Cancel,
-            "ENTER" to Input.Accept
+            ";" to Input.Examine
     )
 
     override fun consumeKey(e: KeyEvent): Input? {
@@ -117,5 +115,22 @@ class TextInput(listener: InputListener) : InputConverter(listener) {
 
     override fun consumeChar(char: Char): Input {
         return Input.Char(char)
+    }
+}
+
+class MenuInput(listener: InputListener) : InputConverter(listener) {
+    override val keyMap: HashMap<String, Input> = hashMapOf(
+            "ESC" to Input.Cancel,
+            "ENTER" to Input.Accept
+    )
+
+    override fun consumeKey(e: KeyEvent): Input? {
+        return getDir(e.keyCode)?.let {
+            if (it == north || it == south || it == east || it == west)
+                Input.Direction(it)
+            else null
+        } ?: if (e.keyChar.isLetter()) {
+            Input.Char(e.keyChar)
+        } else null
     }
 }

@@ -7,9 +7,10 @@ import kotlinx.coroutines.*
 import java.awt.*
 import java.awt.event.KeyEvent
 import javax.swing.*
+import kotlin.system.exitProcess
 
 class MainFrame : JFrame(), UI, KeyEventDispatcher {
-    private val settings = loadSettings(streamResource("data/settings.json"))!!
+    override val settings = loadSettings(streamResource("data/settings.json"))!!
     private val worldFont = settings.worldFont
     private val font = settings.font
 
@@ -85,31 +86,22 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         println("Creating App...")
         app = App(this, settings)
 
-
-        val menuWindow = newWindow(15, 3)
-        menuWindow.writeLine("n: New game", 0)
-        menuWindow.writeLine("l: Load game", 1)
-
-        var inputConverter: InputConverter? = null
-        val listener = object : InputListener {
-            override fun onInput(input: Input) = when (input) {
-                is Input.Char -> {
-                    if (input.char == 'n' || input.char == 'l') {
-                        println("You pressed \'N\'")
-                        keyEventHandlers.remove(inputConverter)
-                        removeWindow(menuWindow)
-                        println("Starting game...")
-                        startGame(input.char == 'l')
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
-        inputConverter = TextInput(listener)
+        val menuWindow = MenuPanel(12, 4, settings)
+        menuWindow.addItem(ButtonItem("Continue", {
+            // todo: add this only if save file is present
+            startGame(true)
+            removeWindow(menuWindow)
+        }, 'c'))
+        menuWindow.addItem(ButtonItem("New Game", {
+            startGame(false)
+            removeWindow(menuWindow)
+        }, 'n'))
+        menuWindow.addItem(ButtonItem("Quit", {
+            exitProcess(0)
+        }, 'q'))
+        addWindow(menuWindow)
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
-        keyEventHandlers.add(inputConverter)
     }
 
     private fun startGame(load: Boolean) {
@@ -142,37 +134,27 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         }
     }
 
-    override fun newWindow(size: Size): Window = newWindow(size.width, size.height)
+    override fun addWindow(window: Window) {
+        val x = (mainPane.width - window.size.width * font.width) / 2
+        val y = (mainPane.height - window.size.height * font.height) / 2
+        window.panel.location = java.awt.Point(x, y)
 
-    override fun newWindow(width: Int, height: Int): Window {
-        val x = (mainPane.width - width * font.width) / 2
-        val y = (mainPane.height - height * font.height) / 2
-        val window = GehennaPanel(width, height, settings.font, settings.foregroundColor, settings.backgroundColor)
-        val panel = JPanel()
-        panel.layout = BorderLayout()
-        val empty = BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        val line = BorderFactory.createLineBorder(Color.WHITE, 1)
-        panel.border = BorderFactory.createCompoundBorder(line, empty)
-        panel.size = window.preferredSize
-        panel.location = java.awt.Point(x, y)
-        panel.add(window, BorderLayout.CENTER)
-        mainPane.add(panel)
-        mainPane.moveToFront(panel)
-        panel.background = mainPane.background
-        window.clear()
-        return window
+        mainPane.add(window.panel)
+        mainPane.moveToFront(window.panel)
+        window.keyHandler?.let { keyEventHandlers.add(it) }
     }
 
     override suspend fun <T> loadingWindow(text: String, task: () -> T): T {
         return withContext(Dispatchers.Default) {
-            val window = newWindow(text.length + 3, 2)
+            val window = GehennaPanel(text.length + 3, 2, settings)
+            addWindow(window)
             window.writeLine(text, 0)
             val job = async { task() }
             launch {
                 var count = 0
                 while (!job.isCompleted) {
                     window.putChar(listOf('-', '\\', '|', '/')[count++ % 3], text.length + 1, 0)
-                    window.repaint()
+                    window.forceRepaint()
                     delay(100)
                 }
             }
@@ -185,12 +167,14 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     override fun removeWindow(window: Window) {
         if (window is GehennaPanel) {
             mainPane.remove(window.parent)
+            window.keyHandler?.let { keyEventHandlers.remove(it) }
             mainPane.repaint()
         } else {
             throw Exception("MainFrame can't remove $window")
         }
     }
 
+    @Deprecated("BULLSHIT")
     private fun forceRepaint() {
         world.forceRepaint()
         info.forceRepaint()

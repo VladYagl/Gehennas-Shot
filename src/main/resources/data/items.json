@@ -79,7 +79,6 @@
             "damage": "d11",
             "delay": 40,
             "speed": 850,
-            "burst": true,
             "burstCount": 3,
             "time": 50
         },

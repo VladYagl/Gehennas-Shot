@@ -13,6 +13,10 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
         focusedItem?.let { it.select() }
     }
 
+    init {
+        repaint()
+    }
+
     fun addItem(item: MenuItem) {
         items.add(item)
         repaint()
@@ -26,8 +30,9 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
         onAccept = callback
     }
 
-    override fun repaint() {
-        items?.forEachIndexed { index, item -> item.draw(index, this) }
+    final override fun repaint() {
+        @Suppress("UNNECESSARY_SAFE_CALL") // todo because it's repaints before creating
+        items?.forEachIndexed { index, item -> if (index < size.height - 1) item.draw(index, this) }
         super.repaint()
     }
 
@@ -53,7 +58,8 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
                     val newId = (items.size + id + dir) % items.size
                     items.getOrNull(newId)
                 }
-                while (focusedItem?.focus() != true) {
+                var cnt = 0
+                while (focusedItem?.focus() != true && cnt++ < items.size) {
                     focusedItem?.unfocus()
                     val id = items.indexOf(focusedItem!!)
                     val newId = (items.size + id + dir) % items.size

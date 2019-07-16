@@ -197,7 +197,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val priority = IntArray(ui.worldSize) { minPriority }
     private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(point)) {
-            val g = if (cursorShown && cursor == point) {
+            val g = if (cursorShown && cursor.x == point.x && cursor.y == point.y) {
                 cursorGlyph
             } else {
                 glyph

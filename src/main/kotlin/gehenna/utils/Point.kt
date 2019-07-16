@@ -6,11 +6,11 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
 
-interface Point: Serializable {
+interface Point : Serializable {
     val x: Int
     val y: Int
-    operator fun minus(other: Point): Point = PointImpl(x - other.x, y - other.y)
 
+    operator fun minus(other: Point): Point = PointImpl(x - other.x, y - other.y)
     operator fun plus(other: Point): Point = PointImpl(x + other.x, y + other.y)
 
     val dir: Dir get() = x.sign on y.sign

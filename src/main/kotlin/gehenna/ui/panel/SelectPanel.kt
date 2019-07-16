@@ -4,7 +4,7 @@ import gehenna.ui.*
 
 class SelectPanel<T>(
         context: UIContext,
-        items: List<T>,
+        items: Iterable<T>,
         onSelect: (T) -> Unit,
         title: String? = null
 ) : MenuPanel(100, 30, context.settings) {

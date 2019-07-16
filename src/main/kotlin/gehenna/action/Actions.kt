@@ -77,7 +77,11 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : A
 
 data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(100) {
     override fun perform(context: Context): ActionResult {
-        logFor(entity, "$_Actor start[s] ${effect::class.simpleName}")
+        if (effect is Gun.BurstFire) {
+            logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")
+        } else {
+            logFor(entity, "$_Actor start[s] ${effect::class.simpleName}")
+        }
         entity.add(effect)
         return end()
     }

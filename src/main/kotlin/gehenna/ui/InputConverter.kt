@@ -98,7 +98,10 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
             "d" to Input.Drop,
             "e" to Input.Equip,
             "a" to Input.Use,
-            "i" to Input.Inventory
+            "i" to Input.Inventory,
+            "ESC" to Input.Cancel,
+            "ENTER" to Input.Accept,
+            "SPACE" to Input.Accept
     )
 
     override fun consumeKey(e: KeyEvent): Input? {

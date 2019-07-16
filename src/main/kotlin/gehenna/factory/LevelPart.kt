@@ -31,5 +31,5 @@ class FixedPart(private val entities: List<Pair<Point, EntityConfig>>, private v
         }
     }
 
-    override fun needs(point: Point) = entities.any { it.first == point }
+    override fun needs(point: Point) = entities.any { it.first.x == point.x && it.first.y == point.y }
 }

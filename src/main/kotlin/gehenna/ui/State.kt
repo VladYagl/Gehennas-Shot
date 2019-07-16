@@ -6,6 +6,7 @@ import gehenna.action.Move
 import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
+import gehenna.core.Entity
 import gehenna.level.Level
 import gehenna.ui.panel.ConsolePanel
 import gehenna.ui.panel.MenuPanel
@@ -63,7 +64,7 @@ private class Normal(private val context: UIContext) : State() {
         }
         is Input.Run -> {
             if (input.dir == Dir.zero) {
-                context.action = Move(context.player, input.dir) // todo: this is [Shit+.] == '>'  ???
+                context.action = Move(context.player, input.dir)
             } else {
                 context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
             }
@@ -104,7 +105,7 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Inventory -> {
             context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents, { selectedItem ->
-                context.addWindow(MenuPanel(30, 10, context.settings).apply {
+                context.addWindow(MenuPanel(100, 30, context.settings).apply {
                     setOnCancel { context.removeWindow(this) }
                     addItem(TextItem("${selectedItem.entity} -- vol.: ${selectedItem.volume}"))
                     addItem(ButtonItem("Equip", {
@@ -119,7 +120,16 @@ private class Normal(private val context: UIContext) : State() {
                         context.action = gehenna.action.Drop(context.player, listOf(selectedItem))
                         context.removeWindow(this)
                     }, 'd'))
-                    addItem(TextItem("<item description>"))
+                    addItem(TextItem(""))
+                    addItem(TextItem("  ** About **"))
+                    selectedItem.entity.components.values.filterNot { it is Glyph }.forEach { component ->
+                        addItem(TextItem("| ${component::class.simpleName}"))
+                        component.toString().split(", ", ",", "(", ")").drop(1).filterNot {
+                            it.contains("entity=")
+                        }.forEach {
+                            addItem(TextItem("|   $it"))
+                        }
+                    }
                 })
             }, "Inventory ${context.player.one<Inventory>().currentVolume}/${context.player.one<Inventory>().maxVolume}"))
             this to true
@@ -179,6 +189,24 @@ private class Examine(private val context: UIContext) : State() {
         }
     }
 
+    private fun examine(entity: Entity) {
+        //todo: copypasta
+        context.addWindow(MenuPanel(100, 30, context.settings).apply {
+            addItem(TextItem("This is a $entity"))
+            setOnCancel { context.removeWindow(this) }
+            entity.components.values.filterNot {
+                it is Glyph || it is Inventory || it is DirectionalGlyph || it is Position
+            }.forEach { component ->
+                addItem(TextItem("${component::class.simpleName}"))
+                component.toString().split(", ", ",", "(", ")").drop(1).filterNot {
+                    it.contains("entity=")
+                }.forEach {
+                    addItem(TextItem("  $it"))
+                }
+            }
+        })
+    }
+
     init {
         context.showCursor()
         print()
@@ -198,6 +226,23 @@ private class Examine(private val context: UIContext) : State() {
         Input.Cancel -> {
             context.hideCursor()
             Normal(context) to true
+        }
+        Input.Accept -> {
+            if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
+                val entities = level.safeGet(cursor)
+                when (entities.size) {
+                    0 -> context.log.addTemp("There is nothing to examine")
+                    1 -> examine(entities.first())
+                    else -> {
+                        context.addWindow(SelectPanel(context, entities, {
+                            examine(it)
+                        }, "There are: "))
+                    }
+                }
+            } else {
+                context.log.addTemp("Can't examine what you can't see")
+            }
+            this to true
         }
         else -> {
             this to false

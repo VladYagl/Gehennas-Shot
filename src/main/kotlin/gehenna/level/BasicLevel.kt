@@ -8,7 +8,7 @@ import gehenna.core.Entity
 import gehenna.utils.*
 import java.io.Serializable
 
-abstract class BasicLevel(val size: Size): Serializable {
+abstract class BasicLevel(val size: Size) : Serializable {
     protected val cells = Array(size) { HashSet<Entity>() }
     private var memory = Array(size) { 0L to null as Glyph? }
 
@@ -39,7 +39,7 @@ abstract class BasicLevel(val size: Size): Serializable {
     }
 
     fun spawn(entity: Entity, at: Point, lastPoint: Point? = null) {
-        entity.add(Position(at, this as Level, entity, lastPoint))
+        entity.add(Position(at, this as Level, entity, lastPoint?.plus(0 at 0))) //todo to save point not position
     }
 
     fun spawn(pos: Position) {

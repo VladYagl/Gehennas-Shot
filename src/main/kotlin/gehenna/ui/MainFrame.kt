@@ -89,6 +89,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         app = App(this, settings)
 
         val menuWindow = MenuPanel(12, 4, settings)
+        addWindow(menuWindow)
         menuWindow.addItem(ButtonItem("Continue", {
             // todo: add this only if save file is present
             startGame(true)
@@ -101,7 +102,6 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         menuWindow.addItem(ButtonItem("Quit", {
             exitProcess(0)
         }, 'q'))
-        addWindow(menuWindow)
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
     }

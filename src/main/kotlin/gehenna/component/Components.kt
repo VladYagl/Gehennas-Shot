@@ -32,7 +32,7 @@ data class Health(
     object Death : Entity.Event
 
     var current = max
-//        private set //todo
+        private set
 
     fun dealDamage(amount: Int) {
         current -= amount

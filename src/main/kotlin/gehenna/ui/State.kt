@@ -7,6 +7,9 @@ import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.level.Level
+import gehenna.ui.panel.ConsolePanel
+import gehenna.ui.panel.MultiSelectPanel
+import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
 import gehenna.utils.Point
 import kotlin.system.exitProcess
@@ -16,64 +19,6 @@ abstract class State {
 
     companion object {
         fun create(context: UIContext): State = Normal(context)
-    }
-}
-
-private abstract class Select<T>(
-        protected val context: UIContext,
-        private val items: List<T>,
-        title: String,
-        private val selectMultiple: Boolean = true
-) : State() {
-    private val select = BooleanArray(items.size) { false }
-    private val window = GehennaPanel(100, 30, context.settings)
-
-    private fun updateItem(index: Int) {
-        window.writeLine("   ${if (select[index]) '+' else '-'} ${'a' + index}: ${items[index]}", 1 + index)
-    }
-
-    init {
-        context.addWindow(window)
-        window.writeLine(title, 0)
-        repeat(items.size) { i ->
-            updateItem(i)
-        }
-        window.repaint()
-    }
-
-    override fun handleInput(input: Input) = when (input) {
-        //TODO: well actually I probably want to select items with hjkl
-        is Input.Char -> {
-            if (input.char in 'a'..'z') {
-                val index = input.char - 'a'
-                if (index < select.size) {
-                    if (selectMultiple) {
-                        select[index] = !select[index]
-                        updateItem(index)
-                        window.repaint()
-                        this to true
-                    } else {
-                        context.removeWindow(window)
-                        onAccept(listOf(items[index])) to true
-                    }
-                } else this to true
-            } else this to false
-        }
-        is Input.Accept -> {
-            context.removeWindow(window)
-            onAccept(items.filterIndexed { index, _ -> select[index] }) to true
-        }
-        is Input.Cancel -> {
-            context.removeWindow(window)
-            onCancel() to true
-        }
-        else -> this to false
-    }
-
-    abstract fun onAccept(items: List<T>): State
-    open fun onCancel(): State {
-        context.log.addTemp("Never mind")
-        return Normal(context)
     }
 }
 
@@ -133,15 +78,35 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Pickup -> {
             val pos = context.player.one<Position>()
-            val items = pos.neighbors.mapNotNull { it<Item>() }
-            if (items.isEmpty()) {
+            val neighbors = pos.neighbors.mapNotNull { it<Item>() }
+            if (neighbors.isEmpty()) {
                 context.log.addTemp("There is no items to pickup(((")
                 this to true
-            } else Pickup(context, items) to true
+            } else {
+                context.addWindow(MultiSelectPanel(context, neighbors, { items ->
+                    context.action = gehenna.action.Pickup(context.player, items)
+                }, "Pick up what?"))
+                this to true
+            }
         }
-        Input.Drop -> Drop(context) to true
-        Input.Use -> Use(context) to true
-        Input.Equip -> Equip(context) to true
+        Input.Drop -> {
+            context.addWindow(MultiSelectPanel(context, context.player.one<Inventory>().contents, { items ->
+                context.action = gehenna.action.Drop(context.player, items)
+            }, "Drop what?"))
+            this to true
+        }
+        Input.Use -> {
+            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Consumable>() }, {
+                context.action = it.entity.any<Consumable>()?.apply(context.player)
+            }, "Use what?"))
+            this to true
+        }
+        Input.Equip -> {
+            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Gun>() } + (null as Item?), {
+                context.action = gehenna.action.Equip(context.player, it)
+            }, "Equip what?"))
+            this to true
+        }
         Input.ClimbStairs -> {
             val pos = context.player.one<Position>()
             pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
@@ -151,7 +116,10 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Open -> UseDoor(context, false) to true
         Input.Close -> UseDoor(context, true) to true
-        Input.Console -> Console(context) to true
+        Input.Console -> {
+            context.addWindow(ConsolePanel(context))
+            this to true
+        }
         Input.Examine -> Examine(context) to true
         else -> this to false
     }
@@ -178,75 +146,6 @@ class End(private val context: UIContext) : State() {
     override fun handleInput(input: Input) = when (input) {
         Input.Accept, Input.Cancel -> {
             exitProcess(0)
-        }
-        else -> this to false
-    }
-}
-
-private class Pickup(context: UIContext, items: List<Item>) : Select<Item>(context, items, "Pick up what?") {
-    override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Pickup(context.player, items)
-        return Normal(context)
-    }
-}
-
-private class Drop(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().contents, "Drop what?") {
-    override fun onAccept(items: List<Item>): State {
-        context.action = gehenna.action.Drop(context.player, items)
-        return Normal(context)
-    }
-}
-
-private class Equip(context: UIContext) : Select<Item?>(context, context.player.one<Inventory>().contents + (null as Item?), "Equip what?", false) {
-    override fun onAccept(items: List<Item?>): State {
-        context.action = gehenna.action.Equip(context.player, items.firstOrNull())
-        return Normal(context)
-    }
-}
-
-private class Use(context: UIContext) : Select<Item>(context, context.player.one<Inventory>().contents, "Use what?", false) {
-    override fun onAccept(items: List<Item>): State {
-        context.action = items.first().entity.any<Consumable>()?.apply(context.player)
-        return Normal(context)
-    }
-}
-
-private class Console(private val context: UIContext) : State() {
-    private val window = GehennaPanel(100, 2, context.settings).also {
-        context.addWindow(it)
-    }
-    private var command: String = ""
-
-    override fun handleInput(input: Input) = when (input) {
-        is Input.Char -> {
-            command += input.char
-            window.writeLine(command, 0, alignment = Alignment.left)
-            this to true
-        }
-        is Input.Accept -> {
-            try {
-                val words = command.split(' ')
-                when (words[0]) {
-                    "spawn" -> context.player.one<Position>().spawnHere(context.factory.new(words[1]))
-                    "give" -> context.player.one<Inventory>().add(context.factory.new(words[1])()!!)
-                    "find" -> context.log.addTemp(
-                            context.player.one<Position>().level.getAll().find { it.name == words[1] }?.invoke<Position>().toString()
-                    )
-                }
-            } catch (e: Throwable) {
-                context.printException(e)
-            }
-            context.removeWindow(window)
-            Normal(context) to true
-        }
-        is Input.Backspace -> {
-            command = command.dropLast(1)
-            window.writeLine(command, 0, alignment = Alignment.left)
-            this to true
-        }
-        is Input.Cancel -> {
-            context.removeWindow(window)
-            Normal(context) to true
         }
         else -> this to false
     }

@@ -1,5 +1,7 @@
 package gehenna.ui
 
+import gehenna.ui.panel.GehennaPanel
+
 abstract class MenuItem {
     protected abstract val line: String
     protected val alignment = Alignment.left
@@ -39,9 +41,10 @@ open class ButtonItem(override val line: String, override val select: () -> Unit
 }
 
 class CheckItem(private val name: String, override val char: Char? = null) : ButtonItem("- $name", {}, char) {
-    private var selected = false
+    var selected = false
+        private set
 
     override val select = { selected = !selected }
     override val line: String
-        get() = (if (selected) "+" else "-") + (char?.plus(": ") ?: "") + name
+        get() = "${if (selected) "+" else "-"} $name"
 }

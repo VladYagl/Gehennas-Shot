@@ -66,13 +66,13 @@ abstract class InputConverter(private val listener: InputListener) : KeyEventDis
             KEY_TYPED -> consumeChar(e.keyChar)?.let { listener.onInput(it) } ?: false
             KEY_PRESSED -> consumeKey(e)?.let { listener.onInput(it) } ?: run {
                 val command = StringBuilder()
-                keyMap[command
                         .append(if (e.isAltDown) "!" else "")
                         .append(if (e.isControlDown) "^" else "")
                         .append(if (e.isShiftDown) "+" else "")
                         .append(codeName(e.keyCode) ?: e.keyChar.toLowerCase())
                         .toString()
-                ]?.let { listener.onInput(it) } ?: false
+                println(command)
+                keyMap[command]?.let { listener.onInput(it) } ?: false
             }
             else -> false
         }
@@ -92,7 +92,7 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
             "d" to Input.Drop,
             "e" to Input.Equip,
             "a" to Input.Use,
-            "<" to Input.ClimbStairs,
+            "+<" to Input.ClimbStairs,
             "o" to Input.Open,
             "c" to Input.Close,
             "`" to Input.Console,
@@ -110,18 +110,21 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
 
 class TextInput(listener: InputListener) : InputConverter(listener) {
     override val keyMap: HashMap<String, Input> = hashMapOf(
-            "BACK_SPACE" to Input.Backspace
+            "BACK_SPACE" to Input.Backspace,
+            "ESC" to Input.Cancel,
+            "ENTER" to Input.Accept
     )
 
-    override fun consumeChar(char: Char): Input {
-        return Input.Char(char)
+    override fun consumeChar(char: Char): Input? {
+        return if (char.isLetter() || char == ' ') Input.Char(char) else null
     }
 }
 
 class MenuInput(listener: InputListener) : InputConverter(listener) {
     override val keyMap: HashMap<String, Input> = hashMapOf(
             "ESC" to Input.Cancel,
-            "ENTER" to Input.Accept
+            "ENTER" to Input.Accept,
+            "SPACE" to Input.Accept
     )
 
     override fun consumeKey(e: KeyEvent): Input? {

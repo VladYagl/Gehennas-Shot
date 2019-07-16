@@ -1,5 +1,7 @@
 package gehenna.ui
 
+import gehenna.ui.panel.GehennaPanel
+import gehenna.ui.panel.MenuPanel
 import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.showError

@@ -7,6 +7,7 @@ import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelFactory
+import gehenna.ui.panel.GehennaPanel
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
@@ -67,19 +68,21 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             when {
                 !game.player.has<Position>() -> {
                     state = End(context)
-//                    val window = ui.newWindow(17, 6)
-//                    window.writeLine("RIP ", 1, Alignment.center)
-//                    window.writeLine("YOU ARE DEAD", 3, Alignment.center)
-//                    uiJob.cancel()
-//                    uiJob.join()
+                    ui.addWindow(GehennaPanel(17, 6, context.settings).also {
+                        it.writeLine("RIP ", 1, Alignment.center)
+                        it.writeLine("YOU ARE DEAD", 3, Alignment.center)
+                    })
+                    uiJob.cancel()
+                    uiJob.join()
                     false
                 }
                 game.player<Position>()?.level?.depth == 2 -> {
                     state = End(context)
-//                    val window = ui.newWindow(19, 4)
-//                    window.writeLine("WE WON ZULUL", 1, Alignment.center)
-//                    uiJob.cancel()
-//                    uiJob.join()
+                    ui.addWindow(GehennaPanel(19, 4, context.settings).also {
+                        it.writeLine("WE WON ZULUL", 1, Alignment.center)
+                    })
+                    uiJob.cancel()
+                    uiJob.join()
                     false
                 }
                 else -> true

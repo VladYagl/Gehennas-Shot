@@ -13,7 +13,7 @@ class ConsolePanel(private val context: UIContext) : GehennaPanel(100, 2, contex
             writeLine(command, 0, alignment = Alignment.left)
             true
         }
-        is Input.Accept -> {
+        Input.Accept -> {
             try {
                 val words = command.split(' ')
                 when (words[0]) {
@@ -29,12 +29,12 @@ class ConsolePanel(private val context: UIContext) : GehennaPanel(100, 2, contex
             context.removeWindow(this)
             true
         }
-        is Input.Backspace -> {
+        Input.Backspace -> {
             command = command.dropLast(1)
             writeLine(command, 0, alignment = Alignment.left)
             true
         }
-        is Input.Cancel -> {
+        Input.Cancel -> {
             context.removeWindow(this)
             true
         }

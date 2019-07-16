@@ -67,19 +67,27 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
             when {
                 !game.player.has<Position>() -> {
-                    state = End(context)
-                    ui.addWindow(GehennaPanel(17, 6, context.settings).also {
-                        it.writeLine("RIP ", 1, Alignment.center)
-                        it.writeLine("YOU ARE DEAD", 3, Alignment.center)
+                    ui.addWindow(GehennaPanel(17, 6, context.settings, keyHandler = MenuInput(object : InputListener {
+                        override fun onInput(input: Input) = when (input) {
+                            Input.Accept, Input.Cancel -> exitProcess(0)
+                            else -> false
+                        }
+                    })).apply {
+                        writeLine("RIP ", 1, Alignment.center)
+                        writeLine("YOU ARE DEAD", 3, Alignment.center)
                     })
                     uiJob.cancel()
                     uiJob.join()
                     false
                 }
                 game.player<Position>()?.level?.depth == 2 -> {
-                    state = End(context)
-                    ui.addWindow(GehennaPanel(19, 4, context.settings).also {
-                        it.writeLine("WE WON ZULUL", 1, Alignment.center)
+                    ui.addWindow(GehennaPanel(19, 4, context.settings, keyHandler = MenuInput(object : InputListener {
+                        override fun onInput(input: Input) = when (input) {
+                            Input.Accept, Input.Cancel -> exitProcess(0)
+                            else -> false
+                        }
+                    })).apply {
+                        writeLine("WE WON ZULUL", 1, Alignment.center)
                     })
                     uiJob.cancel()
                     uiJob.join()

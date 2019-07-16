@@ -7,19 +7,23 @@ import gehenna.utils.Dir
 sealed class Input {
     data class Direction(val dir: Dir) : Input()
     data class Run(val dir: Dir) : Input()
-    data class Char(val char: kotlin.Char) : Input()
-    object Fire : Input()
+
     object Pickup : Input()
-    object Use : Input()
     object Drop : Input()
+    object Use : Input()
     object Equip : Input()
-    object Cancel : Input()
-    object Accept : Input()
+    object Inventory : Input()
+    object Fire : Input()
     object ClimbStairs : Input()
     object Open : Input()
     object Close : Input()
-    object Quit : Input()
     object Console : Input()
-    object Backspace : Input()
     object Examine : Input()
+    object Quit : Input()
+
+    data class Char(val char: kotlin.Char) : Input()
+    object Backspace : Input()
+
+    object Cancel : Input()
+    object Accept : Input()
 }

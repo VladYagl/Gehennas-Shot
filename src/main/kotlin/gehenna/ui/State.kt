@@ -8,6 +8,7 @@ import gehenna.component.*
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.level.Level
 import gehenna.ui.panel.ConsolePanel
+import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
@@ -35,7 +36,7 @@ private abstract class Direction(protected val context: UIContext) : State() {
 
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> onDir(input.dir) to true
-        is Input.Cancel -> onCancel() to true
+        Input.Cancel -> onCancel() to true
         else -> this to false
     }
 }
@@ -101,6 +102,28 @@ private class Normal(private val context: UIContext) : State() {
             }, "Use what?"))
             this to true
         }
+        Input.Inventory -> {
+            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents, { selectedItem ->
+                context.addWindow(MenuPanel(30, 10, context.settings).apply {
+                    setOnCancel { context.removeWindow(this) }
+                    addItem(TextItem("${selectedItem.entity} -- vol.: ${selectedItem.volume}"))
+                    addItem(ButtonItem("Equip", {
+                        context.action = gehenna.action.Equip(context.player, selectedItem)
+                        context.removeWindow(this)
+                    }, 'e'))
+                    addItem(ButtonItem("Use", {
+                        context.action = selectedItem.entity.any<Consumable>()?.apply(context.player)
+                        context.removeWindow(this)
+                    }, 'u'))
+                    addItem(ButtonItem("Drop", {
+                        context.action = gehenna.action.Drop(context.player, listOf(selectedItem))
+                        context.removeWindow(this)
+                    }, 'd'))
+                    addItem(TextItem("<item description>"))
+                })
+            }, "Inventory ${context.player.one<Inventory>().currentVolume}/${context.player.one<Inventory>().maxVolume}"))
+            this to true
+        }
         Input.Equip -> {
             context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Gun>() } + (null as Item?), {
                 context.action = gehenna.action.Equip(context.player, it)
@@ -142,15 +165,6 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
     }
 }
 
-class End(private val context: UIContext) : State() {
-    override fun handleInput(input: Input) = when (input) {
-        Input.Accept, Input.Cancel -> {
-            exitProcess(0)
-        }
-        else -> this to false
-    }
-}
-
 private class Examine(private val context: UIContext) : State() {
     //todo: get cursor from ui
     var cursor: Point = context.player.one<Position>()
@@ -181,7 +195,7 @@ private class Examine(private val context: UIContext) : State() {
             print()
             this to true
         }
-        is Input.Cancel -> {
+        Input.Cancel -> {
             context.hideCursor()
             Normal(context) to true
         }

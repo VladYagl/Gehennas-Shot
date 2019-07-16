@@ -67,11 +67,11 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
                 false
             }
         }
-        is Input.Cancel -> {
+        Input.Cancel -> {
             onCancel()
             true
         }
-        is Input.Accept -> {
+        Input.Accept -> {
             onAccept()
             true
         }

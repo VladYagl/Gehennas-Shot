@@ -87,17 +87,18 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
     override val keyMap = hashMapOf(
             "+q" to Input.Quit,
             "f" to Input.Fire,
-            "," to Input.Pickup,
-            "g" to Input.Pickup,
-            "d" to Input.Drop,
-            "e" to Input.Equip,
-            "a" to Input.Use,
             "+<" to Input.ClimbStairs,
             "o" to Input.Open,
             "c" to Input.Close,
             "`" to Input.Console,
             "§" to Input.Console,
-            ";" to Input.Examine
+            ";" to Input.Examine,
+            "," to Input.Pickup,
+            "g" to Input.Pickup,
+            "d" to Input.Drop,
+            "e" to Input.Equip,
+            "a" to Input.Use,
+            "i" to Input.Inventory
     )
 
     override fun consumeKey(e: KeyEvent): Input? {

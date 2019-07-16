@@ -164,7 +164,7 @@ class EntityFactory : JsonFactory<Entity> {
     }
 
     override fun new(name: String): Entity {
-        return entities[name]?.build(name)?.also { it.emit(Entity.Finish) } ?: throw NoSuchBuilderException(name)
+        return entities[name]?.build(name)?.apply { emit(Entity.Finish) } ?: throw NoSuchBuilderException(name)
     }
 }
 

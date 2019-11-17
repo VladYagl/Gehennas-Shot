@@ -1,69 +1,68 @@
 {
-    "player": {
-        "glyph": {
-            "char": 2,
-            "priority": 100,
-            "memorable": false
-        },
+    "human": {
         "obstacle": {
             "blockView": false,
             "blockMove": true,
             "blockPath": false
         },
+        "sight": {
+            "range": 15
+        },
+        "health": {
+            "max": 10
+        },
+        "inventory": {
+            "maxVolume": 200
+        },
+        "mutators": {
+            "giveOneOf": {
+                "items": [
+                    "death_grips_1",
+                    "death_grips_2",
+                    "death_grips_3",
+                    "death_grips_4",
+                    "death_grips_5"
+                ]
+            }
+        }
+    },
+
+    "player": {
+        "super": "human",
+        "glyph": {
+            "char": 2,
+            "priority": 100,
+            "memorable": false
+        },
         "health": {
             "max": 50
         },
-        "inventory": {
-            "maxVolume": 200,
-            "items": [
-                "pistol"
-            ]
-        },
-        "chooseOneItem": {
-            "items": [
-                "toy",
-                "death_grips_1",
-                "death_grips_2",
-                "death_grips_3",
-                "death_grips_4",
-                "death_grips_5"
-            ]
-        },
-        "sight": {
-            "range": 25
+        "mutators": {
+            "giveItem": {
+                "item": "pistol"
+            },
+            "giveItem": {
+                "item": "toy"
+            }
         },
         "playerBehaviour": {},
         "logger": {}
     },
 
     "bandit": {
+        "super": "human",
         "glyph": {
             "char": 1,
             "priority": 100,
             "memorable": false
         },
-        "obstacle": {
-            "blockView": false,
-            "blockMove": true,
-            "blockPath": false
-        },
-        "inventory": {
-            "maxVolume": 200,
-            "items": [],
-            "gun": "pistol"
-        },
-        "chooseOneItem": {
-            "items": [
-                "brockhampton_1",
-                "brockhampton_2",
-                "brockhampton_3"
-            ]
+        "mutators": {
+            "giveGun": {
+                "gun": "pistol"
+            }
         },
         "health": {
             "max": 10
-        },
-        "sight": {
-            "range": 25
         },
         "MonsterBehaviour": {
             "faction": "bandits"
@@ -71,34 +70,20 @@
     },
 
     "strongBandit": {
+        "super": "human",
         "name": "armored bandit",
         "glyph": {
             "char": 0,
             "priority": 100,
             "memorable": false
         },
-        "obstacle": {
-            "blockView": false,
-            "blockMove": true,
-            "blockPath": false
-        },
-        "inventory": {
-            "maxVolume": 200,
-            "items": [],
-            "gun": "rifle"
-        },
-        "chooseOneItem": {
-            "items": [
-                "brockhampton_1",
-                "brockhampton_2",
-                "brockhampton_3"
-            ]
+        "mutators": {
+            "giveGun": {
+                "gun": "rifle"
+            }
         },
         "health": {
             "max": 30
-        },
-        "sight": {
-            "range": 25
         },
         "MonsterBehaviour": {
             "faction": "bandits"

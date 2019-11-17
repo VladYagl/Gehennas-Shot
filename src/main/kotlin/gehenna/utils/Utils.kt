@@ -1,6 +1,5 @@
 package gehenna.utils
 
-import com.beust.klaxon.JsonReader
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -41,14 +40,6 @@ fun <T, S: Comparable<S>> Iterable<T>.maxOf(func: (T) -> S): S? {
 
 fun <T, S, V> Iterable<T>.cartesianProduct(other: Iterable<S>, transformer: (first: T, second: S) -> V): List<V> {
     return flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
-}
-
-fun JsonReader.nextStringList() = ArrayList<String>().also { list ->
-    beginArray {
-        while (hasNext()) {
-            list.add(nextString())
-        }
-    }
 }
 
 fun max(a: Color, b: Color): Color {

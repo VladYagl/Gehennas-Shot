@@ -14,6 +14,8 @@ class UnknownArgumentException(name: String) : GehennaException("Unknown compone
 
 class BadComponentException(name: String) : GehennaException("Bad component: $name")
 
+class BadMutatorException(name: String) : GehennaException("Bad hook: $name")
+
 class NotAnItemException(name: String) : GehennaException("Is not an <Entity> or entity is not an item: $name")
 
 class ReadException(name: String, cause: Throwable) : GehennaException("Can't read $name: ${cause.message}", cause)

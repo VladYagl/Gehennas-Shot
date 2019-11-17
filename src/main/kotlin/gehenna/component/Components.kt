@@ -6,7 +6,6 @@ import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
 import gehenna.utils.random
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.math.min
 
 data class Glyph(
@@ -129,18 +128,6 @@ data class Inventory(
     }
 }
 
-data class ChooseOneItem(
-        override val entity: Entity,
-        private val items: ArrayList<Item> = ArrayList()
-) : Component() {
-    init {
-        subscribe<Entity.Finish> {
-            entity<Inventory>()?.add(items.random(random))
-            entity.remove(this)
-        }
-    }
-}
-
 data class Door(
         override val entity: Entity,
         val closedChar: Char,
@@ -173,7 +160,7 @@ data class DirectionalGlyph(override val entity: Entity, val glyphs: Map<Dir, Ch
 
     init {
         subscribe<Entity.NewComponent<*>> {
-            it.component.safeAs<Position>()?.lastDir?.let { dir ->
+            (it.component as? Position)?.lastDir?.let { dir ->
                 glyph.char = glyphs[dir] ?: glyph.char
             }
         }

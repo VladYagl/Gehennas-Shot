@@ -40,17 +40,14 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
         val (stream, file) = input
         try {
             JsonReader(stream.reader()).use { reader ->
-                reader.beginObject {
-                    while (reader.hasNext()) {
-                        val name = reader.nextName()
-                        reader.lexer.nextToken() // consume ':'
-                        try {
-                            klaxon.parse<LevelConfig>(reader)?.let { config ->
-                                levels.put(name, config.toPart(factory))
-                            }
-                        } catch (e: Exception) {
-                            throw ReadException(name, e)
+                reader.beginObject { name ->
+                    reader.lexer.nextToken() // consume ':'
+                    try {
+                        klaxon.parse<LevelConfig>(reader)?.let { config ->
+                            levels.put(name, config.toPart(factory))
                         }
+                    } catch (e: Exception) {
+                        throw ReadException(name, e)
                     }
                 }
             }

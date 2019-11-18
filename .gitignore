@@ -1,3 +1,11 @@
+.gradle/
 .idea/
-GehannasShot.iml
+build/
+gradle/
 target/
+
+GehannasShot.iml
+gradlew
+gradlew.bat
+save.dat
+

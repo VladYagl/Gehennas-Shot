@@ -66,8 +66,12 @@ private class Normal(private val context: UIContext) : State() {
             if (input.dir == Dir.zero) {
                 context.action = Move(context.player, input.dir)
             } else {
-                context.player<PlayerBehaviour>()?.repeat(Move(context.player, input.dir))
+                context.player<PlayerBehaviour>()?.walk(input.dir)
             }
+            this to true
+        }
+        Input.Cancel -> {
+            context.player<PlayerBehaviour>()?.cancel()
             this to true
         }
         Input.Fire -> {

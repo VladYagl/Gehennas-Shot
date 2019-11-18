@@ -41,8 +41,8 @@ data class Dir(override val x: Int, override val y: Int) : Point {
         assert(y in -1..1)
     }
 
-    val turnRight get() = Dir[(Dir.indexOf(dir) + 1) % Dir.size]
-    val turnLeft get() = Dir[(Dir.indexOf(dir) + Dir.size - 1) % Dir.size]
+    val turnRight get() = Dir[(indexOf(dir) + 1) % Dir.size]
+    val turnLeft get() = Dir[(indexOf(dir) + Dir.size - 1) % Dir.size]
 
     companion object : List<Dir> by listOf(
             1 on 0,

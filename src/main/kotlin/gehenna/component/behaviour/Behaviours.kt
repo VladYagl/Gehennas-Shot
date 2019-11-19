@@ -3,16 +3,19 @@ package gehenna.component.behaviour
 import gehenna.action.Move
 import gehenna.component.ActiveComponent
 import gehenna.component.Position
-import gehenna.core.Action
-import gehenna.core.Entity
-import gehenna.core.Faction
-import gehenna.core.SoloFaction
+import gehenna.core.*
+import gehenna.exceptions.GehennaException
 import gehenna.utils.Dir
 import gehenna.utils.random
 
-abstract class Behaviour(protected open val speed: Int = 100) : ActiveComponent() {
-    protected fun scaleTime(time: Long, speed: Int): Long {
-        return time * 100 / speed
+abstract class Behaviour(protected open val speed: Int = normalSpeed) : ActiveComponent() {
+
+    companion object {
+        const val normalSpeed: Int = 100
+
+        fun scaleTime(time: Long, speed: Int): Long {
+            return time * normalSpeed / speed
+        }
     }
 
     final override suspend fun action(): Action {
@@ -30,14 +33,22 @@ abstract class CharacterBehaviour : Behaviour() {
 
 abstract class PredictableBehaviour : Behaviour() {
     abstract fun copy(entity: Entity): Behaviour
+    open val dir: Dir = Dir.zero
 
-    fun predict(pos: Position, dir: Dir): Action {
+    fun predict(pos: Position, dir: Dir): PredictableAction {
         val action = predictImpl(pos, dir)
         action.time = scaleTime(action.time, speed)
         return action
     }
 
-    protected abstract fun predictImpl(pos: Position, dir: Dir): Action
+    protected abstract fun predictImpl(pos: Position, dir: Dir): PredictableAction
+
+    override suspend fun behave(): Action {
+        if (lastResult?.succeeded == false) {
+            throw GehennaException("Predictable behaviour failed action: $lastResult")
+        }
+        return predictImpl(entity.one(), dir)
+    }
 }
 
 data class RandomBehaviour(override val entity: Entity) : Behaviour() {

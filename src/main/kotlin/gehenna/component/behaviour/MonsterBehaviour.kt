@@ -4,6 +4,7 @@ import gehenna.action.Move
 import gehenna.action.Pickup
 import gehenna.component.*
 import gehenna.core.Action
+import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Faction
 import gehenna.exceptions.EntityMustHaveOneException
@@ -37,7 +38,7 @@ data class MonsterBehaviour(
         }
         newTarget?.let { target = it }
         bullets.forEach { bullet ->
-            dangerZone.addAll(pos.level.predict(bullet, speed.toLong()))
+            dangerZone.addAll(pos.level.predict(bullet, scaleTime(oneTurn, speed)))
         }
     }
 

@@ -2,6 +2,7 @@ package gehenna.component
 
 import gehenna.action.Destroy
 import gehenna.core.*
+import gehenna.core.Action.Companion.oneTurn
 
 abstract class ActiveComponent : Component() {
     open var waitTime: Long = 0L
@@ -18,7 +19,7 @@ abstract class Effect : ActiveComponent() {
     abstract var duration: Long
 }
 
-data class DestroyTimer(override val entity: Entity, override var waitTime: Long = 1000) : Effect() {
+data class DestroyTimer(override val entity: Entity, override var waitTime: Long = oneTurn * 10) : Effect() {
     override var duration
         get() = 1L
         set(value) {}
@@ -27,10 +28,10 @@ data class DestroyTimer(override val entity: Entity, override var waitTime: Long
 }
 
 open class RepeatAction<T : Action>(
-    override val entity: Entity,
-    private var count: Int,
-    private var delay: Long = 100,
-    private val actionFactory: () -> T
+        override val entity: Entity,
+        private var count: Int,
+        private var delay: Long = oneTurn,
+        private val actionFactory: () -> T
 ) : Effect() {
     override var waitTime = 1L
     override var duration
@@ -44,9 +45,9 @@ open class RepeatAction<T : Action>(
 }
 
 data class SequenceOfActions(
-    override val entity: Entity,
-    private val actions: Iterable<Action>,
-    private var delay: Long = 100
+        override val entity: Entity,
+        private val actions: Iterable<Action>,
+        private var delay: Long = oneTurn
 ) : Effect() {
     override var waitTime = 1L
     override var duration

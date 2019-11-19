@@ -3,22 +3,15 @@ package gehenna.component.behaviour
 import gehenna.action.Collide
 import gehenna.action.Destroy
 import gehenna.action.Move
-import gehenna.component.Health
 import gehenna.component.Position
 import gehenna.component.Reflecting
-import gehenna.core.Action
-import gehenna.core.ActionResult
-import gehenna.core.Context
-import gehenna.core.Entity
-import gehenna.utils.Dice
-import gehenna.utils.Dir
-import gehenna.utils.at
-import gehenna.utils.on
+import gehenna.core.*
+import gehenna.utils.*
 
 //TODO: try some player seeking behaviour
 data class BulletBehaviour(
         override val entity: Entity,
-        var dir: Dir,
+        override var dir: Dir,
         private val damage: Dice,
         override val speed: Int,
         override var waitTime: Long = 0
@@ -28,12 +21,12 @@ data class BulletBehaviour(
         return BulletBehaviour(entity, dir, damage, speed, waitTime)
     }
 
-    data class Bounce(private val entity: Entity, val dir: Dir) : Action(30) {
-        fun bounce(pos: Position): Dir {
+    data class Bounce(private val entity: Entity, val dir: Dir) : PredictableAction(30) {
+        override fun predictDir(position: Position): Dir {
             val (x, y) = dir
-            val (newx, newy) = pos + dir
-            val h = pos.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
-            val v = pos.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
+            val (newx, newy) = position + dir
+            val h = position.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
+            val v = position.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
             return if (h && v) {
                 -x on -y
             } else if (h) {
@@ -45,14 +38,16 @@ data class BulletBehaviour(
             }
         }
 
+        override fun predict(pos: Position): Point = pos
+
         override fun perform(context: Context): ActionResult {
             val behaviour = entity<BulletBehaviour>()
-            behaviour?.dir = bounce(entity.one())
+            behaviour?.dir = predictDir(entity.one())
             return end()
         }
     }
 
-    override fun predictImpl(pos: Position, dir: Dir): Action {
+    override fun predictImpl(pos: Position, dir: Dir): PredictableAction {
         val obstacle = pos.level.obstacle(pos + dir)
         if (obstacle != null) {
             if (obstacle.has<Reflecting>()) {
@@ -61,12 +56,5 @@ data class BulletBehaviour(
             return Collide(entity, obstacle, damage)
         }
         return Move(entity, dir)
-    }
-
-    override suspend fun behave(): Action {
-        if (lastResult?.succeeded == false) {
-            return Destroy(entity)
-        }
-        return predictImpl(entity.one(), dir)
     }
 }

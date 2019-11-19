@@ -3,10 +3,17 @@ package gehenna.core
 import gehenna.component.Logger
 import gehenna.component.Position
 import gehenna.component.Senses
+import gehenna.utils.Dir
+import gehenna.utils.Point
 import gehenna.utils.prepareMessage
 import java.io.Serializable
 
-abstract class Action(open var time: Long = 100, open val addToQueue: Boolean = true) : Serializable {
+abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolean = true) : Serializable {
+
+    companion object {
+        const val oneTurn: Long = 100
+    }
+
     abstract fun perform(context: Context): ActionResult
 
     protected val log = ArrayList<LogEntry>()
@@ -21,4 +28,10 @@ abstract class Action(open var time: Long = 100, open val addToQueue: Boolean = 
 
     protected fun end(): ActionResult = ActionResult(time, true, log, addToQueue)
     protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
+}
+
+abstract class PredictableAction(time: Long = oneTurn, addToQueue: Boolean = true) : Action(time, addToQueue) {
+    abstract fun predict(pos: Position): Point
+
+    open fun predictDir(position: Position): Dir? = null
 }

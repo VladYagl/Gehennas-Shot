@@ -2,21 +2,17 @@ package gehenna.action
 
 import gehenna.component.*
 import gehenna.component.behaviour.BulletBehaviour
-import gehenna.core.Action
-import gehenna.core.ActionResult
-import gehenna.core.Context
-import gehenna.core.Entity
-import gehenna.utils.Dice
-import gehenna.utils.Dir
+import gehenna.core.*
+import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
-import gehenna.utils._Actor
-import gehenna.utils.minOf
 
 object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()
 }
 
-data class Move(private val entity: Entity, val dir: Dir) : Action(100) {
+data class Move(private val entity: Entity, val dir: Dir) : PredictableAction(oneTurn) {
+    override fun predict(pos: Position): Point = pos + dir
+
     override fun perform(context: Context): ActionResult {
         return if (dir == zero) {
             end()
@@ -48,7 +44,7 @@ data class Shoot(
         private val damage: Dice,
         private val delay: Long,
         private val speed: Int,
-        override var time: Long = 100L
+        override var time: Long = oneTurn
 ) : Action() {
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(bulletName)
@@ -65,7 +61,9 @@ data class Destroy(private val entity: Entity) : Action(0, false) {
     }
 }
 
-data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : Action(100, false) {
+data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : PredictableAction(oneTurn, false) {
+    override fun predict(pos: Position): Point = victim.one<Position>()
+
     override fun perform(context: Context): ActionResult {
         val damageRoll = damage.roll()
         logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
@@ -75,7 +73,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : A
     }
 }
 
-data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(100) {
+data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(oneTurn) {
     override fun perform(context: Context): ActionResult {
         if (effect is Gun.BurstFire) {
             logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")
@@ -87,7 +85,7 @@ data class ApplyEffect(private val entity: Entity, private val effect: Effect) :
     }
 }
 
-data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) : Action(100) {
+data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) : Action(oneTurn) {
     override fun perform(context: Context): ActionResult {
         val pos = entity.one<Position>()
         val destination = stairs.destination ?: context.levelFactory.new(pos.level, pos).let { (level, pos) ->
@@ -137,7 +135,7 @@ data class Drop(private val entity: Entity, private val items: List<Item>, priva
     }
 }
 
-data class UseDoor(private val door: Door, private val close: Boolean) : Action(100) {
+data class UseDoor(private val door: Door, private val close: Boolean) : Action(oneTurn) {
     override fun perform(context: Context): ActionResult {
         if (door.closed == close) return fail()
         door.change(close)

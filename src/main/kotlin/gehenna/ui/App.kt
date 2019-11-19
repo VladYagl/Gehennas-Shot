@@ -2,17 +2,17 @@ package gehenna.ui
 
 import gehenna.component.*
 import gehenna.component.behaviour.*
+import gehenna.core.Action
+import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
-import gehenna.level.DungeonLevelFactory
 import gehenna.ui.panel.GehennaPanel
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
 import java.awt.Color
-import kotlin.reflect.full.safeCast
 import kotlin.system.exitProcess
 import kotlin.system.measureNanoTime
 
@@ -245,7 +245,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //predict
         behaviours.forEach { behaviour ->
             var color = ui.world.fgColor * 0.5
-            level.predictWithGlyph(behaviour, playerBehaviour.waitTime + playerBehaviour.speed.toLong())
+            level.predictWithGlyph(behaviour, Behaviour.scaleTime(oneTurn, playerBehaviour.speed))
                     .asSequence()
                     .filter { (pos, _) -> game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos) }
                     .forEach { (pos, glyph) ->

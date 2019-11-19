@@ -1,7 +1,5 @@
 package gehenna.level
 
-import gehenna.action.Collide
-import gehenna.action.Move
 import gehenna.component.DirectionalGlyph
 import gehenna.component.Glyph
 import gehenna.component.Position
@@ -11,40 +9,36 @@ import gehenna.core.Entity
 import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.at
-import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
 
+typealias Prediction = ArrayList<Pair<Point, Glyph>>
+
 class Level(size: Size, val depth: Int = 0, val id: String = UUID.randomUUID().toString()) : FovLevel(size) {
-    fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): List<Pair<Point, Glyph>> {
-        // todo all calls calculate duration in a wrong way (duration != speed)
-        // TODO : LIST OF PAIR ------ SHIT
-        behaviour as BulletBehaviour
+
+    fun predictWithGlyph(behaviour: PredictableBehaviour, duration: Long): Prediction {
         val realEntity = behaviour.entity
-        val realGlyph = realEntity.one<Glyph>() // TODO ???
         var fakePos = realEntity.one<Position>().copy(entity = Entity.world)
-        val directionalGlyph = realEntity<DirectionalGlyph>()
 
         var time = behaviour.waitTime
         var dir = behaviour.dir
-        val prediction = ArrayList<Pair<Point, Glyph>>()
+        val prediction = Prediction()
+        val directionalGlyph = realEntity<DirectionalGlyph>()
+        var fakeGlyph = directionalGlyph?.glyphs?.get(dir)?.let {
+            realEntity.one<Glyph>().copy(entity = Entity.world, char = it)
+        } ?: realEntity.one<Glyph>().copy(entity = Entity.world)
 
         loop@ while (time < duration) {
             val action = behaviour.predict(fakePos, dir)
             time += action.time
-            val (x, y) = when (action) {
-                is Move -> fakePos + action.dir
-                is Collide -> action.victim.one<Position>()
-                is BulletBehaviour.Bounce -> {
-                    dir = action.bounce(fakePos)
-                    fakePos
+            val (x, y) = action.predict(fakePos)
+            action.predictDir(fakePos)?.let {newDir ->
+                dir = newDir
+                directionalGlyph?.glyphs?.get(dir)?.let {newChar ->
+                    fakeGlyph = fakeGlyph.copy(char = newChar)
                 }
-                else -> continue@loop
             }
-            val glyph = directionalGlyph?.glyphs?.get(dir)?.let {
-                realGlyph.copy(entity = Entity.world, char = it)
-            } ?: realGlyph.copy(entity = Entity.world)
-            prediction.add((x at y) to glyph)
+            prediction.add((x at y) to fakeGlyph)
             fakePos = fakePos.copy(x = x, y = y)
         }
 

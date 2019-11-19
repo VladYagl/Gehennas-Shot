@@ -3,7 +3,6 @@ package gehenna.level
 import gehenna.component.DirectionalGlyph
 import gehenna.component.Glyph
 import gehenna.component.Position
-import gehenna.component.behaviour.BulletBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.Entity
 import gehenna.utils.Point
@@ -46,7 +45,7 @@ class Level(size: Size, val depth: Int = 0, val id: String = UUID.randomUUID().t
     }
 
     fun predict(realBehaviour: PredictableBehaviour, duration: Long): List<Point> =
-            predictWithGlyph(realBehaviour as BulletBehaviour, duration).unzip().first
+            predictWithGlyph(realBehaviour, duration).unzip().first
 
     override fun toString(): String = "Dungeon Level #$depth"
 }

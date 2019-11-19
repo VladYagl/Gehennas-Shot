@@ -1,7 +1,6 @@
 package gehenna.component.behaviour
 
 import gehenna.action.Collide
-import gehenna.action.Destroy
 import gehenna.action.Move
 import gehenna.component.Position
 import gehenna.component.Reflecting

@@ -7,9 +7,8 @@ import gehenna.core.Action
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Faction
-import gehenna.exceptions.EntityMustHaveOneException
 import gehenna.utils.*
-import java.lang.Math.abs
+import kotlin.math.abs
 
 data class MonsterBehaviour(
         override val entity: Entity,

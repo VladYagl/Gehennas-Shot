@@ -2,6 +2,7 @@ package gehenna.action
 
 import gehenna.component.*
 import gehenna.component.behaviour.BulletBehaviour
+import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.*
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
@@ -19,10 +20,12 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction(on
         } else {
             val pos = entity.one<Position>()
             if (pos.level.isWalkable(pos + dir)) {
-                pos.level[pos + dir].firstOrNull { it.has<BulletBehaviour>() }?.let { bullet ->
-                    entity<Logger>()?.add("You've perfectly dodged ${bullet.name}")
-                }
                 pos.move(pos + dir)
+                pos.level[pos].forEach {
+                    it.any<PredictableBehaviour>()?.let { behaviour ->
+                        entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity.name}")
+                    }
+                }
                 end()
             } else {
                 fail()

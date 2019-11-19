@@ -9,6 +9,7 @@ import gehenna.factory.LevelPart
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.random.Random
 
 abstract class BaseLevelFactory<T : Level>(protected val context: Context) : LevelFactory<T> {
@@ -84,7 +85,7 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
             }
         }
         for ((i, j) in Size(size.width / 3, size.height / 3).range) {
-            fun norm(x: Int) = Math.pow(x.toDouble(), 0.5)
+            fun norm(x: Int) = x.toDouble().pow(0.5)
             if (Random.nextDouble() < 0.4) cellular.cells[i, j] = true
         }
         cellular.automaton(2, 5, 2)

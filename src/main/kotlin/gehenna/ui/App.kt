@@ -215,7 +215,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //TODO: Animations
         priority.forEach { it.fill(minPriority) }
         enemies.clear()
-        val behaviours = ArrayList<PredictableBehaviour>()
+        val behaviours = ArrayList<PredictableBehaviour<Any>>()
         val playerPos = game.player.one<Position>()
         val playerBehaviour = game.player.one<PlayerBehaviour>()
         val level = playerPos.level
@@ -224,7 +224,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         //visit fov //todo: if I add hearing this should not draw from it
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, point ->
-                entity.any<PredictableBehaviour>()?.let { behaviours.add(it) }
+                entity.any<PredictableBehaviour<Any>>()?.let { behaviours.add(it) }
                 if (entity != game.player)
                     entity.any<CharacterBehaviour>()?.let { enemies.add(it) }
                 entity<Glyph>()?.let { glyph ->

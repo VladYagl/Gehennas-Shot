@@ -5,6 +5,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.JOptionPane.PLAIN_MESSAGE
 import javax.swing.JOptionPane.showMessageDialog
+import kotlin.math.sign
 import kotlin.random.Random
 
 operator fun Color.times(alpha: Double) = Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
@@ -58,4 +59,8 @@ inline fun <reified T> T.setVal(name: String, value: Any?) {
     val field = T::class.java.getDeclaredField(name)
     field.isAccessible = true
     field.set(this, value)
+}
+
+fun sign(x: Int): Int {
+    return sign(x.toDouble()).toInt()
 }

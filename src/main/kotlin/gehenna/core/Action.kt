@@ -1,9 +1,9 @@
 package gehenna.core
 
+import gehenna.component.Glyph
 import gehenna.component.Logger
 import gehenna.component.Position
 import gehenna.component.Senses
-import gehenna.utils.Dir
 import gehenna.utils.Point
 import gehenna.utils.prepareMessage
 import java.io.Serializable
@@ -30,8 +30,6 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
     protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
 }
 
-abstract class PredictableAction(time: Long = oneTurn, addToQueue: Boolean = true) : Action(time, addToQueue) {
-    abstract fun predict(pos: Position): Point
-
-    open fun predictDir(position: Position): Dir? = null
+abstract class PredictableAction<T>(time: Long = oneTurn, addToQueue: Boolean = true) : Action(time, addToQueue) {
+    open fun predict(pos: Position, state: T, glyph: Glyph): Triple<Point, T, Glyph> = Triple(pos, state, glyph)
 }

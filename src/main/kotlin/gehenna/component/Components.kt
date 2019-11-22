@@ -158,11 +158,13 @@ data class DirectionalGlyph(override val entity: Entity, val glyphs: Map<Dir, Ch
     private val glyph = Glyph(entity, glyphs[Dir.zero] ?: '?', priority, memorable)
     override val children: List<Component> = listOf(glyph)
 
+    fun update(dir: Dir) {
+        glyph.char = glyphs[dir] ?: glyph.char
+    }
+
     init {
         subscribe<Entity.NewComponent<*>> {
-            (it.component as? Position)?.lastDir?.let { dir ->
-                glyph.char = glyphs[dir] ?: glyph.char
-            }
+            (it.component as? Position)?.lastDir?.let { dir -> update(dir) }
         }
     }
 }

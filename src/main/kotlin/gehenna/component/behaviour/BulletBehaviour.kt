@@ -2,30 +2,31 @@ package gehenna.component.behaviour
 
 import gehenna.action.Collide
 import gehenna.action.Move
+import gehenna.component.DirectionalGlyph
+import gehenna.component.Glyph
 import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.core.*
+import gehenna.exceptions.GehennaException
 import gehenna.utils.*
 
 //TODO: try some player seeking behaviour
 data class BulletBehaviour(
         override val entity: Entity,
-        override var dir: Dir,
+        var dir: Dir,
         private val damage: Dice,
         override val speed: Int,
         override var waitTime: Long = 0
-) : PredictableBehaviour() {
+) : PredictableBehaviour<Dir>() {
+    override val state get() = dir
 
-    override fun copy(entity: Entity): BulletBehaviour {
-        return BulletBehaviour(entity, dir, damage, speed, waitTime)
-    }
+    data class Bounce(private val entity: Entity, val dir: Dir) : PredictableAction<Dir>(30) {
 
-    data class Bounce(private val entity: Entity, val dir: Dir) : PredictableAction(30) {
-        override fun predictDir(position: Position): Dir {
+        private fun newDir(pos: Position): Dir {
             val (x, y) = dir
-            val (newx, newy) = position + dir
-            val h = position.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
-            val v = position.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
+            val (newx, newy) = pos + dir
+            val h = pos.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
+            val v = pos.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
             return if (h && v) {
                 -x on -y
             } else if (h) {
@@ -37,16 +38,28 @@ data class BulletBehaviour(
             }
         }
 
-        override fun predict(pos: Position): Point = pos
+        override fun predict(pos: Position, state: Dir, glyph: Glyph): Triple<Point, Dir, Glyph> {
+            val dir = newDir(pos)
+            val directionalGlyph = entity<DirectionalGlyph>()
+            val newGlyph = if (directionalGlyph != null) {
+                glyph.copy(char = directionalGlyph.glyphs[dir]
+                        ?: throw GehennaException("No glyph for this direction: $dir in ${directionalGlyph.glyphs}"))
+            } else {
+                glyph
+            }
+            return Triple(pos, dir, newGlyph)
+        }
 
         override fun perform(context: Context): ActionResult {
             val behaviour = entity<BulletBehaviour>()
-            behaviour?.dir = predictDir(entity.one())
+            behaviour?.dir = newDir(entity.one())
+            entity<DirectionalGlyph>()?.update(dir)
             return end()
         }
     }
 
-    override fun predictImpl(pos: Position, dir: Dir): PredictableAction {
+    override fun predictImpl(pos: Position, state: Dir): PredictableAction<in Dir> {
+        val dir = state
         val obstacle = pos.level.obstacle(pos + dir)
         if (obstacle != null) {
             if (obstacle.has<Reflecting>()) {

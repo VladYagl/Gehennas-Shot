@@ -31,23 +31,22 @@ abstract class CharacterBehaviour : Behaviour() {
     open val faction: Faction = SoloFaction
 }
 
-abstract class PredictableBehaviour : Behaviour() {
-    abstract fun copy(entity: Entity): Behaviour
-    open val dir: Dir = Dir.zero
+abstract class PredictableBehaviour<T> : Behaviour() {
+    abstract val state: T
 
-    fun predict(pos: Position, dir: Dir): PredictableAction {
-        val action = predictImpl(pos, dir)
+    fun predict(pos: Position, state: T): PredictableAction<in T> {
+        val action = predictImpl(pos, state)
         action.time = scaleTime(action.time, speed)
         return action
     }
 
-    protected abstract fun predictImpl(pos: Position, dir: Dir): PredictableAction
+    protected abstract fun predictImpl(pos: Position, state: T): PredictableAction<in T>
 
     override suspend fun behave(): Action {
         if (lastResult?.succeeded == false) {
             throw GehennaException("Predictable behaviour failed action: $lastResult")
         }
-        return predictImpl(entity.one(), dir)
+        return predictImpl(entity.one(), state)
     }
 }
 

@@ -11,8 +11,10 @@ object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()
 }
 
-data class Move(private val entity: Entity, val dir: Dir) : PredictableAction(oneTurn) {
-    override fun predict(pos: Position): Point = pos + dir
+data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<Any>(oneTurn) {
+    override fun predict(pos: Position, state: Any, glyph: Glyph): Triple<Point, Any, Glyph> {
+        return Triple(pos + dir, state, glyph)
+    }
 
     override fun perform(context: Context): ActionResult {
         return if (dir == zero) {
@@ -22,7 +24,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction(on
             if (pos.level.isWalkable(pos + dir)) {
                 pos.move(pos + dir)
                 pos.level[pos].forEach {
-                    it.any<PredictableBehaviour>()?.let { behaviour ->
+                    it.any<PredictableBehaviour<*>>()?.let { behaviour ->
                         entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity.name}")
                     }
                 }
@@ -53,6 +55,7 @@ data class Shoot(
         val bullet = context.factory.new(bulletName)
         pos.spawnHere(bullet)
         bullet.add(BulletBehaviour(bullet, dir, damage, speed, delay))
+        bullet<DirectionalGlyph>()?.update(dir)
         return end()
     }
 }
@@ -64,8 +67,10 @@ data class Destroy(private val entity: Entity) : Action(0, false) {
     }
 }
 
-data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : PredictableAction(oneTurn, false) {
-    override fun predict(pos: Position): Point = victim.one<Position>()
+data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : PredictableAction<Any>(oneTurn, false) {
+    override fun predict(pos: Position, state: Any, glyph: Glyph): Triple<Point, Any, Glyph> {
+        return Triple(victim.one<Position>(), state, glyph)
+    }
 
     override fun perform(context: Context): ActionResult {
         val damageRoll = damage.roll()

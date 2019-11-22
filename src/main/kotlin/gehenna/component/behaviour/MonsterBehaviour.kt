@@ -21,12 +21,12 @@ data class MonsterBehaviour(
 
     private fun updateSenses() {
         dangerZone.clear()
-        val bullets = ArrayList<PredictableBehaviour>()
+        val bullets = ArrayList<PredictableBehaviour<Any>>()
         var newTarget: Position? = null
         entity.all<Senses>().forEach { sense ->
             sense.visitFov { obj, point ->
                 if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(point)
-                obj<BulletBehaviour>()?.let { bullets.add(it) }
+                obj.any<PredictableBehaviour<Any>>()?.let { bullets.add(it) }
                 obj.any<CharacterBehaviour>()?.let { behaviour ->
                     if (faction.isEnemy(behaviour.faction)
                             && obj != entity

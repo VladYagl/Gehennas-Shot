@@ -13,6 +13,7 @@ import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
+import gehenna.utils.LineDir
 import gehenna.utils.Point
 import kotlin.system.exitProcess
 
@@ -25,6 +26,7 @@ abstract class State {
 }
 
 private abstract class Direction(protected val context: UIContext) : State() {
+
     init {
         context.log.addTemp("In which direction?")
     }
@@ -35,10 +37,62 @@ private abstract class Direction(protected val context: UIContext) : State() {
         return Normal(context)
     }
 
-    override fun handleInput(input: Input) = when (input) {
+    final override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> onDir(input.dir) to true
         Input.Cancel -> onCancel() to true
         else -> this to false
+    }
+}
+
+private abstract class Target(protected val context: UIContext) : State() {
+    //todo: get cursor from ui
+    private var cursor: Point = context.player.one<Position>()
+    protected val level: Level = context.player.one<Position>().level
+
+    private fun print() {
+        context.setCursor(cursor)
+        if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
+            context.log.addTemp("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
+        } else {
+            context.log.addTemp("You can't see this shit")
+        }
+    }
+
+    init {
+        context.showCursor()
+        print()
+    }
+
+    protected abstract fun select(point: Point) : State
+
+    final override fun handleInput(input: Input) = when (input) {
+        is Input.Direction -> {
+            cursor += input.dir
+            print()
+            this to true
+        }
+        is Input.Run -> {
+            cursor += input.dir * 5
+            print()
+            this to true
+        }
+        Input.Cancel -> {
+            context.hideCursor()
+            Normal(context) to true
+        }
+        Input.Accept -> {
+            if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
+                val state = select(cursor)
+                if (state != this) context.hideCursor()
+                state to true
+            } else {
+                context.log.addTemp("Can't examine what you can't see")
+                this to true
+            }
+        }
+        else -> {
+            this to false
+        }
     }
 }
 
@@ -162,13 +216,6 @@ private class Normal(private val context: UIContext) : State() {
     }
 }
 
-private class Aim(context: UIContext, private val gun: Gun) : Direction(context) {
-    override fun onDir(dir: Dir): State {
-        context.action = gun.fire(context.player, dir)
-        return Normal(context)
-    }
-}
-
 private class UseDoor(context: UIContext, private val close: Boolean) : Direction(context) {
     override fun onDir(dir: Dir): State {
         val playerPos = context.player.one<Position>()
@@ -179,22 +226,16 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
     }
 }
 
-private class Examine(private val context: UIContext) : State() {
-    //todo: get cursor from ui
-    var cursor: Point = context.player.one<Position>()
-    val level: Level = context.player.one<Position>().level
-
-    private fun print() {
-        context.setCursor(cursor)
-        if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
-            context.log.addTemp("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
-        } else {
-            context.log.addTemp("You can't see this shit")
-        }
+private class Aim(context: UIContext, private val gun: Gun) : Target(context) {
+    override fun select(point: Point): State {
+        val diff = point - context.player.one<Position>()
+        context.action = gun.fire(context.player, LineDir(diff.x, diff.y))
+        return Normal(context)
     }
+}
 
+private class Examine(context: UIContext) : Target(context) {
     private fun examine(entity: Entity) {
-        //todo: copypasta
         context.addWindow(MenuPanel(100, 30, context.settings).apply {
             addItem(TextItem("This is a $entity"))
             setOnCancel { context.removeWindow(this) }
@@ -211,45 +252,17 @@ private class Examine(private val context: UIContext) : State() {
         })
     }
 
-    init {
-        context.showCursor()
-        print()
-    }
-
-    override fun handleInput(input: Input) = when (input) {
-        is Input.Direction -> {
-            cursor += input.dir
-            print()
-            this to true
-        }
-        is Input.Run -> {
-            cursor += input.dir * 5
-            print()
-            this to true
-        }
-        Input.Cancel -> {
-            context.hideCursor()
-            Normal(context) to true
-        }
-        Input.Accept -> {
-            if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
-                val entities = level.safeGet(cursor)
-                when (entities.size) {
-                    0 -> context.log.addTemp("There is nothing to examine")
-                    1 -> examine(entities.first())
-                    else -> {
-                        context.addWindow(SelectPanel(context, entities, {
-                            examine(it)
-                        }, "There are: "))
-                    }
-                }
-            } else {
-                context.log.addTemp("Can't examine what you can't see")
+    override fun select(point: Point): State {
+        val entities = level.safeGet(point)
+        when (entities.size) {
+            0 -> context.log.addTemp("There is nothing to examine")
+            1 -> examine(entities.first())
+            else -> {
+                context.addWindow(SelectPanel(context, entities, {
+                    examine(it)
+                }, "There are: "))
             }
-            this to true
         }
-        else -> {
-            this to false
-        }
+        return this
     }
 }

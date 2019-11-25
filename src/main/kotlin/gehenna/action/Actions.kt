@@ -2,6 +2,7 @@ package gehenna.action
 
 import gehenna.component.*
 import gehenna.component.behaviour.BulletBehaviour
+import gehenna.component.behaviour.LineBulletBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.*
 import gehenna.utils.*
@@ -44,7 +45,7 @@ object Wait : Action() {
 
 data class Shoot(
         private val pos: Position,
-        private val dir: Dir,
+        private val dir: LineDir,
         private val bulletName: String,
         private val damage: Dice,
         private val delay: Long,
@@ -54,8 +55,9 @@ data class Shoot(
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(bulletName)
         pos.spawnHere(bullet)
-        bullet.add(BulletBehaviour(bullet, dir, damage, speed, delay))
-        bullet<DirectionalGlyph>()?.update(dir)
+//        bullet.add(BulletBehaviour(bullet, dir, damage, speed, delay))
+//        bullet<DirectionalGlyph>()?.update(dir)
+        bullet.add(LineBulletBehaviour(bullet, dir, damage,  speed, delay))
         return end()
     }
 }

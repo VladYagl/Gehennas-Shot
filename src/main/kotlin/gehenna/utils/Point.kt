@@ -1,5 +1,7 @@
 package gehenna.utils
 
+import gehenna.component.Position
+import gehenna.component.Reflecting
 import gehenna.utils.Point.Companion.zero
 import java.io.Serializable
 import kotlin.math.abs
@@ -10,8 +12,9 @@ interface Point : Serializable {
     val x: Int
     val y: Int
 
-    operator fun minus(other: Point): Point = PointImpl(x - other.x, y - other.y)
-    operator fun plus(other: Point): Point = PointImpl(x + other.x, y + other.y)
+    operator fun minus(other: Point): Point = x - other.x at y - other.y
+    operator fun plus(other: Point): Point = x + other.x at y + other.y
+    operator fun times(dir: Dir): Point = x * dir.x at y * dir.y
 
     val dir: Dir get() = x.sign on y.sign
     val size: Size get() = Size(x, y)
@@ -85,6 +88,34 @@ data class Dir(override val x: Int, override val y: Int) : Point {
     }
 }
 
+data class LineDir(override val x: Int, override val y: Int, val error: Int = abs(x) - abs(y)) : Point {
+
+    fun next(point: Point): Pair<Int, Point> {
+        val dx = abs(x)
+        val dy = -abs(y)
+        var nx = point.x
+        var ny = point.y
+        var ne = error
+        if (error * 2 >= dy) {
+            nx += sign(x)
+            ne += dy
+        }
+        if (error * 2 <= dx) {
+            ne += dx
+            ny += sign(y)
+        }
+        return Pair(ne, nx at ny)
+    }
+
+    override fun plus(other: Point): Point {
+        return next(other).second
+    }
+
+    override fun minus(other: Point): Point {
+        throw UnsupportedOperationException("No minus with Line Direction");
+    }
+}
+
 data class Size(val width: Int, val height: Int) : Point {
     operator fun contains(point: Point): Boolean = point.x >= 0 && point.y >= 0 && point.x < width && point.y < height
 
@@ -98,3 +129,18 @@ val Pair<Int, Int>.point: Point get() = PointImpl(first, second)
 val Pair<Int, Int>.dir get() = Dir(first, second)
 infix fun Int.at(y: Int): Point = PointImpl(this, y)
 infix fun Int.on(y: Int) = Dir(this, y)
+
+fun Dir.bounce(pos: Position, p: Point = this): Dir {
+    val (newx, newy) = pos + this
+    val h = pos.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
+    val v = pos.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
+    return if (h && v) {
+        -p.x on -p.y
+    } else if (h) {
+        +p.x on -p.y
+    } else if (v) {
+        -p.x on +p.y
+    } else {
+        -p.x on -p.y
+    }
+}

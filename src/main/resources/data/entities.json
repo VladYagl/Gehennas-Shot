@@ -119,6 +119,13 @@
         "destroyTimer": {
             "waitTime": 1000
         },
+        "glyph": {
+            "char": 15,
+            "priority": 10
+        }
+    },
+
+    "test": {
         "directionalGlyph": {
             "glyphs": {
                 "zero": 123,

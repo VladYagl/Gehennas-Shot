@@ -44,7 +44,7 @@ private abstract class Direction(protected val context: UIContext) : State() {
     }
 }
 
-private abstract class Target(protected val context: UIContext) : State() {
+private abstract class Target(protected val context: UIContext, protected val onlyVisible : Boolean = true) : State() {
     //todo: get cursor from ui
     private var cursor: Point = context.player.one<Position>()
     protected val level: Level = context.player.one<Position>().level
@@ -81,7 +81,7 @@ private abstract class Target(protected val context: UIContext) : State() {
             Normal(context) to true
         }
         Input.Accept -> {
-            if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
+            if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) || !onlyVisible }) {
                 val state = select(cursor)
                 if (state != this) context.hideCursor()
                 state to true
@@ -226,7 +226,7 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
     }
 }
 
-private class Aim(context: UIContext, private val gun: Gun) : Target(context) {
+private class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false) {
     override fun select(point: Point): State {
         val diff = point - context.player.one<Position>()
         context.action = gun.fire(context.player, LineDir(diff.x, diff.y))

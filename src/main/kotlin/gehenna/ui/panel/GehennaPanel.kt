@@ -1,7 +1,9 @@
 package gehenna.ui.panel
 
+import asciiPanel.AsciiCharacterData
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
+import asciiPanel.TileTransformer
 import gehenna.ui.*
 import gehenna.utils.*
 import java.awt.BorderLayout
@@ -45,8 +47,9 @@ open class GehennaPanel(
         clear()
     }
 
-    final override fun clear(): AsciiPanel {
-        return super.clear()
+    final override fun clear(char: Char): GehennaPanel {
+        super.clear(char)
+        return this
     }
 
     override fun clearLine(y: Int) {
@@ -66,6 +69,10 @@ open class GehennaPanel(
 
     override fun putChar(char: Char, x: Int, y: Int, fg: Color, bg: Color) {
         write(char, x, y, fg, bg)
+    }
+
+    override fun forEachTile(transformer: (Int, Int, AsciiCharacterData) -> Unit) {
+        withEachTile(transformer)
     }
 
     @Deprecated("Well that's some bullshit dont use it")

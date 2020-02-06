@@ -19,6 +19,8 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     private val mainPane = JLayeredPane()
     override lateinit var world: GehennaPanel
     override lateinit var info: GehennaPanel
+    override lateinit var hud: GehennaPanel
+
     private lateinit var log: GehennaPanel
     private val logHeight = settings.logHeight
     private val infoWidth = settings.infoWidth
@@ -51,6 +53,14 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
                 settings.foregroundColor,
                 settings.backgroundColor
         )
+        hud = GehennaPanel(
+                logWidth / worldFont.width,
+                worldHeight / worldFont.height,
+                settings.worldFont,
+                settings.foregroundColor,
+                settings.backgroundColor
+        )
+        hud.clear(EMPTY_CHAR)
 
         add(mainPane)
         mainPane.layout = null
@@ -184,7 +194,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         mainPane.repaint()
     }
 
-    override fun showCursor() = app.showCursor()
-    override fun hideCursor() = app.hideCursor()
-    override fun setCursor(point: Point) = app.setCursor(point)
+    override fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color?, bg: Color?) {
+        app.putCharOnHUD(char, x, y, fg ?: hud.fgColor, bg ?: hud.bgColor)
+    }
 }

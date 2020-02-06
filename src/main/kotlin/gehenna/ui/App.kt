@@ -197,16 +197,19 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val priority = IntArray(ui.worldSize) { minPriority }
     private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(point)) {
-            val g = if (cursorShown && cursor.x == point.x && cursor.y == point.y) {
-                cursorGlyph
-            } else {
-                glyph
-            }
             val viewPoint = viewPoint(point)
-            if (g.priority > priority[viewPoint]) {
-                ui.world.putChar(g.char, viewPoint.x, viewPoint.y, fg, bg)
-                priority[viewPoint] = g.priority
+            if (glyph.priority > priority[viewPoint]) {
+                ui.world.putChar(glyph.char, viewPoint.x, viewPoint.y, fg, bg)
+                priority[viewPoint] = glyph.priority
             }
+        }
+    }
+
+    fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color, bg: Color) {
+        val point = x at y
+        if (inView(point)) {
+            val viewPoint = viewPoint(point)
+            ui.hud.putChar(char, viewPoint.x, viewPoint.y, fg, bg)
         }
     }
 
@@ -253,6 +256,12 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                         putGlyph(glyph, pos, max(color, Color(40, 40, 40))) //todo constant
                     }
         }
+
+        ui.hud.forEachTile { x, y, data ->
+            if (data.character != EMPTY_CHAR) {
+                ui.world.putChar(data.character, x, y, fg = data.foregroundColor, bg = data.backgroundColor)
+            }
+        }
     }
 
     override fun onInput(input: Input): Boolean {
@@ -267,21 +276,5 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         val (newState, consumed) = state.handleInput(input)
         state = newState
         return consumed
-    }
-
-    private var cursor: Point = 0 at 0
-    private var cursorShown: Boolean = false
-    private val cursorGlyph = Glyph(Entity.world, 'X', 1000_000)
-
-    fun showCursor() {
-        cursorShown = true
-    }
-
-    fun hideCursor() {
-        cursorShown = false
-    }
-
-    fun setCursor(point: Point) {
-        cursor = point
     }
 }

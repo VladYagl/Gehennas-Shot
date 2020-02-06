@@ -2,6 +2,7 @@ package gehenna.utils
 
 import gehenna.component.Position
 import gehenna.component.Reflecting
+import gehenna.level.Level
 import gehenna.utils.Point.Companion.zero
 import java.io.Serializable
 import kotlin.math.abs
@@ -131,9 +132,13 @@ infix fun Int.at(y: Int): Point = PointImpl(this, y)
 infix fun Int.on(y: Int) = Dir(this, y)
 
 fun Dir.bounce(pos: Position, p: Point = this): Point {
+    return bounce(pos, pos.level, p)
+}
+
+fun Dir.bounce(pos: Point, level: Level, p: Point = this): Point {
     val (newx, newy) = pos + this
-    val h = pos.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
-    val v = pos.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
+    val h = level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
+    val v = level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
     return if (h && v) {
         -p.x on -p.y
     } else if (h) {

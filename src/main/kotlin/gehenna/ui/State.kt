@@ -12,9 +12,8 @@ import gehenna.ui.panel.ConsolePanel
 import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
-import gehenna.utils.Dir
-import gehenna.utils.LineDir
-import gehenna.utils.Point
+import gehenna.utils.*
+import java.io.PipedOutputStream
 import kotlin.system.exitProcess
 
 abstract class State {
@@ -44,26 +43,67 @@ private abstract class Direction(protected val context: UIContext) : State() {
     }
 }
 
-private abstract class Target(protected val context: UIContext, protected val onlyVisible : Boolean = true) : State() {
+private abstract class Target(
+        protected val context: UIContext,
+        protected val onlyVisible: Boolean = true,
+        protected val drawLine: Boolean = false)
+    : State() {
     //todo: get cursor from ui
     private var cursor: Point = context.player.one<Position>()
     protected val level: Level = context.player.one<Position>().level
 
+    private fun hideCursor() {
+        context.hud.clear(EMPTY_CHAR)
+    }
+
+    private fun isVisible(point: Point) : Boolean {
+        return context.player.all<Senses>().any { it.isVisible(point) }
+    }
+
     private fun print() {
-        context.setCursor(cursor)
-        if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) }) {
+        context.hud.clear(EMPTY_CHAR)
+        if (level.inBounds(cursor) && isVisible(cursor)) {
             context.log.addTemp("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
         } else {
             context.log.addTemp("You can't see this shit")
         }
+
+        if (drawLine) {
+            var point : Point = context.player.one<Position>()
+            val diff = cursor - point
+            var dir = LineDir(diff.x, diff.y)
+            var color = context.hud.fgColor * 0.5
+
+            repeat(15) {
+                val level = context.player.one<Position>().level
+                val (newError, nextPoint) = dir.next(point)
+                dir = LineDir(dir.x, dir.y, newError)
+
+                if (!isVisible(nextPoint) && level.memory(nextPoint) == null) {
+                    return@repeat
+                }
+
+                val obstacle = level.obstacle(nextPoint)
+
+                if (obstacle?.has<Reflecting>() == true) {
+                    val (dx, dy) = (nextPoint - point).dir.bounce(point, level, dir)
+                    dir = LineDir(dx, dy, newError)
+                } else {
+                    point = nextPoint
+                }
+
+                context.putCharOnHUD(249.toChar(), point.x, point.y, max(color, context.hud.bgColor))
+                color *= 0.95
+            }
+        }
+        context.putCharOnHUD('X', cursor.x, cursor.y)
     }
 
     init {
-        context.showCursor()
         print()
     }
 
-    protected abstract fun select(point: Point) : State
+    protected abstract fun select(point: Point): State
 
     final override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
@@ -77,13 +117,13 @@ private abstract class Target(protected val context: UIContext, protected val on
             this to true
         }
         Input.Cancel -> {
-            context.hideCursor()
+            hideCursor()
             Normal(context) to true
         }
         Input.Accept -> {
-            if (level.inBounds(cursor) && context.player.all<Senses>().any { it.isVisible(cursor) || !onlyVisible }) {
+            if (level.inBounds(cursor) && (isVisible(cursor) || !onlyVisible)) {
                 val state = select(cursor)
-                if (state != this) context.hideCursor()
+                if (state != this) hideCursor()
                 state to true
             } else {
                 context.log.addTemp("Can't examine what you can't see")
@@ -226,7 +266,7 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
     }
 }
 
-private class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false) {
+private class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false, drawLine = true) {
     override fun select(point: Point): State {
         val diff = point - context.player.one<Position>()
         context.action = gun.fire(context.player, LineDir(diff.x, diff.y))

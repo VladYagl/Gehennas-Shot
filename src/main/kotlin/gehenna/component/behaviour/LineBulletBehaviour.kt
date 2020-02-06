@@ -2,6 +2,7 @@ package gehenna.component.behaviour
 
 import gehenna.action.Collide
 import gehenna.action.Move
+import gehenna.component.DirectionalGlyph
 import gehenna.component.Glyph
 import gehenna.component.Position
 import gehenna.component.Reflecting
@@ -24,7 +25,12 @@ data class LineBulletBehaviour(
             val obstacle = pos.level.obstacle(next)
             return if (obstacle?.has<Reflecting>() == true) {
                 val (dx, dy) = (next - pos).dir.bounce(pos, dir)
-                Triple(pos, LineDir(dx, dy, error), glyph)
+                val newGlyph =
+                        if (entity.has<DirectionalGlyph>()) {
+                            glyph.copy(entity = entity, char = (entity<DirectionalGlyph>()?.glyphs?.get((dx at dy).dir))
+                                    ?: throw Exception("unknown direction for glyph"))
+                        } else glyph
+                Triple(pos, LineDir(dx, dy, error), newGlyph)
             } else {
                 Triple(next, LineDir(dir.x, dir.y, error), glyph)
             }
@@ -41,6 +47,7 @@ data class LineBulletBehaviour(
                 Move(entity, (next - pos).dir).also { it.time = time }.perform(context).also {
                     if (it.succeeded) {
                         behaviour?.dir = dir
+                        entity<DirectionalGlyph>()?.update(dir.dir)
                     }
                 }
             }

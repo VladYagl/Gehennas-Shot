@@ -130,7 +130,7 @@ val Pair<Int, Int>.dir get() = Dir(first, second)
 infix fun Int.at(y: Int): Point = PointImpl(this, y)
 infix fun Int.on(y: Int) = Dir(this, y)
 
-fun Dir.bounce(pos: Position, p: Point = this): Dir {
+fun Dir.bounce(pos: Position, p: Point = this): Point {
     val (newx, newy) = pos + this
     val h = pos.level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
     val v = pos.level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false

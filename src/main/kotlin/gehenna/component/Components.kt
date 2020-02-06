@@ -118,6 +118,7 @@ data class Inventory(
     init {
         gun?.let { add(it) }
         //todo: Do you need death? You can call it on entity.remove?
+        //todo: enemies don't drop weapons
         subscribe<Health.Death> {
             entity<Position>()?.let { pos ->
                 items.forEach { item ->

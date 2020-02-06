@@ -46,9 +46,7 @@ data class MonsterBehaviour(
                 ?.let { gun ->
                     if (target == target.entity<Position>()) {
                         val diff = target - pos
-                        if (diff.x == 0 || diff.y == 0 || abs(diff.x) == abs(diff.y)) {
-                            gun.fire(entity, LineDir(diff.x, diff.y))
-                        } else null
+                        gun.fire(entity, LineDir(diff.x, diff.y))
                     } else null
                 }
     }

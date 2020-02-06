@@ -23,7 +23,7 @@ data class BulletBehaviour(
     data class Bounce(private val entity: Entity, val dir: Dir) : PredictableAction<Dir>(30) {
 
         override fun predict(pos: Position, state: Dir, glyph: Glyph): Triple<Point, Dir, Glyph> {
-            val dir = state.bounce(pos)
+            val dir = state.bounce(pos).dir
             val directionalGlyph = entity<DirectionalGlyph>()
             val newGlyph = if (directionalGlyph != null) {
                 glyph.copy(char = directionalGlyph.glyphs[dir]
@@ -36,7 +36,7 @@ data class BulletBehaviour(
 
         override fun perform(context: Context): ActionResult {
             val behaviour = entity<BulletBehaviour>()
-            behaviour?.dir = dir.bounce(entity.one())
+            behaviour?.dir = dir.bounce(entity.one()).dir
             entity<DirectionalGlyph>()?.update(dir)
             return end()
         }

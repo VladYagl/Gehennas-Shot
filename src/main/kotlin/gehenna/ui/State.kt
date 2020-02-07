@@ -56,7 +56,7 @@ private abstract class Target(
         context.hud.clear(EMPTY_CHAR)
     }
 
-    private fun isVisible(point: Point) : Boolean {
+    private fun isVisible(point: Point): Boolean {
         return context.player.all<Senses>().any { it.isVisible(point) }
     }
 
@@ -69,32 +69,20 @@ private abstract class Target(
         }
 
         if (drawLine) {
-            var point : Point = context.player.one<Position>()
-            val diff = cursor - point
-            var dir = LineDir(diff.x, diff.y)
             var color = context.hud.fgColor * 0.5
 
-            repeat(15) {
-                val level = context.player.one<Position>().level
-                val (newError, nextPoint) = dir.next(point)
-                dir = LineDir(dir.x, dir.y, newError)
-
-                if (!isVisible(nextPoint) && level.memory(nextPoint) == null) {
-                    return@repeat
-                }
-
-                val obstacle = level.obstacle(nextPoint)
-
-                if (obstacle?.has<Reflecting>() == true) {
-                    val (dx, dy) = (nextPoint - point).dir.bounce(point, level, dir)
-                    dir = LineDir(dx, dy, newError)
+            val playerPos: Position = context.player.one<Position>()
+            val diff = cursor - playerPos
+            LineDir(diff.x, diff.y).walkLine(playerPos, 15, playerPos.level) { point ->
+                if (!isVisible(point) && level.memory(point) == null) {
+                    false
                 } else {
-                    point = nextPoint
+                    context.putCharOnHUD(249.toChar(), point.x, point.y, max(color, context.hud.bgColor))
+                    color *= 0.95
+                    true
                 }
-
-                context.putCharOnHUD(249.toChar(), point.x, point.y, max(color, context.hud.bgColor))
-                color *= 0.95
             }
+
         }
         context.putCharOnHUD('X', cursor.x, cursor.y)
     }

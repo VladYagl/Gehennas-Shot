@@ -19,8 +19,8 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     private var globalTime: Long = 0
     override val actionQueue = ActionQueue
     override val time: Long get() = globalTime + (actionQueue.firstOrNull()?.waitTime ?: 0)
-    override val levelFactory = DungeonLevelFactory(this)
-//    override val levelFactory = StubLevelFactory(this)
+//    override val levelFactory = DungeonLevelFactory(this)
+    override val levelFactory = StubLevelFactory(this)
     override val levels = ArrayList<Level>()
 
     fun init() {

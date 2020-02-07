@@ -89,34 +89,6 @@ data class Dir(override val x: Int, override val y: Int) : Point {
     }
 }
 
-data class LineDir(override val x: Int, override val y: Int, val error: Int = abs(x) - abs(y)) : Point {
-
-    fun next(point: Point): Pair<Int, Point> {
-        val dx = abs(x)
-        val dy = -abs(y)
-        var nx = point.x
-        var ny = point.y
-        var ne = error
-        if (error * 2 >= dy) {
-            nx += sign(x)
-            ne += dy
-        }
-        if (error * 2 <= dx) {
-            ne += dx
-            ny += sign(y)
-        }
-        return Pair(ne, nx at ny)
-    }
-
-    override fun plus(other: Point): Point {
-        return next(other).second
-    }
-
-    override fun minus(other: Point): Point {
-        throw UnsupportedOperationException("No minus with Line Direction");
-    }
-}
-
 data class Size(val width: Int, val height: Int) : Point {
     operator fun contains(point: Point): Boolean = point.x >= 0 && point.y >= 0 && point.x < width && point.y < height
 

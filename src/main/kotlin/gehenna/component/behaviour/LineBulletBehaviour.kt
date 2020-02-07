@@ -25,14 +25,20 @@ data class LineBulletBehaviour(
             val obstacle = pos.level.obstacle(next)
             return if (obstacle?.has<Reflecting>() == true) {
                 val (dx, dy) = (next - pos).dir.bounce(pos, dir)
-                val newGlyph =
-                        if (entity.has<DirectionalGlyph>()) {
-                            glyph.copy(entity = entity, char = (entity<DirectionalGlyph>()?.glyphs?.get((dx at dy).dir))
-                                    ?: throw Exception("unknown direction for glyph"))
-                        } else glyph
-                Triple(pos, LineDir(dx, dy, error), newGlyph)
+                Triple(pos, LineDir(dx, dy, error),
+                        entity<DirectionalGlyph>()?.let {
+                            glyph.copy(entity = glyph.entity, char = (it.glyphs[(dx at dy).dir]
+                                    ?: throw Exception("unknown direction for glyph")))
+                        } ?: glyph)
             } else {
-                Triple(next, LineDir(dir.x, dir.y, error), glyph)
+                Triple(next, LineDir(dir.x, dir.y, error), entity<DirectionalGlyph>()?.let {
+                    val char = it.glyphs[dir.dir]
+                            ?: throw Exception("unknown direction for glyph")
+                    if (glyph.char != char)
+                        glyph.copy(entity = glyph.entity, char = char)
+                    else
+                        glyph
+                } ?: glyph)
             }
         }
 

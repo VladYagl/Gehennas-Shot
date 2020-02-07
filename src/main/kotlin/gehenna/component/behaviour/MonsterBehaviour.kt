@@ -46,7 +46,21 @@ data class MonsterBehaviour(
                 ?.let { gun ->
                     if (target == target.entity<Position>()) {
                         val diff = target - pos
-                        gun.fire(entity, LineDir(diff.x, diff.y))
+                        val dir = LineDir(diff.x, diff.y)
+                        var correct = false
+                        // TODO : steps count
+                        dir.walkLine(pos, 15, pos.level) {point ->
+                            val entities = pos.level[point]
+                            if (entities.contains(target.entity)) {
+                                correct = true
+                                false
+                            } else !entities.contains(entity)
+                        }
+                        if (correct) {
+                            gun.fire(entity, dir)
+                        } else {
+                            null
+                        }
                     } else null
                 }
     }

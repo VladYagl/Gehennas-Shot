@@ -77,7 +77,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
     override fun perform(context: Context): ActionResult {
         val damageRoll = damage.roll()
         logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
-        victim<Health>()?.dealDamage(damageRoll)
+        victim<Health>()?.dealDamage(damageRoll, this)
         entity.clean()
         return end()
     }

@@ -17,11 +17,11 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
     abstract fun perform(context: Context): ActionResult
 
     protected val log = ArrayList<LogEntry>()
-    protected fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class.simpleName!!) {
+    private fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class.simpleName!!) {
         log.add(LogEntry(text, position, sense))
     }
 
-    protected fun logFor(actor: Entity, message: String, args: Map<String, String> = emptyMap()) {
+    fun logFor(actor: Entity, message: String, args: Map<String, String> = emptyMap()) {
         actor<Logger>()?.add(message.prepareMessage(true, actor, args))
                 ?: log(message.prepareMessage(false, actor, args), actor())
     }

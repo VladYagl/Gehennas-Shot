@@ -5,6 +5,7 @@ import gehenna.level.FovLevel
 import gehenna.level.Level
 import gehenna.utils.Dir
 import gehenna.utils.Point
+import gehenna.utils._Actor
 import gehenna.utils.random
 import kotlin.math.min
 
@@ -33,9 +34,10 @@ data class Health(
     var current = max
         private set
 
-    fun dealDamage(amount: Int) {
+    fun dealDamage(amount: Int, action: Action) {
         current -= amount
         if (current <= 0) {
+            action.logFor(entity, "$_Actor is killed!")
             entity.emit(Death)
             entity.clean() // FIXME: If player dies his logger is cleared too
         }

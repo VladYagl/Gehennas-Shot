@@ -52,7 +52,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
             globalTime += time
             actionQueue.toList().forEach {
                 it.waitTime -= time
-                if (it is Effect) {
+                if (it is Effect && !it.endless) {
                     it.duration -= time
                     if (it.duration <= 0) {
                         it.entity.remove(it)

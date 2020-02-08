@@ -55,8 +55,6 @@ data class Shoot(
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(bulletName)
         pos.spawnHere(bullet)
-//        bullet.add(BulletBehaviour(bullet, dir, damage, speed, delay))
-//        bullet<DirectionalGlyph>()?.update(dir)
         bullet.add(LineBulletBehaviour(bullet, dir, damage,  speed, delay))
         return end()
     }

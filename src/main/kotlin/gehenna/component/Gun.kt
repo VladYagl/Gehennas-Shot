@@ -21,7 +21,7 @@ data class Gun(
     private fun action(actor: Entity, dir: LineDir) = Shoot(actor.one(), dir, bullet, damage, delay, speed, time)
 
     data class BurstFire(private val actor: Entity, private val dir: LineDir, val gun: Gun) :
-            RepeatAction<Shoot>(actor, gun.burstCount, gun.time, { gun.action(actor, dir) }) {
+            RepeatAction<Shoot>(actor, gun.burstCount, { gun.action(actor, dir) }) {
         override fun toString(): String {
             return "burst fire $dir"
         }

@@ -3,6 +3,7 @@ package gehenna.component
 import gehenna.action.Destroy
 import gehenna.core.*
 import gehenna.core.Action.Companion.oneTurn
+import kotlin.reflect.jvm.internal.impl.load.java.typeEnhancement.TypeEnhancementInfo
 
 abstract class ActiveComponent : Component() {
     open var waitTime: Long = 0L
@@ -16,7 +17,24 @@ abstract class ActiveComponent : Component() {
 }
 
 abstract class Effect : ActiveComponent() {
-    abstract var duration: Long
+    open var duration: Long = 0
+    open val endless: Boolean = false
+}
+
+data class PassiveHeal(
+        override val entity: Entity,
+        override var waitTime: Long = 1L,
+        val oneTick: Long = 500,
+        val amount: Int = 1
+) : Effect() {
+    override val endless: Boolean = true
+
+    override suspend fun action() = object : Action(oneTick) {
+        override fun perform(context: Context): ActionResult {
+            entity<Health>()?.heal(amount)
+            return end()
+        }
+    }
 }
 
 data class DestroyTimer(override val entity: Entity, override var waitTime: Long = oneTurn * 10) : Effect() {
@@ -30,7 +48,6 @@ data class DestroyTimer(override val entity: Entity, override var waitTime: Long
 open class RepeatAction<T : Action>(
         override val entity: Entity,
         private var count: Int,
-        private var delay: Long = oneTurn,
         private val actionFactory: () -> T
 ) : Effect() {
     override var waitTime = 1L
@@ -46,8 +63,7 @@ open class RepeatAction<T : Action>(
 
 data class SequenceOfActions(
         override val entity: Entity,
-        private val actions: Iterable<Action>,
-        private var delay: Long = oneTurn
+        private val actions: Iterable<Action>
 ) : Effect() {
     override var waitTime = 1L
     override var duration

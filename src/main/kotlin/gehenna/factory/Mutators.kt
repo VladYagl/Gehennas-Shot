@@ -18,7 +18,10 @@ class GiveOneOf(private val items: ArrayList<Item>) : EntityMutator {
 
 class GiveGun(private val gun: Item) : EntityMutator {
     override fun mutate(entity: Entity) {
-        entity<Inventory>()?.equip(gun)
+        entity<Inventory>()?.let {inventory ->
+            inventory.add(gun)
+            inventory.equip(gun)
+        }
     }
 }
 

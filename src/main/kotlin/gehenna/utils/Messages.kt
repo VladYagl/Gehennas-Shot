@@ -1,11 +1,34 @@
+@file:Suppress("ObjectPropertyName", "FunctionName")
+
 package gehenna.utils
 
 import gehenna.core.Entity
+import java.awt.Color
 
 const val _Actor = "%Actor%"
 const val _actor = "%actor%"
 
 fun Double.format(digits: Int): String = java.lang.String.format("%.${digits}f", this)
+
+private val colorMap: Map<String, Color> = mapOf(
+        //TODO: move this constants somewhere
+        "dark_red" to Color(96, 32, 32),
+        "warn" to Color(128, 32, 32),
+        "boring" to Color(128, 128, 128),
+        "love" to Color(128, 64, 128)
+)
+
+fun _fg(color: String, message: String): String {
+    return "\${$color}$message\${normal}"
+}
+
+fun _bg(color: String, message: String): String {
+    return "\$_{$color}$message\$_{normal}"
+}
+
+fun String.toColor() : Color {
+    return colorMap[this] ?: throw Exception("Unknown color : '$this'")
+}
 
 fun String.prepareMessage(firstPerson: Boolean = false, actor: Entity = Entity.world, args: Map<String, String> = emptyMap()): String {
     return this

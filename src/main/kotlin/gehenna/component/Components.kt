@@ -3,10 +3,7 @@ package gehenna.component
 import gehenna.core.*
 import gehenna.level.FovLevel
 import gehenna.level.Level
-import gehenna.utils.Dir
-import gehenna.utils.Point
-import gehenna.utils._Actor
-import gehenna.utils.random
+import gehenna.utils.*
 import kotlin.math.min
 
 data class Glyph(
@@ -37,7 +34,7 @@ data class Health(
     fun dealDamage(amount: Int, action: Action) {
         current -= amount
         if (current <= 0) {
-            action.logFor(entity, "$_Actor is killed!")
+            action.logFor(entity, _fg("warn", "$_Actor is killed!"))
             entity.emit(Death)
             entity.clean() // FIXME: If player dies his logger is cleared too
         }

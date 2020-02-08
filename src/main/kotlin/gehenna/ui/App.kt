@@ -44,7 +44,9 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                 }
 
                 println("Running main loop...")
-                game.player<Logger>()?.add("Welcome! " + 3.toChar() + 3.toChar() + 3.toChar())
+                val heart = 3.toChar()
+                game.player<Logger>()?.add(_fg("love", "$heart $heart $heart") + " Welcome! " +
+                        _fg("love", "$heart $heart $heart"))
                 val uiJob = launch(exceptionHandler) {
                     uiLoop()
                 }

@@ -3,9 +3,12 @@ package gehenna.ui.panel
 import asciiPanel.AsciiCharacterData
 import asciiPanel.AsciiFont
 import asciiPanel.AsciiPanel
-import asciiPanel.TileTransformer
-import gehenna.ui.*
-import gehenna.utils.*
+import gehenna.ui.Alignment
+import gehenna.ui.InputConverter
+import gehenna.ui.Settings
+import gehenna.ui.Window
+import gehenna.utils.Size
+import gehenna.utils.toColor
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.BorderFactory
@@ -58,12 +61,60 @@ open class GehennaPanel(
 
     //todo: write text with auto line breaks
     override fun writeLine(line: String, y: Int, alignment: Alignment, fg: Color, bg: Color) {
-        val text = if (line.length < widthInCharacters) line else line.take(widthInCharacters - 3) + "..."
         clearLine(y)
         when (alignment) {
-            Alignment.left -> write(text, 0, y, fg, bg)
-            Alignment.center -> writeCenter(text, y, fg, bg)
+            Alignment.left -> writeColoredLine(line, 0, y, fg, bg)
+            Alignment.center -> writeColoredLine(line, (widthInCharacters - line.length) / 2, y, fg, bg)
             Alignment.right -> TODO()
+        }
+    }
+
+    private fun writeColoredLine(line: String, x: Int, y: Int, defaultFG: Color, defaultBG: Color) {
+        //TODO : THIS IS SOME KIND OF SHIT!
+        var fg = defaultFG
+        var bg = defaultBG
+        var i : Int = 0
+        var shiftLeft : Int = 0
+        while (i < line.length) {
+            if (line[i] != '$') {
+                val pos = x + i - shiftLeft
+                if (pos >= widthInCharacters) {
+                    write("...", widthInCharacters - 3, y, fg, bg)
+                    return
+                }
+                write(line[i], pos, y, fg, bg)
+                i++
+            } else {
+                val oldI = i
+                var color = ""
+                val background = if (line[i + 1] == '_') {
+                    i++
+                    true
+                } else {
+                    false
+                }
+                assert(line[i + 1] == '{')
+                i += 2
+                while (line[i] != '}') {
+                    color += line[i]
+                    i++
+                }
+                if (background) {
+                    bg = if (color == "normal")  {
+                        defaultBG
+                    } else {
+                        color.toColor()
+                    }
+                } else {
+                    fg = if (color == "normal")  {
+                        defaultFG
+                    } else {
+                        color.toColor()
+                    }
+                }
+                i++
+                shiftLeft += i - oldI
+            }
         }
     }
 

@@ -7,7 +7,10 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.JOptionPane.PLAIN_MESSAGE
 import javax.swing.JOptionPane.showMessageDialog
+import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.sign
+import kotlin.math.sin
 import kotlin.random.Random
 
 operator fun Color.times(alpha: Double) = Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
@@ -65,4 +68,8 @@ inline fun <reified T> T.setVal(name: String, value: Any?) {
 
 fun sign(x: Int): Int {
     return sign(x.toDouble()).toInt()
+}
+
+fun Double.normalizeAngle(): Double {
+    return atan2(sin(this), cos(this))
 }

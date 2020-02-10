@@ -1,9 +1,6 @@
 package gehenna.core
 
-import gehenna.component.Glyph
-import gehenna.component.Logger
-import gehenna.component.Position
-import gehenna.component.Senses
+import gehenna.component.*
 import gehenna.utils.Point
 import gehenna.utils.prepareMessage
 import java.io.Serializable
@@ -28,6 +25,13 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
 
     protected fun end(): ActionResult = ActionResult(time, true, log, addToQueue)
     protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
+}
+
+class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (context: Context) -> Unit): Action(time, addToQueue) {
+    override fun perform(context: Context): ActionResult {
+        func(context)
+        return end()
+    }
 }
 
 abstract class PredictableAction<T>(time: Long = oneTurn, addToQueue: Boolean = true) : Action(time, addToQueue) {

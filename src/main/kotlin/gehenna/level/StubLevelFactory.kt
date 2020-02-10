@@ -13,7 +13,7 @@ class StubLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
         return Pair(Level(size).apply {
             box(zero, size)
             rect(zero, size)
-            box(zero, Size(16, 16))
+            box(zero, Size(50, 50))
 
             spawn(factory.new("rifle"), startPosition)
             spawn(factory.new("pistol"), startPosition)

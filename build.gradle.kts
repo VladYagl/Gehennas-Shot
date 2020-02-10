@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.3.50"
     id("com.github.johnrengelman.shadow") version "4.0.1"
+    java
     idea
 }
 
@@ -25,7 +26,7 @@ dependencies {
     implementation("org.reflections:reflections:0.9.11")
     implementation("com.github.xaguzman:pathfinding:0.2.6")
     implementation("com.beust:klaxon:5.0.12")
-    implementation("com.github.trystan:AsciiPanel:ac179b1")
+//    implementation("com.github.trystan:AsciiPanel:ac179b1")
     implementation(files("lib/rlforj.0.2.jar"))
 }
 

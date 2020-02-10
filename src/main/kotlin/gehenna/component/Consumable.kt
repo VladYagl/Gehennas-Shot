@@ -5,12 +5,9 @@ import gehenna.core.Action.Companion.oneTurn
 
 abstract class Consumable(val time: Long, val apply: (Entity, Context) -> Unit) : Component() {
     fun apply(target: Entity): Action {
-        return object : Action(time) {
-            override fun perform(context: Context): ActionResult {
-                apply(target, context)
-                entity.clean()
-                return end()
-            }
+        return SimpleAction(time) { context ->
+            apply(target, context)
+            entity.clean()
         }
     }
 }

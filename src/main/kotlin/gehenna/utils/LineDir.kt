@@ -1,11 +1,34 @@
 package gehenna.utils
 
-import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.level.Level
-import kotlin.math.abs
+import kotlin.math.*
+
+fun Double.toLineDir(): LineDir {
+    val angle = this.normalizeAngle()
+
+    val x: Int
+    val y: Int
+    val tg = (tan(angle) * 1000).roundToInt()
+
+    if (tg == Int.MAX_VALUE || tg == Int.MIN_VALUE) {
+        x = 0
+        y = tg / abs(tg)
+    } else {
+        x = 1000
+        y = tg
+    }
+
+    return if (angle < PI / 2 && angle > -PI / 2) {
+        LineDir(x, y)
+    } else {
+        LineDir(-x, -y)
+    }
+}
 
 data class LineDir(override val x: Int, override val y: Int, val error: Int = abs(x) - abs(y)) : Point {
+
+    val angle: Double = atan2(y.toDouble(), x.toDouble())
 
     fun next(point: Point, error: Int = this.error): Pair<Int, Point> {
         val dx = abs(x)
@@ -41,6 +64,8 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
                 } else {
                     point = nextPoint
                 }
+            } else {
+                point = nextPoint
             }
 
             if (!walker(point))

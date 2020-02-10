@@ -1,12 +1,12 @@
 package gehenna.action
 
 import gehenna.component.*
-import gehenna.component.behaviour.BulletBehaviour
 import gehenna.component.behaviour.LineBulletBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.*
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
+import kotlin.math.min
 
 object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()
@@ -46,16 +46,17 @@ object Wait : Action() {
 data class Shoot(
         private val pos: Position,
         private val dir: LineDir,
-        private val bulletName: String,
-        private val damage: Dice,
-        private val delay: Long,
-        private val speed: Int,
+        private val gun: Gun,
         override var time: Long = oneTurn
 ) : Action() {
     override fun perform(context: Context): ActionResult {
-        val bullet = context.factory.new(bulletName)
+        val bullet = context.factory.new(gun.bullet)
         pos.spawnHere(bullet)
-        bullet.add(LineBulletBehaviour(bullet, dir, damage,  speed, delay))
+        val randomAngle = dir.angle + if (gun.spread > 0) {
+            random.nextDouble(gun.spread) - random.nextDouble(gun.spread)
+        } else 0.0
+        bullet.add(LineBulletBehaviour(bullet, randomAngle.toLineDir(), gun.damage, gun.speed, gun.delay))
+        gun.spread = min(gun.shootSpread + gun.spread, gun.maxSpread)
         return end()
     }
 }
@@ -81,7 +82,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
     }
 }
 
-data class ApplyEffect(private val entity: Entity, private val effect: Effect) : Action(oneTurn) {
+data class ApplyEffect(private val entity: Entity, private val effect: Effect, override var time: Long = oneTurn) : Action() {
     override fun perform(context: Context): ActionResult {
         if (effect is Gun.BurstFire) {
             logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")

@@ -140,11 +140,13 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.writeLine("Effects = " + game.player.all<Effect>(), 5)
         ui.info.writeLine("Inventory ${storage.currentVolume}/${storage.maxVolume}", 8, bg = Color.darkGray)
         ui.info.writeLine("Equipped gun: ${storage.gun?.entity}", 9, Alignment.left, bg = Color.darkGray)
-        val dice = (storage.gun?.entity?.invoke<Gun>())?.damage
+        val gun = storage.gun?.entity?.invoke<Gun>()
+        val dice = gun?.damage
         ui.info.writeLine("Damage: ${dice?.mean?.format(1)}${241.toChar()}${dice?.std?.format(1)} | $dice", 10, Alignment.left, bg = Color.darkGray)
-        repeat(9) { i -> ui.info.clearLine(11 + i) }
+        ui.info.writeLine("Spread: ${gun?.spread}", 11, Alignment.left, bg = Color.darkGray)
+        repeat(9) { i -> ui.info.clearLine(12 + i) }
         storage.contents.forEachIndexed { index, item ->
-            ui.info.writeLine(item.entity.toString(), 11 + index)
+            ui.info.writeLine(item.entity.toString(), 12 + index)
         }
 
         repeat(10) { i -> ui.info.clearLine(21 + i) }
@@ -262,6 +264,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.hud.forEachTile { x, y, data ->
             if (data.character != EMPTY_CHAR) {
                 ui.world.putChar(data.character, x, y, fg = data.foregroundColor, bg = data.backgroundColor)
+            } else if (data.backgroundColor != ui.hud.bgColor) {
+                ui.world.changeColors(x, y, data.foregroundColor, data.backgroundColor)
             }
         }
     }

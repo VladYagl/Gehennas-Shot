@@ -13,8 +13,7 @@ import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
-import java.io.PipedOutputStream
-import kotlin.system.exitProcess
+import java.awt.Color
 
 abstract class State {
     open fun handleInput(input: Input): Pair<State, Boolean> = this to false
@@ -48,7 +47,6 @@ private abstract class Target(
         protected val onlyVisible: Boolean = true,
         protected val drawLine: Boolean = false)
     : State() {
-    //todo: get cursor from ui
     private var cursor: Point = context.player.one<Position>()
     protected val level: Level = context.player.one<Position>().level
 
@@ -60,6 +58,19 @@ private abstract class Target(
         return context.player.all<Senses>().any { it.isVisible(point) }
     }
 
+    private fun LineDir.drawLine(start: Point, nSteps: Int, level: Level?, initColor: Color = context.hud.fgColor) {
+        var color = initColor * 0.5
+        this.walkLine(start, nSteps, level) { point ->
+            if (level != null && !isVisible(point) && level.memory(point) == null) {
+                false
+            } else {
+                context.putCharOnHUD(EMPTY_CHAR, point.x, point.y, fg = Color.gray, bg = max(color, context.hud.bgColor))
+                color *= 0.95
+                true
+            }
+        }
+    }
+
     private fun print() {
         context.hud.clear(EMPTY_CHAR)
         if (level.inBounds(cursor) && isVisible(cursor)) {
@@ -69,22 +80,20 @@ private abstract class Target(
         }
 
         if (drawLine) {
-            var color = context.hud.fgColor * 0.5
-
             val playerPos: Position = context.player.one<Position>()
             val diff = cursor - playerPos
-            LineDir(diff.x, diff.y).walkLine(playerPos, 15, playerPos.level) { point ->
-                if (!isVisible(point) && level.memory(point) == null) {
-                    false
-                } else {
-                    context.putCharOnHUD(249.toChar(), point.x, point.y, max(color, context.hud.bgColor))
-                    color *= 0.95
-                    true
-                }
-            }
+            val dir = LineDir(diff.x, diff.y)
 
+            val inventory = context.player.one<Inventory>()
+            val gun = inventory.gun?.entity?.invoke<Gun>()
+//            val color = context.hud.fgColor * 0.8
+            val color = Color(128, 160, 210)
+            (dir.angle + (gun?.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
+            (dir.angle - (gun?.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
+
+            dir.drawLine(playerPos, 15, playerPos.level)
         }
-        context.putCharOnHUD('X', cursor.x, cursor.y)
+        context.putCharOnHUD(EMPTY_CHAR, cursor.x, cursor.y, fg = Color.gray, bg = Color(96, 32, 32))
     }
 
     init {

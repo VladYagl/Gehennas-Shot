@@ -1,12 +1,12 @@
 package gehenna.ui.panel
 
-import asciiPanel.AsciiCharacterData
-import asciiPanel.AsciiFont
-import asciiPanel.AsciiPanel
 import gehenna.ui.Alignment
 import gehenna.ui.InputConverter
 import gehenna.ui.Settings
 import gehenna.ui.Window
+import asciiPanel.AsciiCharacterData
+import asciiPanel.AsciiFont
+import asciiPanel.AsciiPanel
 import gehenna.utils.Size
 import gehenna.utils.toColor
 import java.awt.BorderLayout
@@ -122,6 +122,11 @@ open class GehennaPanel(
         write(char, x, y, fg, bg)
     }
 
+    override fun changeColors(x: Int, y: Int, fg: Color, bg: Color) {
+        changeCharColors(x, y, fg, bg)
+    }
+
+    //todo: replace AsciiCharacterData with something else
     override fun forEachTile(transformer: (Int, Int, AsciiCharacterData) -> Unit) {
         withEachTile(transformer)
     }

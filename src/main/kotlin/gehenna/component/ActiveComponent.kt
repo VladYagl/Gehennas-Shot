@@ -29,11 +29,8 @@ data class PassiveHeal(
 ) : Effect() {
     override val endless: Boolean = true
 
-    override suspend fun action() = object : Action(oneTick) {
-        override fun perform(context: Context): ActionResult {
-            entity<Health>()?.heal(amount)
-            return end()
-        }
+    override suspend fun action() = SimpleAction(oneTick) {
+        entity<Health>()?.heal(amount)
     }
 }
 

@@ -1,11 +1,7 @@
 package gehenna.ui
 
 import asciiPanel.AsciiCharacterData
-import asciiPanel.TileTransformer
-import gehenna.utils.Point
 import gehenna.utils.Size
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import java.awt.Color
 import javax.swing.JPanel
 
@@ -27,6 +23,7 @@ interface Window {
     fun clearLine(y: Int)
     fun writeLine(line: String, y: Int, alignment: Alignment = Alignment.left, fg: Color = fgColor, bg: Color = bgColor)
     fun putChar(char: Char, x: Int, y: Int, fg: Color = fgColor, bg: Color = bgColor)
+    fun changeColors(x: Int, y: Int, fg: Color, bg: Color)
     fun repaint()
 
     fun forEachTile(transformer: (Int, Int, AsciiCharacterData) -> Unit)

@@ -62,8 +62,15 @@
         "gun": {
             "bullet": "bullet",
             "damage": "2d5",
-            "delay": 25,
-            "speed": 666
+            "delay": 10,
+            "speed": 1000,
+            "time": 33,
+
+            "minSpread": 0.0,
+            "maxSpread": 0.6,
+            "shootSpread": 0.3,
+            "spreadReduce": 0.025,
+            "spreadReduceTick": 10
         },
         "item": {
             "volume": 15

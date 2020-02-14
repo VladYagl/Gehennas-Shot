@@ -5,6 +5,7 @@ import gehenna.action.ClimbStairs
 import gehenna.action.Move
 import gehenna.action.Wait
 import gehenna.component.*
+import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.core.Entity
 import gehenna.level.Level
@@ -45,9 +46,12 @@ private abstract class Direction(protected val context: UIContext) : State() {
 private abstract class Target(
         protected val context: UIContext,
         protected val onlyVisible: Boolean = true,
+        protected val autoAim: Boolean = false,
         protected val drawLine: Boolean = false)
     : State() {
-    private var cursor: Point = context.player.one<Position>()
+
+    private lateinit var cursor: Point
+
     protected val level: Level = context.player.one<Position>().level
 
     private fun hideCursor() {
@@ -98,6 +102,24 @@ private abstract class Target(
     }
 
     init {
+        cursor = if (!autoAim) {
+            context.player.one<Position>()
+        } else {
+            val playerPos: Point = context.player.one<Position>()
+            var target = playerPos
+            context.player<PlayerBehaviour>()?.let { player ->
+                context.player.all<Senses>().forEach { sense ->
+                    sense.visitFov { entity, point ->
+                        if (entity.any<CharacterBehaviour>()?.faction?.isEnemy(player.faction) == true) {
+                            if ((target - playerPos).max == 0 || (target - playerPos).max > (point - playerPos).max) {
+                                target = point
+                            }
+                        }
+                    }
+                }
+            }
+            target
+        }
         print()
     }
 
@@ -264,7 +286,7 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
     }
 }
 
-private class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false, drawLine = true) {
+private class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false, autoAim = true, drawLine = true) {
     override fun select(point: Point): State {
         val diff = point - context.player.one<Position>()
         context.action = gun.fire(context.player, LineDir(diff.x, diff.y))

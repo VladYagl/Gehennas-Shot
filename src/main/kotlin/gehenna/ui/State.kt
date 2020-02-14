@@ -14,6 +14,7 @@ import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
 import java.awt.Color
+import kotlin.math.abs
 
 abstract class State {
     open fun handleInput(input: Input): Pair<State, Boolean> = this to false
@@ -85,13 +86,14 @@ private abstract class Target(
             val dir = LineDir(diff.x, diff.y)
 
             val inventory = context.player.one<Inventory>()
-            val gun = inventory.gun?.entity?.invoke<Gun>()
-//            val color = context.hud.fgColor * 0.8
-            val color = Color(128, 160, 210)
-            (dir.angle + (gun?.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
-            (dir.angle - (gun?.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
+            val gun = inventory.gun?.entity?.invoke<Gun>() ?: throw Exception("Targeting without a gun, why?")
 
-            dir.drawLine(playerPos, 15, playerPos.level)
+            //            val color = context.hud.fgColor * 0.8
+            val color = Color(128, 160, 210)
+            (dir.angle + (gun.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
+            (dir.angle - (gun.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
+
+            dir.drawLine(playerPos, 15, if (gun.bounce) playerPos.level else null)
         }
         context.putCharOnHUD(EMPTY_CHAR, cursor.x, cursor.y, fg = Color.gray, bg = Color(96, 32, 32))
     }

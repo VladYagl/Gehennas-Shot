@@ -118,7 +118,7 @@ abstract class Dice : Serializable {
 
         private fun parseSum(): Dice {
             var dice = parseSingle()
-            val next = next()
+            var next = next()
             while (next == '+' || next == '-') {
                 pos++
                 val b = parseSingle()
@@ -127,6 +127,7 @@ abstract class Dice : Serializable {
                 } else {
                     dice -= b
                 }
+                next = next()
             }
             return dice
         }

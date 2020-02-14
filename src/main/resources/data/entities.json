@@ -14,7 +14,9 @@
         "inventory": {
             "maxVolume": 200
         },
-        "passiveHeal": {},
+        "passiveHeal": {
+            "amount": 3
+        },
         "mutators": {
             "giveOneOf": {
                 "items": [
@@ -117,9 +119,6 @@
     },
 
     "bullet": {
-        "destroyTimer": {
-            "waitTime": 1000
-        },
         "directionalGlyph": {
             "glyphs": {
                 "zero": 123,

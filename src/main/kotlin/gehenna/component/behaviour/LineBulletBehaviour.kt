@@ -14,16 +14,25 @@ data class LineBulletBehaviour(
         var dir: LineDir,
         private val damage: Dice,
         override val speed: Int,
+        private val bounce: Boolean = true,
         override var waitTime: Long = 0
 ) : PredictableBehaviour<LineDir>() {
     override val state: LineDir get() = dir
 
-    private data class FollowLine(private val entity: Entity, private val dir: LineDir, private val damage: Dice) : PredictableAction<LineDir>(100) {
+    private data class FollowLine(
+            private val entity: Entity,
+            private val dir: LineDir,
+            private val damage: Dice,
+            private val bounce: Boolean
+    ) : PredictableAction<LineDir>(100) {
 
         override fun predict(pos: Position, state: LineDir, glyph: Glyph): Triple<Point, LineDir, Glyph> {
             val (error, next) = dir.next(pos)
+            if (!pos.level.inBounds(next)) { // TODO : looks suspicious
+                return Triple(pos, state, glyph)
+            }
             val obstacle = pos.level.obstacle(next)
-            return if (obstacle?.has<Reflecting>() == true) {
+            return if (obstacle?.has<Reflecting>() == true && bounce) {
                 val (dx, dy) = (next - pos).dir.bounce(pos, dir)
                 Triple(pos, LineDir(dx, dy, error),
                         entity<DirectionalGlyph>()?.let {
@@ -46,7 +55,7 @@ data class LineBulletBehaviour(
             val pos = entity.one<Position>()
             val (next, dir) = predict(pos, dir, Glyph(Entity.world, '?'))
             val obstacle = pos.level.obstacle(next)
-            return if (obstacle?.has<Reflecting>() == false) {
+            return if (obstacle?.has<Reflecting>() == false || (obstacle != null && !bounce)) {
                 Collide(entity, obstacle, damage).also { it.time = time }.perform(context)
             } else {
                 val behaviour = entity<LineBulletBehaviour>()
@@ -61,7 +70,7 @@ data class LineBulletBehaviour(
     }
 
     override fun predictImpl(pos: Position, state: LineDir): PredictableAction<in LineDir> {
-        return FollowLine(entity, state, damage)
+        return FollowLine(entity, state, damage, bounce)
     }
 
 }

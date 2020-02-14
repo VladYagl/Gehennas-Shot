@@ -64,11 +64,13 @@
             "damage": "2d5",
             "delay": 10,
             "speed": 1000,
-            "time": 33,
+            "time": 50,
+            "bounce": false,
 
             "minSpread": 0.0,
             "maxSpread": 0.6,
             "shootSpread": 0.3,
+            "walkSpread": 0.45,
             "spreadReduce": 0.025,
             "spreadReduceTick": 10
         },
@@ -84,10 +86,45 @@
         "gun": {
             "bullet": "bullet",
             "damage": "d11",
-            "delay": 40,
-            "speed": 850,
+            "delay": 10,
+            "speed": 1000,
             "burstCount": 3,
-            "time": 50
+            "time": 33,
+            "bounce": false,
+
+            "minSpread": 0.08,
+            "maxSpread": 0.7,
+            "shootSpread": 0.20,
+            "walkSpread": 0.525,
+            "spreadReduce": 0.03,
+            "spreadReduceTick": 10
+        },
+        "item": {
+            "volume": 50
+        },
+        "glyph": {
+            "char": 139
+        }
+    },
+
+    "shotgun": {
+        "gun": {
+            "bullet": "bullet",
+            "damage": "d4+2",
+            "delay": 1,
+            "speed": 850,
+            "burstCount": 4,
+            "time": 1,
+            "shootTime": 50,
+            "bulletTime": 120,
+            "bounce": false,
+
+            "minSpread": 0.25,
+            "maxSpread": 0.35,
+            "shootSpread": 0.20,
+            "walkSpread": 0.625,
+            "spreadReduce": 0.04,
+            "spreadReduceTick": 10
         },
         "item": {
             "volume": 50

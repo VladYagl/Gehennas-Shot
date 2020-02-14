@@ -24,6 +24,9 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
             val pos = entity.one<Position>()
             if (pos.level.isWalkable(pos + dir)) {
                 pos.move(pos + dir)
+                //update weapon spread FIXME: maybe it should be in different place, but here is OK
+                //TODO: maybe it should depend on a speed?
+                entity<Inventory>()?.gun?.entity?.invoke<Gun>()?.applyWalkSpread()
                 pos.level[pos].forEach {
                     it.any<PredictableBehaviour<*>>()?.let { behaviour ->
                         entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity.name}")
@@ -55,8 +58,9 @@ data class Shoot(
         val randomAngle = dir.angle + if (gun.spread > 0) {
             random.nextDouble(gun.spread) - random.nextDouble(gun.spread)
         } else 0.0
-        bullet.add(LineBulletBehaviour(bullet, randomAngle.toLineDir(), gun.damage, gun.speed, gun.delay))
-        gun.spread = min(gun.shootSpread + gun.spread, gun.maxSpread)
+        bullet.add(LineBulletBehaviour(bullet, randomAngle.toLineDir(), gun.damage, gun.speed, gun.bounce, gun.delay))
+        bullet.add(DestroyTimer(bullet, gun.bulletTime))
+        gun.applyShootSpread()
         return end()
     }
 }
@@ -75,21 +79,35 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
 
     override fun perform(context: Context): ActionResult {
         val damageRoll = damage.roll()
-        logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
-        victim<Health>()?.dealDamage(damageRoll, this)
+        victim<Health>()?.let{
+            logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
+            it.dealDamage(damageRoll, this)
+        }
         entity.clean()
         return end()
     }
 }
 
-data class ApplyEffect(private val entity: Entity, private val effect: Effect, override var time: Long = oneTurn) : Action() {
+data class ApplyEffect(
+        private val entity: Entity,
+        private val effect: Effect,
+        private val replace: Boolean = false,
+        override var time: Long = oneTurn
+) : Action() {
     override fun perform(context: Context): ActionResult {
-        if (effect is Gun.BurstFire) {
-            logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")
-        } else {
-            logFor(entity, "$_Actor start[s] ${effect::class.simpleName}")
+        if (!entity.has(effect::class)) {
+            if (effect is Gun.BurstFire) {
+                logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")
+            } else {
+                logFor(entity, "$_Actor start[s] ${effect::class.simpleName}")
+            }
+            entity.add(effect)
+        } else if (replace) {
+            entity(effect::class)?.let {
+                entity.remove(it)
+            }
+            entity.add(effect)
         }
-        entity.add(effect)
         return end()
     }
 }

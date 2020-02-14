@@ -13,7 +13,7 @@ fun Double.toLineDir(): LineDir {
 
     if (tg == Int.MAX_VALUE || tg == Int.MIN_VALUE) {
         x = 0
-        y = tg / abs(tg)
+        y = -sign(tg)
     } else {
         x = 1000
         y = tg
@@ -30,6 +30,21 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
 
     val angle: Double = atan2(y.toDouble(), x.toDouble())
 
+    override val dir
+        get(): Dir {
+            return when {
+                abs(x) > abs(y) * 2 -> {
+                    (x at 0).dir
+                }
+                abs(y) > abs(x) * 2 -> {
+                    (0 at y).dir
+                }
+                else -> {
+                    (x at y).dir
+                }
+            }
+        }
+
     fun next(point: Point, error: Int = this.error): Pair<Int, Point> {
         val dx = abs(x)
         val dy = -abs(y)
@@ -44,6 +59,7 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
             ne += dx
             ny += sign(y)
         }
+//        println("dx=$dx, dy=$dy, error=$ne")
         return Pair(ne, nx at ny)
     }
 

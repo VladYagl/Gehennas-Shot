@@ -13,6 +13,7 @@ import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
 import java.awt.Color
+import kotlin.math.PI
 import kotlin.system.exitProcess
 import kotlin.system.measureNanoTime
 
@@ -137,13 +138,13 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.writeLine("Player glyph = ${glyph.char}|${glyph.priority}", 2)
         ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
         ui.info.writeLine("Player hp = " + game.player<Health>()?.current, 4)
-        ui.info.writeLine("Effects = " + game.player.all<Effect>(), 5)
+        ui.info.writeLine("Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }, 5)
         ui.info.writeLine("Inventory ${storage.currentVolume}/${storage.maxVolume}", 8, bg = Color.darkGray)
         ui.info.writeLine("Equipped gun: ${storage.gun?.entity}", 9, Alignment.left, bg = Color.darkGray)
         val gun = storage.gun?.entity?.invoke<Gun>()
         val dice = gun?.damage
         ui.info.writeLine("Damage: ${dice?.mean?.format(1)}${241.toChar()}${dice?.std?.format(1)} | $dice", 10, Alignment.left, bg = Color.darkGray)
-        ui.info.writeLine("Spread: ${gun?.spread}", 11, Alignment.left, bg = Color.darkGray)
+        ui.info.writeLine("Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}", 11, Alignment.left, bg = Color.darkGray)
         repeat(9) { i -> ui.info.clearLine(12 + i) }
         storage.contents.forEachIndexed { index, item ->
             ui.info.writeLine(item.entity.toString(), 12 + index)

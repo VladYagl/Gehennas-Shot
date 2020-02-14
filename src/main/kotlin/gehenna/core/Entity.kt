@@ -28,6 +28,10 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         return components[T::class] as T?
     }
 
+    operator fun invoke(clazz: KClass<out Component>): Component? {
+        return components[clazz]
+    }
+
     inline fun <reified T : Component> all(): List<T> {
         return components.mapNotNull {
             T::class.safeCast(it.value)
@@ -54,6 +58,10 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
 
     inline fun <reified T : Component> has(): Boolean {
         return invoke<T>() != null
+    }
+
+    fun has(clazz: KClass<out Component>): Boolean {
+        return invoke(clazz) != null
     }
 
     inline fun <reified T : Component> add(component: T) {

@@ -169,7 +169,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private var camera = zero
-    private val cameraBound = ui.worldSize.width / 2 - ui.worldSize.width / 5 at ui.worldSize.height / 2 - 3
+    private val cameraBound = 15 at 15
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
@@ -180,11 +180,11 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             y = playerPos.y - cameraBound.y
         }
         val end = camera + ui.worldSize
-        if (playerPos.x > end.x - cameraBound.x) {
-            x = playerPos.x + cameraBound.x - ui.worldSize.width
+        if (playerPos.x >= end.x - cameraBound.x) {
+            x = playerPos.x + cameraBound.x - ui.worldSize.width + 1
         }
-        if (playerPos.y > end.y - cameraBound.y) {
-            y = playerPos.y + cameraBound.y - ui.worldSize.height
+        if (playerPos.y >= end.y - cameraBound.y) {
+            y = playerPos.y + cameraBound.y - ui.worldSize.height + 1
         }
 
         camera = x at y

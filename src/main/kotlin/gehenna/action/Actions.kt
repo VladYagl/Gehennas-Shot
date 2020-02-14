@@ -7,7 +7,7 @@ import gehenna.core.*
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
 
-object Think : Action(0) {
+data class Think(override var time: Long) : Action(time) {
     override fun perform(context: Context): ActionResult = end()
 }
 

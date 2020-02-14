@@ -2,12 +2,15 @@ package gehenna.component.behaviour
 
 import gehenna.action.Move
 import gehenna.action.Pickup
+import gehenna.action.Think
+import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.core.Action
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Faction
 import gehenna.utils.*
+import gehenna.utils.Dir.Companion.zero
 
 data class MonsterBehaviour(
         override val entity: Entity,
@@ -105,13 +108,15 @@ data class MonsterBehaviour(
 
     private fun randomMove(): Action = safeRandom() ?: Move(entity, Dir.random(random))
 
-
+//    private fun wait(): Action = Wait
+    private fun wait(): Action = Think(25)
 
     override suspend fun behave(): Action {
         if (lastResult?.succeeded == false) {
             return randomMove()
         }
         updateSenses()
-        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: randomMove()
+//        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: randomMove()
+        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: wait()
     }
 }

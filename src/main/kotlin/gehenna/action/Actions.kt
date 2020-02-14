@@ -6,7 +6,6 @@ import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.*
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
-import kotlin.math.min
 
 object Think : Action(0) {
     override fun perform(context: Context): ActionResult = end()

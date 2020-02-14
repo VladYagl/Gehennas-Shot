@@ -1,9 +1,7 @@
 package gehenna.core
 
 import gehenna.component.Position
-import gehenna.component.Senses
 import java.io.Serializable
-import kotlin.reflect.KClass
 
 typealias Sense = String
 

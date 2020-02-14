@@ -3,7 +3,6 @@ package gehenna.component
 import gehenna.action.Destroy
 import gehenna.core.*
 import gehenna.core.Action.Companion.oneTurn
-import kotlin.reflect.jvm.internal.impl.load.java.typeEnhancement.TypeEnhancementInfo
 
 abstract class ActiveComponent : Component() {
     open var waitTime: Long = 0L

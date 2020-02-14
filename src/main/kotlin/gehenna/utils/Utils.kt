@@ -1,7 +1,5 @@
 package gehenna.utils
 
-import gehenna.component.Position
-import gehenna.component.Reflecting
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter

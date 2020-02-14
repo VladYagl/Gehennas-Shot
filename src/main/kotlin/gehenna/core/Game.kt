@@ -9,7 +9,6 @@ import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevelFactory
 import gehenna.level.Level
-import gehenna.level.StubLevelFactory
 import gehenna.utils.SaveData
 import gehenna.utils.Size
 

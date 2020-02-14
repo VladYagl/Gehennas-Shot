@@ -17,7 +17,7 @@ interface Point : Serializable {
     operator fun plus(other: Point): Point = x + other.x at y + other.y
     operator fun times(dir: Dir): Point = x * dir.x at y * dir.y
 
-    open val dir: Dir get() = x.sign on y.sign
+    val dir: Dir get() = x.sign on y.sign
     val size: Size get() = Size(x, y)
     val max: Int get() = max(abs(x), abs(y))
 

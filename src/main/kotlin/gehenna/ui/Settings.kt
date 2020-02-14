@@ -65,6 +65,6 @@ fun loadSettings(input: Pair<InputStream, String>): Settings? {
     return klaxon.parse<Settings>(input.first)
 }
 
-fun main(args: Array<String>) {
+fun main() {
     println(Settings().toJson())
 }

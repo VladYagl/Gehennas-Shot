@@ -2,7 +2,6 @@ package gehenna.ui
 
 import gehenna.ui.panel.GehennaPanel
 import gehenna.ui.panel.MenuPanel
-import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.showError
 import kotlinx.coroutines.*
@@ -75,7 +74,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         horizontalPane.add(JSeparator(JSeparator.VERTICAL))
         horizontalPane.add(info)
         horizontalPane.size = horizontalPane.preferredSize
-        horizontalPane.location = java.awt.Point(0, 0)
+        horizontalPane.location = Point(0, 0)
         horizontalPane.border = BorderFactory.createEmptyBorder(5, 5, 0, 0)
         mainPane.add(horizontalPane)
         mainPane.preferredSize = horizontalPane.preferredSize
@@ -149,7 +148,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     override fun addWindow(window: Window) {
         val x = (mainPane.width - window.size.width * font.width) / 2
         val y = (mainPane.height - window.size.height * font.height) / 2
-        window.panel.location = java.awt.Point(x, y)
+        window.panel.location = Point(x, y)
 
         mainPane.add(window.panel)
         mainPane.moveToFront(window.panel)

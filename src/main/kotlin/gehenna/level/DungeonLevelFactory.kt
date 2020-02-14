@@ -3,12 +3,14 @@ package gehenna.level
 import gehenna.component.Floor
 import gehenna.component.Stairs
 import gehenna.core.Context
-import gehenna.utils.*
 import gehenna.utils.Dir.Companion.east
 import gehenna.utils.Dir.Companion.south
 import gehenna.utils.Dir.Companion.southeast
+import gehenna.utils.Point
 import gehenna.utils.Point.Companion.zero
-import kotlin.reflect.full.safeCast
+import gehenna.utils.at
+import gehenna.utils.nextPoint
+import gehenna.utils.random
 
 class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
     override fun build(previous: Level?, backPoint: Point?): Pair<Level, Point> {

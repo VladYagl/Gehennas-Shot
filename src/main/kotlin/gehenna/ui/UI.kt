@@ -5,6 +5,7 @@ import gehenna.utils.Size
 import java.awt.Color
 import javax.swing.JPanel
 
+@Suppress("EnumEntryName")
 enum class Alignment {
     left, center, right;
 }

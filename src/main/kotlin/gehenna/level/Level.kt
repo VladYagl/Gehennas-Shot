@@ -1,16 +1,12 @@
 package gehenna.level
 
-import gehenna.component.DirectionalGlyph
 import gehenna.component.Glyph
 import gehenna.component.Position
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.Entity
-import gehenna.core.PredictableAction
 import gehenna.utils.Point
 import gehenna.utils.Size
-import gehenna.utils.at
 import java.util.*
-import kotlin.collections.ArrayList
 
 typealias Prediction = ArrayList<Pair<Point, Glyph>>
 

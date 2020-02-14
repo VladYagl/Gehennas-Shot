@@ -14,7 +14,6 @@ import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
 import java.awt.Color
-import kotlin.math.abs
 
 abstract class State {
     open fun handleInput(input: Input): Pair<State, Boolean> = this to false
@@ -81,7 +80,7 @@ private abstract class Target(
         }
 
         if (drawLine) {
-            val playerPos: Position = context.player.one<Position>()
+            val playerPos: Position = context.player.one()
             val diff = cursor - playerPos
             val dir = LineDir(diff.x, diff.y)
 
@@ -90,8 +89,8 @@ private abstract class Target(
 
             //            val color = context.hud.fgColor * 0.8
             val color = Color(128, 160, 210)
-            (dir.angle + (gun.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
-            (dir.angle - (gun.spread ?: 0.0)).toLineDir().drawLine(playerPos, 15, null, color)
+            (dir.angle + gun.spread).toLineDir().drawLine(playerPos, 15, null, color)
+            (dir.angle - gun.spread).toLineDir().drawLine(playerPos, 15, null, color)
 
             dir.drawLine(playerPos, 15, if (gun.bounce) playerPos.level else null)
         }

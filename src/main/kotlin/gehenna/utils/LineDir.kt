@@ -94,6 +94,6 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
     }
 
     override fun minus(other: Point): Point {
-        throw UnsupportedOperationException("No minus with Line Direction");
+        throw UnsupportedOperationException("No minus with Line Direction")
     }
 }

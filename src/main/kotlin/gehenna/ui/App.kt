@@ -1,8 +1,10 @@
 package gehenna.ui
 
 import gehenna.component.*
-import gehenna.component.behaviour.*
-import gehenna.core.Action
+import gehenna.component.behaviour.Behaviour
+import gehenna.component.behaviour.CharacterBehaviour
+import gehenna.component.behaviour.PlayerBehaviour
+import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Game
@@ -52,6 +54,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                     uiLoop()
                 }
                 launch(exceptionHandler) {
+                    @Suppress("ControlFlowWithEmptyBody")
                     while (gameLoop(uiJob)) {
                     }
                 }

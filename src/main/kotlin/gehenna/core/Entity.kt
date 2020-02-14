@@ -68,7 +68,7 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         //todo : add by T::class (to for example avoid need of any)
         components[component::class] = component
         component.onEvent(Add)
-        emit(NewComponent<T>(component))
+        emit(NewComponent(component))
     }
 
     fun remove(component: Component) {

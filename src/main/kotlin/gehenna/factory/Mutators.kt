@@ -7,7 +7,7 @@ import gehenna.utils.random
 import java.io.Serializable
 
 interface EntityMutator: Serializable {
-    fun mutate(entity: Entity);
+    fun mutate(entity: Entity)
 }
 
 class GiveOneOf(private val items: ArrayList<Item>) : EntityMutator {

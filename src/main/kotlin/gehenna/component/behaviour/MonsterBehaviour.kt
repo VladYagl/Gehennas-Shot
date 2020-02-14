@@ -105,6 +105,8 @@ data class MonsterBehaviour(
 
     private fun randomMove(): Action = safeRandom() ?: Move(entity, Dir.random(random))
 
+
+
     override suspend fun behave(): Action {
         if (lastResult?.succeeded == false) {
             return randomMove()

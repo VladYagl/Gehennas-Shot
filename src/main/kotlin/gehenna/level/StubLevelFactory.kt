@@ -5,7 +5,6 @@ import gehenna.utils.Point
 import gehenna.utils.Point.Companion.zero
 import gehenna.utils.Size
 import gehenna.utils.at
-import gehenna.utils.random
 
 class StubLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
     override fun build(previous: Level?, backPoint: Point?): Pair<Level, Point> {

@@ -20,6 +20,8 @@ sealed class Input {
     object Console : Input()
     object Examine : Input()
     object Quit : Input()
+    object Increase : Input()
+    object Decrease : Input()
 
     data class Char(val char: kotlin.Char) : Input()
     object Backspace : Input()

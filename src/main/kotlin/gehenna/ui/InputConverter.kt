@@ -99,6 +99,9 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
             "e" to Input.Equip,
             "a" to Input.Use,
             "i" to Input.Inventory,
+            "-" to Input.Decrease,
+            "=" to Input.Increase,
+            "++" to Input.Increase,
             "ESC" to Input.Cancel,
             "ENTER" to Input.Accept,
             "SPACE" to Input.Accept

@@ -14,7 +14,9 @@ import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
+import rlforj.los.raymulticast.MultiRaysCaster
 import java.awt.Color
+import kotlin.math.abs
 
 abstract class State {
     open fun handleInput(input: Input): Pair<State, Boolean> = this to false
@@ -50,7 +52,13 @@ private abstract class Target(
         protected val drawLine: Boolean = false)
     : State() {
 
-    private lateinit var cursor: Point
+    protected lateinit var cursor: Point
+    protected var error: Int = 0
+    protected val dir: LineDir
+        get() {
+            val diff = cursor - context.player.one<Position>()
+            return LineDir(diff.x, diff.y, error)
+        }
 
     protected val level: Level = context.player.one<Position>().level
 
@@ -62,17 +70,60 @@ private abstract class Target(
         return context.player.all<Senses>().any { it.isVisible(point) }
     }
 
-    private fun LineDir.drawLine(start: Point, nSteps: Int, level: Level?, initColor: Color = context.hud.fgColor) {
-        var color = initColor * 0.5
+    private fun LineDir.drawLine(
+            start: Point,
+            nSteps: Int,
+            level: Level?,
+            initColor: Color = context.hud.fgColor,
+            colorDegrade: Double = 0.95
+    ) {
+        var color = initColor * 0.5 // todo WTF? why it is here?
         this.walkLine(start, nSteps, level) { point ->
             if (level != null && !isVisible(point) && level.memory(point) == null) {
                 false
             } else {
                 context.putCharOnHUD(EMPTY_CHAR, point.x, point.y, fg = Color.gray, bg = max(color, context.hud.bgColor))
-                color *= 0.95
+                color *= colorDegrade
                 true
             }
         }
+    }
+
+    private fun findBestError(target: Point): Int {
+        val playerPos: Position = context.player.one()
+        val path = playerPos.level.getLOS(playerPos, target)
+        if (path != null) {
+            val dx = abs(dir.x)
+            val dy = -abs(dir.y)
+            var eMin = dir.minError
+            var eMax = dir.maxError
+            var eAdd: Int = 0
+            var last: Point = playerPos
+
+            path.drop(1).dropLast(1).forEach {
+                val oldE = eAdd
+                if (last.x != it.x) { // (error + eAdd) * 2 >= dy ---> error >= dy / 2 - eAdd
+                    eMin = kotlin.math.max(eMin, (dy + 1) / 2 - oldE)
+                    eAdd += dy
+                } else { // (error + eAdd) * 2 < dy ---> error < dy / 2 - eAdd
+                    eMax = kotlin.math.min(eMax, (dy - 1) / 2 - oldE) // TODO
+                }
+                if (last.y != it.y) { // (error + eAdd) * 2 <= dx ---> error <= dx / 2 - eAdd
+                    eMax = kotlin.math.min(eMax, (dx - 1) / 2 - oldE)
+                    eAdd += dx
+                } else { // error > dx / 2 - eAdd
+                    eMin = kotlin.math.max(eMin, (dx + 1) / 2 - oldE) // TODO
+                }
+                last = it
+            }
+
+            println("ans = ($eMin --- $eMax), \n$path")
+            return (eMin + eMax) / 2
+        } else {
+            println("NO LINE OF SIGHT!!!")
+            return dir.defaultError
+        }
+
     }
 
     private fun print() {
@@ -85,18 +136,21 @@ private abstract class Target(
 
         if (drawLine) {
             val playerPos: Position = context.player.one()
-            val diff = cursor - playerPos
-            val dir = LineDir(diff.x, diff.y)
-
             val inventory = context.player.one<Inventory>()
             val gun = inventory.gun?.entity?.invoke<Gun>() ?: throw Exception("Targeting without a gun, why?")
 
-            //            val color = context.hud.fgColor * 0.8
+            //            val color = context.hud.fgColor * 0.8 // TODO: constants
             val color = Color(128, 160, 210)
-            (dir.angle + gun.spread).toLineDir().drawLine(playerPos, 15, null, color)
-            (dir.angle - gun.spread).toLineDir().drawLine(playerPos, 15, null, color)
+            if (dir.max > 0) {
+                // TODO: this error shit allows you do "Wanted \ Особо опасен" type shots! Added it to the game!
+                if (gun.spread > 0) { // TODO: meh, it just hides the fact that lines are not precise (same in action <Shoot>)
+                    (dir.angle + gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, 15, null, color)
+                    (dir.angle - gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, 15, null, color)
+                }
 
-            dir.drawLine(playerPos, 15, if (gun.bounce) playerPos.level else null)
+                dir.drawLine(playerPos, 15, if (gun.bounce) playerPos.level else null)
+                println("Line Dir : $dir, errorSift: ${dir.errorShift}, angle: ${dir.angle}")
+            }
         }
         context.putCharOnHUD(EMPTY_CHAR, cursor.x, cursor.y, fg = Color.gray, bg = Color(96, 32, 32))
     }
@@ -120,15 +174,35 @@ private abstract class Target(
             }
             target
         }
+        error = findBestError(cursor)
         print()
     }
 
-    protected abstract fun select(point: Point): State
+    protected abstract fun select(): State
 
     final override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
             cursor += input.dir
+            error = findBestError(cursor)
             print()
+            this to true
+        }
+        is Input.Increase -> {
+            if (error < dir.maxError) {
+                error += 1
+                print()
+            } else {
+                context.log.addTemp("Can't move your hand further")
+            }
+            this to true
+        }
+        is Input.Decrease -> {
+            if (error > dir.minError) {
+                error -= 1
+                print()
+            } else {
+                context.log.addTemp("Can't move your hand further")
+            }
             this to true
         }
         is Input.Run -> {
@@ -140,9 +214,9 @@ private abstract class Target(
             hideCursor()
             Normal(context) to true
         }
-        Input.Accept -> {
+        Input.Accept, Input.Fire -> {
             if (level.inBounds(cursor) && (isVisible(cursor) || !onlyVisible)) {
-                val state = select(cursor)
+                val state = select()
                 if (state != this) hideCursor()
                 state to true
             } else {
@@ -287,9 +361,9 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
 }
 
 private class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false, autoAim = true, drawLine = true) {
-    override fun select(point: Point): State {
-        val diff = point - context.player.one<Position>()
-        context.action = gun.fire(context.player, LineDir(diff.x, diff.y))
+    override fun select(): State {
+        val diff = cursor - context.player.one<Position>()
+        context.action = gun.fire(context.player, LineDir(diff.x, diff.y, error))
         return Normal(context)
     }
 }
@@ -312,8 +386,8 @@ private class Examine(context: UIContext) : Target(context) {
         })
     }
 
-    override fun select(point: Point): State {
-        val entities = level.safeGet(point)
+    override fun select(): State {
+        val entities = level.safeGet(cursor)
         when (entities.size) {
             0 -> context.log.addTemp("There is nothing to examine")
             1 -> examine(entities.first())

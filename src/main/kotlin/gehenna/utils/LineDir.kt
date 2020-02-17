@@ -4,7 +4,7 @@ import gehenna.component.Reflecting
 import gehenna.level.Level
 import kotlin.math.*
 
-fun Double.toLineDir(): LineDir {
+fun Double.toLineDir(errorShift: Double = 0.0): LineDir {
     val angle = this.normalizeAngle()
 
     val x: Int
@@ -19,16 +19,24 @@ fun Double.toLineDir(): LineDir {
         y = tg
     }
 
+    val dist = max(abs(x), abs(y))
+    val error = abs(x) - abs(y) + errorShift * dist
     return if (angle < PI / 2 && angle > -PI / 2) {
-        LineDir(x, y)
+        LineDir(x, y, error.roundToInt())
     } else {
-        LineDir(-x, -y)
+        LineDir(-x, -y, error.roundToInt())
     }
 }
 
 data class LineDir(override val x: Int, override val y: Int, val error: Int = abs(x) - abs(y)) : Point {
 
     val angle: Double = atan2(y.toDouble(), x.toDouble())
+    //TODO: pls document this line magic!
+    val errorShift: Double get() = (error - (abs(x) - abs(y))).toDouble() / this.max
+    val defaultError: Int get() = abs(x) - abs(y)
+
+    val maxError: Int get() = defaultError + (max - (if (abs(y) > abs(x)) 1 else 0)) / 2
+    val minError: Int get() = defaultError - (max - (if (abs(y) > abs(x)) 0 else 1)) / 2
 
     override val dir
         get(): Dir {

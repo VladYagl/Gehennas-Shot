@@ -54,10 +54,10 @@ data class Shoot(
     override fun perform(context: Context): ActionResult {
         val bullet = context.factory.new(gun.bullet)
         pos.spawnHere(bullet)
-        val randomAngle = dir.angle + if (gun.spread > 0) {
-            random.nextDouble(gun.spread) - random.nextDouble(gun.spread)
-        } else 0.0
-        bullet.add(LineBulletBehaviour(bullet, randomAngle.toLineDir(), gun.damage, gun.speed, gun.bounce, gun.delay))
+        val shootDir = if (gun.spread > 0) {
+            (dir.angle + random.nextDouble(gun.spread) - random.nextDouble(gun.spread)).toLineDir(dir.errorShift)
+        } else dir
+        bullet.add(LineBulletBehaviour(bullet, shootDir, gun.damage, gun.speed, gun.bounce, gun.delay))
         bullet.add(DestroyTimer(bullet, gun.bulletTime))
         gun.applyShootSpread()
         return end()

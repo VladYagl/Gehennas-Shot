@@ -61,10 +61,10 @@
     "9mmClip": {
         "ammo": {
             "type": "bullet9mm",
-            "damage": "1d5",
+            "damage": "1d5 + 3",
             "speed": 500,
             "projectileName": "bullet",
-            "capacity": 8
+            "capacity": 12
         },
         "item": {
             "volume": 1

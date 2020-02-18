@@ -197,7 +197,12 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
         itemsList.forEach { it.line = "" }
         storage.contents.forEachIndexed { index, item ->
-            itemsList[index].line = item.entity.toString()
+            val ammo = item.entity<Ammo>()
+            if (ammo != null) {
+                itemsList[index].line = "${item.entity}[${ammo.amount}/${ammo.capacity}]"
+            } else {
+                itemsList[index].line = item.entity.toString()
+            }
         }
 
         enemiesList.forEach { it.line = "" }

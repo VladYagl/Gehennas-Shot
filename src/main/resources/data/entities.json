@@ -65,6 +65,12 @@
         "mutators": {
             "giveGun": {
                 "gun": "pistol"
+            },
+            "giveItem": {
+                "item": "9mmClip"
+            },
+            "giveItem": {
+                "item": "9mmClip"
             }
         },
         "health": {
@@ -86,6 +92,9 @@
         "mutators": {
             "giveGun": {
                 "gun": "rifle"
+            },
+            "giveItem": {
+                "item": "9mmClip"
             }
         },
         "health": {

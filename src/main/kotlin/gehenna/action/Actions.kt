@@ -28,7 +28,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
                 entity<Inventory>()?.gun?.entity?.invoke<Gun>()?.applyWalkSpread()
                 pos.level[pos].forEach {
                     it.any<PredictableBehaviour<*>>()?.let { behaviour ->
-                        entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity.name}")
+                        entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity}")
                     }
                 }
                 end()
@@ -54,7 +54,7 @@ data class Shoot(
     override fun perform(context: Context): ActionResult {
         val ammo = gun.ammo
         if (ammo == null || ammo.amount == 0) {
-            logFor(pos.entity, "Click! $_Actor_s ${gun.entity.name} is out of ammo")
+            logFor(pos.entity, "Click! $_Actor_s ${gun.entity} is out of ammo")
             return end()
         } else {
             val bullet = context.factory.new(ammo.projectileName)
@@ -156,9 +156,9 @@ data class Equip(private val entity: Entity, private val item: Item?) : Action(1
         val old = inventory.gun
         inventory.equip(item)
         if (item != null) {
-            logFor(entity, "$_Actor have equipped a ${item.entity.name}")
+            logFor(entity, "$_Actor have equipped a ${item.entity}")
         } else {
-            logFor(entity, "$_Actor unequipped a ${old?.entity?.name}")
+            logFor(entity, "$_Actor unequipped a ${old?.entity}")
         }
         return end()
     }
@@ -166,16 +166,17 @@ data class Equip(private val entity: Entity, private val item: Item?) : Action(1
 
 data class Reload(private val entity: Entity, private val ammo: Ammo?) : Action(15) {
     override fun perform(context: Context): ActionResult {
-        val inventory =context.player.one<Inventory>()
+        val inventory = entity.one<Inventory>()
         inventory.gun?.entity?.invoke<Gun>()?.let { gun ->
             // TODO: Ammo -> Item // Gun -> Item ???
-            // TODO: Ammo can be in multiple guns????
             gun.unload()?.entity?.invoke<Item>()?.let {
-                logFor(entity, "$_Actor unloaded ${it.entity.name} from ${gun.entity.name}")
+                logFor(entity, "$_Actor unloaded ${it.entity} from ${gun.entity}")
+                inventory.add(it.entity.one())
             }
             gun.load(ammo)
             if (ammo != null) {
-                logFor(entity, "$_Actor loaded ${ammo.entity.name} to ${gun.entity.name}")
+                inventory.remove(ammo.entity.one())
+                logFor(entity, "$_Actor loaded ${ammo.entity} to ${gun.entity}")
             }
         }
         return end()

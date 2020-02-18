@@ -1,9 +1,6 @@
 package gehenna.component.behaviour
 
-import gehenna.action.Move
-import gehenna.action.Pickup
-import gehenna.action.Think
-import gehenna.action.Wait
+import gehenna.action.*
 import gehenna.component.*
 import gehenna.core.Action
 import gehenna.core.Action.Companion.oneTurn
@@ -46,6 +43,17 @@ data class MonsterBehaviour(
     private fun shoot(target: Position): Action? {
         return entity<Inventory>()?.gun?.entity?.invoke<Gun>()
                 ?.let { gun ->
+
+                    val ammo = gun.ammo
+                    if (ammo == null || ammo.amount == 0) {
+                        val newAmmo = entity<Inventory>()?.items?.mapNotNull { it.entity<Ammo>() }?.firstOrNull { it.amount > 0 }
+                        return if (newAmmo != null) {
+                            Reload(entity, newAmmo)
+                        } else {
+                            null
+                        }
+                    }
+
                     if (target == target.entity<Position>()) {
                         val diff = target - pos
                         val tempDir = LineDir(diff.x, diff.y)
@@ -55,20 +63,6 @@ data class MonsterBehaviour(
                         }
 
                         return null
-//                        var correct = false
-//                        // TODO : steps count
-//                        dir.walkLine(pos, 15, pos.level) { point ->
-//                            val entities = pos.level[point]
-//                            if (entities.contains(target.entity)) {
-//                                correct = true
-//                                false
-//                            } else !entities.contains(entity)
-//                        }
-//                        if (correct) {
-//                            gun.fire(entity, dir)
-//                        } else {
-//                            null
-//                        }
                     } else null
                 }
     }

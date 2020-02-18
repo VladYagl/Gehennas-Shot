@@ -14,7 +14,6 @@ import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
-import rlforj.los.raymulticast.MultiRaysCaster
 import java.awt.Color
 import kotlin.math.abs
 
@@ -74,56 +73,20 @@ private abstract class Target(
             start: Point,
             nSteps: Int,
             level: Level?,
-            initColor: Color = context.hud.fgColor,
-            colorDegrade: Double = 0.95
+            initColor: Color = context.hud.fgColor * 0.5,
+            fgColor: Color = Color.gray,
+            colorDegrade: Double = 0.975
     ) {
-        var color = initColor * 0.5 // todo WTF? why it is here?
+        var color = initColor
         this.walkLine(start, nSteps, level) { point ->
             if (level != null && !isVisible(point) && level.memory(point) == null) {
                 false
             } else {
-                context.putCharOnHUD(EMPTY_CHAR, point.x, point.y, fg = Color.gray, bg = max(color, context.hud.bgColor))
+                context.putCharOnHUD(EMPTY_CHAR, point.x, point.y, fg = fgColor, bg = max(color, context.hud.bgColor))
                 color *= colorDegrade
                 true
             }
         }
-    }
-
-    private fun findBestError(target: Point): Int {
-        val playerPos: Position = context.player.one()
-        val path = playerPos.level.getLOS(playerPos, target)
-        if (path != null) {
-            val dx = abs(dir.x)
-            val dy = -abs(dir.y)
-            var eMin = dir.minError
-            var eMax = dir.maxError
-            var eAdd: Int = 0
-            var last: Point = playerPos
-
-            path.drop(1).dropLast(1).forEach {
-                val oldE = eAdd
-                if (last.x != it.x) { // (error + eAdd) * 2 >= dy ---> error >= dy / 2 - eAdd
-                    eMin = kotlin.math.max(eMin, (dy + 1) / 2 - oldE)
-                    eAdd += dy
-                } else { // (error + eAdd) * 2 < dy ---> error < dy / 2 - eAdd
-                    eMax = kotlin.math.min(eMax, (dy - 1) / 2 - oldE) // TODO
-                }
-                if (last.y != it.y) { // (error + eAdd) * 2 <= dx ---> error <= dx / 2 - eAdd
-                    eMax = kotlin.math.min(eMax, (dx - 1) / 2 - oldE)
-                    eAdd += dx
-                } else { // error > dx / 2 - eAdd
-                    eMin = kotlin.math.max(eMin, (dx + 1) / 2 - oldE) // TODO
-                }
-                last = it
-            }
-
-            println("ans = ($eMin --- $eMax), \n$path")
-            return (eMin + eMax) / 2
-        } else {
-            println("NO LINE OF SIGHT!!!")
-            return dir.defaultError
-        }
-
     }
 
     private fun print() {
@@ -138,17 +101,18 @@ private abstract class Target(
             val playerPos: Position = context.player.one()
             val inventory = context.player.one<Inventory>()
             val gun = inventory.gun?.entity?.invoke<Gun>() ?: throw Exception("Targeting without a gun, why?")
+            val range = context.player<Senses.Sight>()?.range ?: 100
 
             //            val color = context.hud.fgColor * 0.8 // TODO: constants
-            val color = Color(128, 160, 210)
+            val color = Color(128, 160, 210) * 0.5
             if (dir.max > 0) {
                 // TODO: this error shit allows you do "Wanted \ Особо опасен" type shots! Added it to the game!
                 if (gun.spread > 0) { // TODO: meh, it just hides the fact that lines are not precise (same in action <Shoot>)
-                    (dir.angle + gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, 15, null, color)
-                    (dir.angle - gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, 15, null, color)
+                    (dir.angle + gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, range, null, color)
+                    (dir.angle - gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, range, null, color)
                 }
 
-                dir.drawLine(playerPos, 15, if (gun.bounce) playerPos.level else null)
+                dir.drawLine(playerPos, range, if (gun.bounce) playerPos.level else null)
                 println("Line Dir : $dir, errorSift: ${dir.errorShift}, angle: ${dir.angle}")
             }
         }
@@ -156,16 +120,16 @@ private abstract class Target(
     }
 
     init {
+        val playerPos = context.player.one<Position>()
         cursor = if (!autoAim) {
-            context.player.one<Position>()
+            playerPos
         } else {
-            val playerPos: Point = context.player.one<Position>()
-            var target = playerPos
+            var target: Point = playerPos
             context.player<PlayerBehaviour>()?.let { player ->
                 context.player.all<Senses>().forEach { sense ->
                     sense.visitFov { entity, point ->
                         if (entity.any<CharacterBehaviour>()?.faction?.isEnemy(player.faction) == true) {
-                            if ((target - playerPos).max == 0 || (target - playerPos).max > (point - playerPos).max) {
+                            if ((target equals playerPos) || (target - playerPos).max > (point - playerPos).max) {
                                 target = point
                             }
                         }
@@ -174,7 +138,7 @@ private abstract class Target(
             }
             target
         }
-        error = findBestError(cursor)
+        error = dir.findBestError(playerPos) ?: dir.defaultError
         print()
     }
 
@@ -183,7 +147,7 @@ private abstract class Target(
     final override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
             cursor += input.dir
-            error = findBestError(cursor)
+            error = dir.findBestError(context.player.one()) ?: dir.defaultError
             print()
             this to true
         }
@@ -192,7 +156,7 @@ private abstract class Target(
                 error += 1
                 print()
             } else {
-                context.log.addTemp("Can't move your hand further")
+                context.log.addTemp("Can't move your hand any further")
             }
             this to true
         }

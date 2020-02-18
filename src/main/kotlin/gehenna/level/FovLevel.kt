@@ -46,7 +46,8 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
     }
 
     fun getLOS(from: Point, to: Point): List<Point>? {
-        val los = fovAlgorithm
+//        val los = fovAlgorithm
+        val los = BresLos(true)
         return if (los.existsLineOfSight(EntityFov { _, _ -> }, from.x, from.y, to.x, to.y, true)) {
             los.projectPath.map {
                 it.x at it.y

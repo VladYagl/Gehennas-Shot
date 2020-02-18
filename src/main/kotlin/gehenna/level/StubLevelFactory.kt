@@ -17,6 +17,14 @@ class StubLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
             spawn(factory.new("rifle"), startPosition)
             spawn(factory.new("pistol"), startPosition)
 
+            box(startPosition + (5 at 5), Size(5, 5))
+            wall(startPosition - (5 at 5))
+            spawn(factory.new("dummy"), startPosition + (4 at 0))
+            spawn(factory.new("dummy"), startPosition + (20 at 4))
+            spawn(factory.new("dummy"), startPosition + (20 at 8))
+            spawn(factory.new("dummy"), startPosition + (20 at 12))
+            spawn(factory.new("dummy"), startPosition + (20 at 16))
+
 //            for (pos in (5 at 5) until (15 at 15)) {
 //                if (random.nextDouble() > 0.9) spawn(factory.new("soloBandit"), pos)
 //            }

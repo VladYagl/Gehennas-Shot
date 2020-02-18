@@ -82,6 +82,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     }
 
     init {
+        //TODO: Custom debug shit - with filters or something, just println is not good
         println("Creating Main Frame...")
         title = "Gehenna's Shot"
         isResizable = false

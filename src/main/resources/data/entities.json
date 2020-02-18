@@ -115,7 +115,8 @@
         },
         "health": {
             "max": 30
-        }
+        },
+        "NoBehaviour": {}
     },
 
     "bullet": {

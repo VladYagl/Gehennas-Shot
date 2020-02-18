@@ -1,9 +1,11 @@
 package gehenna.component.behaviour
 
 import gehenna.action.Move
+import gehenna.action.Think
 import gehenna.component.ActiveComponent
 import gehenna.component.Position
 import gehenna.core.*
+import gehenna.core.Action.Companion.oneTurn
 import gehenna.exceptions.GehennaException
 import gehenna.utils.Dir
 import gehenna.utils.random
@@ -52,4 +54,8 @@ abstract class PredictableBehaviour<T> : Behaviour() {
 
 data class RandomBehaviour(override val entity: Entity) : Behaviour() {
     override suspend fun behave() = Move(entity, Dir.random(random))
+}
+
+data class NoBehaviour(override val entity: Entity) : CharacterBehaviour() {
+    override suspend fun behave() = Think(oneTurn * 100)
 }

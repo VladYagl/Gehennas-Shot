@@ -20,6 +20,7 @@ interface Point : Serializable {
     val dir: Dir get() = x.sign on y.sign
     val size: Size get() = Size(x, y)
     val max: Int get() = max(abs(x), abs(y))
+    val point: Point get() = PointImpl(x, y)
 
     infix fun until(to: Point): List<Point> {
         return ((x until to.x) * (y until to.y)).map { it.point }
@@ -102,6 +103,7 @@ val Pair<Int, Int>.point: Point get() = PointImpl(first, second)
 val Pair<Int, Int>.dir get() = Dir(first, second)
 infix fun Int.at(y: Int): Point = PointImpl(this, y)
 infix fun Int.on(y: Int) = Dir(this, y)
+infix fun Point.equals(other: Point) = (this - other).max == 0
 
 fun Dir.bounce(pos: Position, p: Point = this): Point {
     return bounce(pos, pos.level, p)

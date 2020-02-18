@@ -52,15 +52,29 @@ data class Shoot(
         override var time: Long = oneTurn
 ) : Action() {
     override fun perform(context: Context): ActionResult {
-        val bullet = context.factory.new(gun.bullet)
-        pos.spawnHere(bullet)
-        val shootDir = if (gun.spread > 0) {
-            (dir.angle + random.nextDouble(gun.spread) - random.nextDouble(gun.spread)).toLineDir(dir.errorShift)
-        } else dir
-        bullet.add(LineBulletBehaviour(bullet, shootDir, gun.damage, gun.speed, gun.bounce, gun.delay))
-        bullet.add(DestroyTimer(bullet, gun.bulletTime))
-        gun.applyShootSpread()
-        return end()
+        val ammo = gun.ammo
+        if (ammo == null || ammo.amount == 0) {
+            logFor(pos.entity, "Click! $_Actor_s ${gun.entity.name} is out of ammo")
+            return end()
+        } else {
+            val bullet = context.factory.new(ammo.projectileName)
+            pos.spawnHere(bullet)
+            val shootDir = if (gun.spread > 0) {
+                (dir.angle + random.nextDouble(gun.spread) - random.nextDouble(gun.spread)).toLineDir(dir.errorShift)
+            } else dir
+            bullet.add(LineBulletBehaviour(
+                    bullet,
+                    shootDir,
+                    gun.damage + ammo.damage,
+                    gun.speed + ammo.speed,
+                    ammo.bounce,
+                    gun.delay
+            ))
+            bullet.add(DestroyTimer(bullet, ammo.lifeTime))
+            gun.applyShootSpread()
+            ammo.amount -= 1
+            return end()
+        }
     }
 }
 
@@ -78,7 +92,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
 
     override fun perform(context: Context): ActionResult {
         val damageRoll = damage.roll()
-        victim<Health>()?.let{
+        victim<Health>()?.let {
             logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
             it.dealDamage(damageRoll, this)
         }
@@ -124,6 +138,7 @@ data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) :
     }
 }
 
+//TODO: action time constants
 data class Pickup(private val entity: Entity, private val items: List<Item>) : Action(45) {
     override fun perform(context: Context): ActionResult {
         items.forEach { item ->
@@ -144,6 +159,24 @@ data class Equip(private val entity: Entity, private val item: Item?) : Action(1
             logFor(entity, "$_Actor have equipped a ${item.entity.name}")
         } else {
             logFor(entity, "$_Actor unequipped a ${old?.entity?.name}")
+        }
+        return end()
+    }
+}
+
+data class Reload(private val entity: Entity, private val ammo: Ammo?) : Action(15) {
+    override fun perform(context: Context): ActionResult {
+        val inventory =context.player.one<Inventory>()
+        inventory.gun?.entity?.invoke<Gun>()?.let { gun ->
+            // TODO: Ammo -> Item // Gun -> Item ???
+            // TODO: Ammo can be in multiple guns????
+            gun.unload()?.entity?.invoke<Item>()?.let {
+                logFor(entity, "$_Actor unloaded ${it.entity.name} from ${gun.entity.name}")
+            }
+            gun.load(ammo)
+            if (ammo != null) {
+                logFor(entity, "$_Actor loaded ${ammo.entity.name} to ${gun.entity.name}")
+            }
         }
         return end()
     }

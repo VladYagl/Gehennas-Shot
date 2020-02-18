@@ -9,6 +9,7 @@ import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.DungeonLevelFactory
 import gehenna.level.Level
+import gehenna.level.LevelFactory
 import gehenna.level.StubLevelFactory
 import gehenna.utils.SaveData
 import gehenna.utils.Size
@@ -19,18 +20,19 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     private var globalTime: Long = 0
     override val actionQueue = ActionQueue
     override val time: Long get() = globalTime + (actionQueue.firstOrNull()?.waitTime ?: 0)
-//    override val levelFactory = DungeonLevelFactory(this)
-    override val levelFactory = StubLevelFactory(this)
+    override lateinit var levelFactory: LevelFactory<out Level>
     override val levels = ArrayList<Level>()
 
-    fun init() {
+    fun init(levelFactory: LevelFactory<out Level>) {
+        this.levelFactory = levelFactory
         player = factory.new("player")
-        levelFactory.size = Size(8 * 8, 7 * 8)
+//        levelFactory.size = Size(8 * 8, 7 * 8)
         val (level, pos) = levelFactory.new()
         level.spawn(player, pos)
     }
 
-    fun initFromSave(saveData: SaveData) {
+    fun initFromSave(saveData: SaveData, levelFactory: LevelFactory<out Level>) {
+        this.levelFactory = levelFactory
         levels.addAll(saveData.levels)
         player = saveData.player
         globalTime = saveData.time

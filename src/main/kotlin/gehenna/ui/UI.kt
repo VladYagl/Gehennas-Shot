@@ -1,6 +1,7 @@
 package gehenna.ui
 
 import asciiPanel.AsciiCharacterData
+import gehenna.ui.panel.MenuPanel
 import gehenna.utils.Size
 import java.awt.Color
 import javax.swing.JPanel
@@ -41,7 +42,7 @@ interface UI {
     val worldSize: Size
     val settings: Settings
 
-    val info: Window
+    val info: MenuPanel
     val world: Window
     val hud: Window
 

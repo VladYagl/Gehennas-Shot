@@ -14,12 +14,11 @@ import kotlin.math.min
 
 data class Gun(
         override val entity: Entity,
-        val bullet: String,
+        val ammoType: AmmoType,
+
         val damage: Dice,
         val speed: Int,
         val delay: Long,
-        val bulletTime: Long = 3 * oneTurn,
-        val bounce: Boolean = true,
         private val minSpread: Double = 0.0,
         private val maxSpread: Double = 0.0,
         private val shootSpread: Double = 0.0,
@@ -43,6 +42,21 @@ data class Gun(
     override val children: List<Component> = listOf(spreadReducer)
     private var curSpread = minSpread
     private var curWalkSpread: Double = 0.0
+
+    var ammo: Ammo? = null
+        private set
+
+    fun unload(): Ammo? {
+        val cur = ammo
+        ammo = null
+        return cur
+    }
+
+    fun load(new: Ammo?) {
+        assert(ammo != null)
+        assert(ammo?.type == ammoType)
+        ammo = new
+    }
 
     val spread: Double
         get() {

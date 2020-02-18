@@ -45,6 +45,9 @@
                 "item": "pistol"
             },
             "giveItem": {
+                "item": "9mmClip"
+            },
+            "giveItem": {
                 "item": "toy"
             }
         },

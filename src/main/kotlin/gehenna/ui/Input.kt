@@ -23,6 +23,10 @@ sealed class Input {
     object Increase : Input()
     object Decrease : Input()
 
+//    object Unload : Input()
+//    object Load : Input()
+    object Reload : Input()
+
     data class Char(val char: kotlin.Char) : Input()
     object Backspace : Input()
 

@@ -3,6 +3,7 @@ package gehenna.ui
 import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.ClimbStairs
 import gehenna.action.Move
+import gehenna.action.Reload
 import gehenna.action.Wait
 import gehenna.component.*
 import gehenna.component.behaviour.CharacterBehaviour
@@ -101,6 +102,7 @@ private abstract class Target(
             val playerPos: Position = context.player.one()
             val inventory = context.player.one<Inventory>()
             val gun = inventory.gun?.entity?.invoke<Gun>() ?: throw Exception("Targeting without a gun, why?")
+            val ammo: Ammo = gun.ammo ?: throw Exception("Targeting without an ammo, why?") // TODO:
             val range = context.player<Senses.Sight>()?.range ?: 100
 
             //            val color = context.hud.fgColor * 0.8 // TODO: constants
@@ -112,7 +114,7 @@ private abstract class Target(
                     (dir.angle - gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, range, null, color)
                 }
 
-                dir.drawLine(playerPos, range, if (gun.bounce) playerPos.level else null)
+                dir.drawLine(playerPos, range, if (ammo.bounce) playerPos.level else null)
                 println("Line Dir : $dir, errorSift: ${dir.errorShift}, angle: ${dir.angle}")
             }
         }
@@ -254,13 +256,17 @@ private class Normal(private val context: UIContext) : State() {
             this to true
         }
         Input.Use -> {
-            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Consumable>() }, {
+            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Consumable>() }, "Use what?") {
                 context.action = it.entity.any<Consumable>()?.apply(context.player)
-            }, "Use what?"))
+            })
             this to true
         }
         Input.Inventory -> {
-            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents, { selectedItem ->
+            context.addWindow(SelectPanel(
+                    context,
+                    context.player.one<Inventory>().contents,
+                    "Inventory ${context.player.one<Inventory>().currentVolume}/${context.player.one<Inventory>().maxVolume}"
+            ) { selectedItem ->
                 context.addWindow(MenuPanel(100, 30, context.settings).apply {
                     setOnCancel { context.removeWindow(this) }
                     addItem(TextItem("${selectedItem.entity} -- vol.: ${selectedItem.volume}"))
@@ -287,13 +293,31 @@ private class Normal(private val context: UIContext) : State() {
                         }
                     }
                 })
-            }, "Inventory ${context.player.one<Inventory>().currentVolume}/${context.player.one<Inventory>().maxVolume}"))
+            })
             this to true
         }
         Input.Equip -> {
-            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Gun>() } + (null as Item?), {
-                context.action = gehenna.action.Equip(context.player, it)
-            }, "Equip what?"))
+            context.addWindow(SelectPanel(
+                    context,
+                    context.player.one<Inventory>().contents.filter { it.entity.has<Gun>() } + (null as Item?),
+                    title = "Equip what?") { context.action = gehenna.action.Equip(context.player, it) }
+            )
+            this to true
+        }
+        Input.Reload -> {
+            //TODO :
+            val gun = context.player.one<Inventory>().gun?.entity?.invoke<Gun>()
+            if (gun == null) {
+                context.log.addTemp("You don't have a gun to reload")
+            } else {
+                context.addWindow(SelectPanel(
+                        context,
+                        context.player.one<Inventory>().contents
+                                .mapNotNull { it.entity<Ammo>() }
+                                .filter { it.type == gun.ammoType } + (null as Ammo?),
+                        title = "Load what?") { context.action = Reload(context.player, it) }
+                )
+            }
             this to true
         }
         Input.ClimbStairs -> {
@@ -356,9 +380,9 @@ private class Examine(context: UIContext) : Target(context) {
             0 -> context.log.addTemp("There is nothing to examine")
             1 -> examine(entities.first())
             else -> {
-                context.addWindow(SelectPanel(context, entities, {
+                context.addWindow(SelectPanel(context, entities, "There are: ") {
                     examine(it)
-                }, "There are: "))
+                })
             }
         }
         return this

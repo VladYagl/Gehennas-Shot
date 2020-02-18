@@ -8,6 +8,9 @@ import java.awt.Color
 const val _Actor = "%Actor%"
 const val _actor = "%actor%"
 
+const val _Actor_s = "%Actor_s%"
+const val _actor_s = "%actor_s%"
+
 fun Double.format(digits: Int): String = java.lang.String.format("%.${digits}f", this)
 
 private val colorMap: Map<String, Color> = mapOf(
@@ -51,6 +54,20 @@ fun String.prepareMessage(firstPerson: Boolean = false, actor: Entity = Entity.w
                     "you"
                 } else {
                     actor.name
+                }
+            }
+            .replace(_Actor_s.toRegex()) {
+                if (firstPerson) {
+                    "Your"
+                } else {
+                    actor.name.capitalize() + "'s"
+                }
+            }
+            .replace(_actor_s.toRegex()) {
+                if (firstPerson) {
+                    "your"
+                } else {
+                    actor.name + "'s"
                 }
             }
             .replace("%[^%]+%".toRegex()) {

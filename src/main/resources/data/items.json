@@ -58,14 +58,30 @@
         "super": "album"
     },
 
+    "9mmClip": {
+        "ammo": {
+            "type": "bullet9mm",
+            "damage": "1d5",
+            "speed": 500,
+            "projectileName": "bullet",
+            "capacity": 8
+        },
+        "item": {
+            "volume": 1
+        },
+        "glyph": {
+            "char": 13
+        }
+    },
+
     "pistol": {
         "gun": {
-            "bullet": "bullet",
-            "damage": "2d5",
+            "ammoType": "bullet9mm",
+            "damage": "1d5",
+            "speed": 500,
+
             "delay": 10,
-            "speed": 1000,
             "time": 50,
-            "bounce": false,
 
             "minSpread": 0.0,
             "maxSpread": 0.6,
@@ -84,13 +100,13 @@
 
     "rifle": {
         "gun": {
-            "bullet": "bullet",
-            "damage": "d11",
+            "ammoType": "bullet9mm",
+            "damage": "1d3+3",
+            "speed": 500,
+
             "delay": 10,
-            "speed": 1000,
             "burstCount": 3,
             "time": 33,
-            "bounce": false,
 
             "minSpread": 0.08,
             "maxSpread": 0.7,
@@ -109,15 +125,14 @@
 
     "shotgun": {
         "gun": {
-            "bullet": "bullet",
+            "ammoType": "shell",
             "damage": "d4+2",
-            "delay": 1,
             "speed": 850,
+
+            "delay": 1,
             "burstCount": 4,
             "time": 1,
             "shootTime": 50,
-            "bulletTime": 120,
-            "bounce": false,
 
             "minSpread": 0.25,
             "maxSpread": 0.35,

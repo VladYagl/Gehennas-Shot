@@ -2,6 +2,7 @@ package gehenna.factory
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
+import gehenna.component.AmmoType
 import gehenna.component.Item
 import gehenna.core.Faction
 import gehenna.core.NamedFaction
@@ -12,12 +13,16 @@ import gehenna.exceptions.UnknownTypeException
 import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.toDice
+import java.lang.Exception
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.safeCast
 import kotlin.reflect.jvm.jvmErasure
+import kotlin.reflect.jvm.jvmName
 
 val projection = KTypeProjection.invariant(Item::class.createType())
 val itemListType = ArrayList::class.createType(listOf(projection))
@@ -60,7 +65,9 @@ fun JsonReader.nextValueFromType(type: KType): Any {
         itemType -> nextString()
         itemTypeNoNull -> nextString()
         else -> {
-            when (type.jvmErasure) {
+            if (type.jvmErasure.isSubclassOf(Enum::class)) {
+                nextString()
+            } else when (type.jvmErasure) {
                 Map::class -> nextObject()
                 else -> throw UnknownTypeException(type)
             }
@@ -102,7 +109,11 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
         itemTypeNoNull -> {
             factory.new(value as String)<Item>()!!
         }
-        else -> when (type.jvmErasure) {
+        else -> if (type.jvmErasure.isSubclassOf(Enum::class)) {
+            Class.forName(type.jvmErasure.jvmName).enumConstants.first {
+                value == it.toString() // toString from enum returns it's name, so it should work
+            }
+        } else when (type.jvmErasure) {
             Map::class -> (value as JsonObject).map.mapKeys { (key, _) ->
                 if (type.arguments[0].type == (Dir::class).createType()) {
                     Dir.firstOrNull { it.toString() == key } ?: Dir.zero

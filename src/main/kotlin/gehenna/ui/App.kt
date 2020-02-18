@@ -10,6 +10,8 @@ import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
+import gehenna.level.DungeonLevelFactory
+import gehenna.level.StubLevelFactory
 import gehenna.ui.panel.GehennaPanel
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
@@ -24,32 +26,40 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private val saver = SaveManager("save.dat")
     private val factory = EntityFactory()
-    private val levelFactory = LevelPartFactory(factory)
-    private val game = Game(factory, levelFactory)
+    private val levelPartFactory = LevelPartFactory(factory)
+    private val game = Game(factory, levelPartFactory)
     private val context = UIContext(game, ui)
     private var state = State.create(context)
 
     private var time = 0L
-    fun start(load: Boolean) {
+    fun start(load: Boolean, level: Int) {
         GlobalScope.launch(exceptionHandler) {
             ui.loadingWindow("LOADING") {
                 println("Loading factories...")
                 factory.loadJson(streamResource("data/entities.json"))
                 factory.loadJson(streamResource("data/items.json"))
-                levelFactory.loadJson(streamResource("data/rooms.json"))
+                levelPartFactory.loadJson(streamResource("data/rooms.json"))
+
+                val levelFactory = if (level == 0) {
+                    DungeonLevelFactory(game).also { it.size = Size(8 * 8, 7 * 8) }
+                } else {
+                    StubLevelFactory(game).also { it.size = Size(8 * 8, 7 * 8) }
+                }
+
 
                 if (load) {
                     println("Loading levels from save...")
-                    game.initFromSave(saver.loadContext())
+                    game.initFromSave(saver.loadContext(), levelFactory)
                 } else {
                     println("Creating game levels...")
-                    game.init()
+                    game.init(levelFactory)
                 }
 
                 println("Running main loop...")
                 val heart = 3.toChar()
                 game.player<Logger>()?.add(_fg("love", "$heart $heart $heart") + " Welcome! " +
                         _fg("love", "$heart $heart $heart"))
+                initInfo()
                 val uiJob = launch(exceptionHandler) {
                     uiLoop()
                 }
@@ -114,7 +124,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                 }
                 ui.update()
             }
-            ui.info.writeLine("fps=$fps", 0)
+            fpsText.line = "fps=$fps"
         }
     }
 
@@ -132,40 +142,76 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
+    private val fpsText = TextItem()
+    private val timeText = TextItem()
+    private val hpText = TextItem()
+    private val effectsText = TextItem()
+    private val inventoryText = TextItem(bg = Color.darkGray, alignment = Alignment.center)
+    private val gunText = TextItem(bg = Color.darkGray)
+    private val ammoText = TextItem(bg = Color.darkGray)
+    private val dmgText = TextItem(bg = Color.darkGray)
+    private val spreadText = TextItem(bg = Color.darkGray)
+    private val itemsList = List(5) { TextItem() }
+    private val enemiesText = TextItem("Enemies", ui.info.fgColor, Color.darkGray, Alignment.center)
+    private val enemiesList = List(5) { TextItem() }
+    private val objectsText = TextItem("Objects", ui.info.fgColor, Color.darkGray, Alignment.center)
+    private val objectsList = List(5) { TextItem() }
+
+    private fun initInfo() {
+        ui.info.addItem(fpsText)
+        ui.info.addItem(timeText)
+        ui.info.addItem(hpText)
+        ui.info.addItem(effectsText)
+        ui.info.addItem(inventoryText)
+        ui.info.addItem(gunText)
+        ui.info.addItem(ammoText)
+        ui.info.addItem(dmgText)
+        ui.info.addItem(spreadText)
+        itemsList.forEach {
+            ui.info.addItem(it)
+        }
+        ui.info.addItem(enemiesText)
+        enemiesList.forEach {
+            ui.info.addItem(it)
+        }
+        ui.info.addItem(objectsText)
+        objectsList.forEach {
+            ui.info.addItem(it)
+        }
+    }
+
     private val enemies = ArrayList<CharacterBehaviour>()
-    private fun updateInfo() { //todo stop hardcoding y coordinate
-        ui.info.writeLine("In game time: " + game.time, 1)
-        val glyph = game.player.one<Glyph>()
+    private fun updateInfo() {
+        timeText.line = "in game time: " + game.time
         val pos = game.player.one<Position>()
         val storage = game.player.one<Inventory>()
-        ui.info.writeLine("Player glyph = ${glyph.char}|${glyph.priority}", 2)
-        ui.info.writeLine("Player position = ${pos.x}, ${pos.y}", 3)
-        ui.info.writeLine("Player hp = " + game.player<Health>()?.current, 4)
-        ui.info.writeLine("Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }, 5)
-        ui.info.writeLine("Inventory ${storage.currentVolume}/${storage.maxVolume}", 8, bg = Color.darkGray)
-        ui.info.writeLine("Equipped gun: ${storage.gun?.entity}", 9, Alignment.left, bg = Color.darkGray)
+        hpText.line = "HP : " + game.player<Health>()?.current + " / " + game.player<Health>()?.max
+        effectsText.line = "Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }
+        inventoryText.line = "Inventory ${storage.currentVolume}/${storage.maxVolume}"
+        gunText.line = "Equipped gun: ${storage.gun?.entity}"
         val gun = storage.gun?.entity?.invoke<Gun>()
-        val dice = gun?.damage
-        ui.info.writeLine("Damage: ${dice?.mean?.format(1)}${241.toChar()}${dice?.std?.format(1)} | $dice", 10, Alignment.left, bg = Color.darkGray)
-        ui.info.writeLine("Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}", 11, Alignment.left, bg = Color.darkGray)
-        repeat(9) { i -> ui.info.clearLine(12 + i) }
+        val dice = (gun?.damage ?: "0".toDice()) + (gun?.ammo?.damage ?: "0".toDice())
+        ammoText.line = "|--Ammo: ${gun?.ammo?.amount} / ${gun?.ammo?.capacity}"
+        dmgText.line = "|--Damage: ${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
+        spreadText.line = "|--Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}"
+
+        itemsList.forEach { it.line = "" }
         storage.contents.forEachIndexed { index, item ->
-            ui.info.writeLine(item.entity.toString(), 12 + index)
+            itemsList[index].line = item.entity.toString()
         }
 
-        repeat(10) { i -> ui.info.clearLine(21 + i) }
-        ui.info.writeLine("Enemies", 20, Alignment.center, ui.info.fgColor, Color.darkGray)
+        enemiesList.forEach { it.line = "" }
         enemies.forEachIndexed { index, enemy ->
-            //            val target = MonsterBehaviour::class.safeCast(enemy)?.target?.entity
             val hp = enemy.entity<Health>()
-            ui.info.writeLine("${enemy.entity} | ${enemy.waitTime} [${hp?.current} / ${hp?.max}]", 21 + index)
+            enemiesList[index].line = "${enemy.entity} | ${enemy.waitTime} [${hp?.current} / ${hp?.max}]"
         }
 
-        repeat(10) { i -> ui.info.clearLine(31 + i) }
-        ui.info.writeLine("Objects", 30, Alignment.center, ui.info.fgColor, Color.darkGray)
+        objectsList.forEach { it.line = "" }
         pos.neighbors.forEachIndexed { index, entity ->
-            ui.info.writeLine(entity.toString(), 31 + index)
+            objectsList[index].line = entity.toString()
         }
+
+        ui.info.update()
     }
 
     private var camera = zero

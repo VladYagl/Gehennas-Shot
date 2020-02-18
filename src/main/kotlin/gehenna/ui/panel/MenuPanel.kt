@@ -2,6 +2,8 @@ package gehenna.ui.panel
 
 import gehenna.ui.*
 import gehenna.utils.Dir
+import org.w3c.dom.Text
+import java.awt.Color
 
 open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel(width, height, settings, true), InputListener {
     override val keyHandler: InputConverter = MenuInput(this)
@@ -22,6 +24,15 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
         repaint()
     }
 
+    fun addText(text: String, fg: Color? = null, bg: Color? = null, alignment: Alignment = Alignment.left) {
+        addItem(TextItem(text, fg, bg))
+    }
+
+
+    fun clearItems() {
+        items.clear()
+    }
+
     fun setOnCancel(callback: () -> Unit) {
         onCancel = callback
     }
@@ -31,9 +42,13 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
     }
 
     final override fun repaint() {
+        update()
+        super.repaint()
+    }
+
+    fun update() {
         @Suppress("UNNECESSARY_SAFE_CALL") // todo because it's repaints before creating
         items?.forEachIndexed { index, item -> if (index < size.height - 1) item.draw(index, this) }
-        super.repaint()
     }
 
     override fun onInput(input: Input) = when (input) {

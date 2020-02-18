@@ -17,7 +17,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
 
     private val mainPane = JLayeredPane()
     override lateinit var world: GehennaPanel
-    override lateinit var info: GehennaPanel
+    override lateinit var info: MenuPanel
     override lateinit var hud: GehennaPanel
 
     private lateinit var log: GehennaPanel
@@ -38,12 +38,10 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
                 settings.foregroundColor,
                 settings.backgroundColor
         )
-        info = GehennaPanel(
+        info = MenuPanel(
                 infoWidth,
                 height / font.height,
-                settings.font,
-                settings.foregroundColor,
-                settings.backgroundColor
+                settings
         )
         world = GehennaPanel(
                 logWidth / worldFont.width,
@@ -98,17 +96,21 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         println("Creating App...")
         app = App(this, settings)
 
-        val menuWindow = MenuPanel(12, 4, settings)
+        val menuWindow = MenuPanel(20, 5, settings)
         addWindow(menuWindow)
         menuWindow.addItem(ButtonItem("Continue", {
             // todo: add this only if save file is present
-            startGame(true)
+            startGame(true, 0)
             removeWindow(menuWindow)
         }, 'c'))
         menuWindow.addItem(ButtonItem("New Game", {
-            startGame(false)
+            startGame(false, 0)
             removeWindow(menuWindow)
         }, 'n'))
+        menuWindow.addItem(ButtonItem("New Game <Test>", {
+            startGame(false, 1)
+            removeWindow(menuWindow)
+        }, 't'))
         menuWindow.addItem(ButtonItem("Quit", {
             exitProcess(0)
         }, 'q'))
@@ -116,8 +118,8 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this)
     }
 
-    private fun startGame(load: Boolean) {
-        app.start(load)
+    private fun startGame(load: Boolean, level: Int) {
+        app.start(load, level)
         keyEventHandlers.add(GameInput(app))
     }
 

@@ -122,7 +122,6 @@ open class GehennaPanel(
         changeCharColors(x, y, fg, bg)
     }
 
-    //todo: replace AsciiCharacterData with something else
     override fun forEachTile(transformer: (Int, Int, TileData) -> Unit) {
         withEachTile(transformer = transformer)
     }

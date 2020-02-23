@@ -5,6 +5,7 @@ import gehenna.core.*
 import gehenna.exceptions.*
 import org.reflections.Reflections
 import java.io.InputStream
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
@@ -15,7 +16,7 @@ class EntityFactory : JsonFactory<Entity> {
     private val entities = HashMap<String, EntityBuilder>()
 
     private val reflections = Reflections("gehenna")
-    val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
+    private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
     private val mutators = reflections.getSubTypesOf(EntityMutator::class.java).map { it.kotlin }
 
     init {
@@ -53,9 +54,8 @@ class EntityFactory : JsonFactory<Entity> {
     }
 
     private fun JsonReader.nextComponent(componentName: String): ComponentBuilder {
-        val constructor = components.firstOrNull {
-            it.simpleName?.toLowerCase() == componentName.toLowerCase()
-        }?.primaryConstructor ?: throw BadComponentException(componentName)
+        val constructor = componentClassByName(componentName)?.primaryConstructor
+                ?: throw BadComponentException(componentName)
         return ComponentBuilder(constructor, nextArgs(constructor))
     }
 
@@ -120,6 +120,12 @@ class EntityFactory : JsonFactory<Entity> {
 
     override fun new(name: String): Entity {
         return entities[name]?.build(name)?.apply { emit(Entity.Finish) } ?: throw NoSuchBuilderException(name)
+    }
+
+    fun componentClassByName(name: String): KClass<out Component>? {
+        return components.firstOrNull {
+            it.simpleName?.toLowerCase() == name.toLowerCase()
+        }
     }
 }
 

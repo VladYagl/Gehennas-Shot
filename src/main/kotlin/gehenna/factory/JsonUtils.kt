@@ -4,10 +4,7 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
 import gehenna.component.AmmoType
 import gehenna.component.Item
-import gehenna.core.Component
-import gehenna.core.Faction
-import gehenna.core.NamedFaction
-import gehenna.core.SoloFaction
+import gehenna.core.*
 import gehenna.exceptions.NotAnItemException
 import gehenna.exceptions.UnknownArgumentException
 import gehenna.exceptions.UnknownTypeException
@@ -94,10 +91,8 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
         Dice::class.createType() -> {
             (value as String).toDice()
         }
-        Faction::class.createType() -> { // todo: this needed to be managed by faction
-            val name = value as String
-            if (name == "solo") SoloFaction
-            else NamedFaction(name)
+        Faction::class.createType() -> {
+            (value as String).toFaction()
         }
         itemListType -> {
             @Suppress("UNCHECKED_CAST")
@@ -112,8 +107,7 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
             factory.new(value as String)<Item>()!!
         }
         componentType -> {
-            //TODO: exposes factory.components
-            factory.components.first { it.simpleName?.toLowerCase() == (value as String).toLowerCase() }
+            factory.componentClassByName(value as String)
         }
         else -> if (type.jvmErasure.isSubclassOf(Enum::class)) {
             Class.forName(type.jvmErasure.jvmName).enumConstants.first {

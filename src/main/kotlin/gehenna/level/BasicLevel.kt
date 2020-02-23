@@ -47,7 +47,7 @@ abstract class BasicLevel(val size: Size) : Serializable {
     }
 
     fun spawn(entity: Entity, at: Point, lastPoint: Point? = null) {
-        entity.add(Position(at, this as Level, entity, lastPoint?.plus(0 at 0))) //todo to save point not position
+        entity.add(Position(at, this as Level, entity, lastPoint?.plus(0 at 0)))
     }
 
     fun spawn(pos: Position) {

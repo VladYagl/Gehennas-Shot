@@ -274,7 +274,6 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private fun drawWorld() {
-        //TODO: Try drawing whole level and then moving it
         //TODO: Animations
         priority.forEach { it.fill(minPriority) }
         enemies.clear()

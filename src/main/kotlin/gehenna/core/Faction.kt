@@ -22,3 +22,8 @@ object SoloFaction : Faction {
 
     override fun isFriend(other: Faction): Boolean = false
 }
+
+fun String.toFaction(): Faction {
+    return if (this == "solo") SoloFaction
+    else NamedFaction(this)
+}

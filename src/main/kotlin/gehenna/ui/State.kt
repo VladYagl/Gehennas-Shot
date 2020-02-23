@@ -109,7 +109,7 @@ private abstract class Target(
             val rand = Random(1488) // create new seeded random -> so results are always the same
             var successCount = 0
             if (dir.max > 0) {
-                for (i in (1..10000)) { // TODO: this might be too much
+                for (i in (1..100)) { // TODO: this might be too much
                     val randDir = rand.nextLineDir(dir, gun.spread)
                     randDir.walkLine(playerPos, dir.max, playerPos.level) {
                         if (it equals (playerPos + dir.point)) {
@@ -123,7 +123,7 @@ private abstract class Target(
             }
 
             val time = Behaviour.scaleTime(dir.max.toLong() * oneTurn, gun.speed + ammo.speed)
-            context.log.addTemp("Bullet will reach its destination in $time with ${successCount / 100}% chance")
+            context.log.addTemp("Bullet will reach its destination in $time with ${successCount}% chance")
 
             //            val color = context.hud.fgColor * 0.8 // TODO: constants
             val color = Color(128, 160, 210) * 0.5
@@ -364,7 +364,6 @@ private class Normal(private val context: UIContext) : State() {
             this to true
         }
         Input.Reload -> {
-            //TODO :
             val gun = context.player.one<MainHandSlot>().gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun to reload")

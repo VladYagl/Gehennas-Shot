@@ -10,7 +10,6 @@ import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 
 
-//FIXME : CANT HAVE SAME COMPONENT TYPE TWICE
 data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUID.randomUUID().toString()) : Serializable {
     val components = HashMap<KClass<out Component>, Component>()
 
@@ -51,8 +50,7 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
             val children = components.mapNotNull {
                 T::class.safeCast(it.value)
             }
-            if (children.size == 1) children.first() // todo: concurrent shit this doesn't look perfect
-            else throw EntityMustHaveOneException(name, T::class)
+            children.firstOrNull() ?: throw EntityMustHaveOneException(name, T::class)
         }
     }
 
@@ -65,7 +63,6 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
     }
 
     inline fun <reified T : Component> add(component: T) {
-        //todo : add by T::class (to for example avoid need of any)
         components[component::class] = component
         component.onEvent(Add)
         emit(NewComponent(component))

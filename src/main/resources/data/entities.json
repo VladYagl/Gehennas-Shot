@@ -5,6 +5,7 @@
             "blockMove": true,
             "blockPath": false
         },
+        "trueSight": {},
         "sight": {
             "range": 15
         },

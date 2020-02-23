@@ -207,7 +207,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
 
         enemiesList.forEach { it.line = "" }
-        enemies.forEachIndexed { index, enemy ->
+        enemies.take(5).forEachIndexed { index, enemy ->
             val hp = enemy.entity<Health>()
             enemiesList[index].line = "${enemy.entity} | ${enemy.waitTime} [${hp?.current} / ${hp?.max}]"
         }
@@ -222,6 +222,17 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
     private var camera = zero
     private val cameraBound = 15 at 15
+
+    private var followPlayer: Boolean = true
+    private var focus: Point = 0 at 0
+    fun moveFocus(point: Point) {
+        followPlayer = false
+        focus = point
+    }
+    fun focusPlayer() {
+        followPlayer = true
+    }
+
     private fun moveCamera(playerPos: Point) {
         var x = camera.x
         var y = camera.y
@@ -281,7 +292,11 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         val playerPos = game.player.one<Position>()
         val playerBehaviour = game.player.one<PlayerBehaviour>()
         val level = playerPos.level
-        moveCamera(playerPos)
+        if (followPlayer) {
+            moveCamera(playerPos)
+        } else {
+            moveCamera(focus)
+        }
 
         //visit fov //todo: if I add hearing this should not draw from it
         game.player.all<Senses>().forEach { sense ->

@@ -2,6 +2,7 @@ package gehenna.ui
 
 import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.AsciiPanel
+import gehenna.utils.Point
 import gehenna.utils.Size
 import java.awt.Color
 import javax.swing.JPanel
@@ -45,6 +46,9 @@ interface UI {
     val info: MenuPanel
     val world: Window
     val hud: Window
+
+    fun moveFocus(playerPos: Point)
+    fun focusPlayer()
 
     fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color? = null, bg: Color? = null)
 }

@@ -63,6 +63,7 @@ private abstract class Target(
     protected val level: Level = context.player.one<Position>().level
 
     private fun hideCursor() {
+        context.focusPlayer()
         context.hud.clear(EMPTY_CHAR)
     }
 
@@ -91,6 +92,7 @@ private abstract class Target(
     }
 
     private fun print() {
+        context.moveFocus(cursor)
         context.hud.clear(EMPTY_CHAR)
         if (level.inBounds(cursor) && isVisible(cursor)) {
             context.log.addTemp("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })

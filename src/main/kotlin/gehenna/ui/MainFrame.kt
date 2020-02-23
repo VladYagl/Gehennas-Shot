@@ -200,4 +200,12 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     override fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color?, bg: Color?) {
         app.putCharOnHUD(char, x, y, fg ?: hud.fgColor, bg ?: hud.bgColor)
     }
+
+    override fun moveFocus(playerPos: gehenna.utils.Point) {
+        app.moveFocus(playerPos)
+    }
+
+    override fun focusPlayer() {
+        app.focusPlayer()
+    }
 }

@@ -189,11 +189,11 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         effectsText.line = "Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }
         inventoryText.line = "Inventory ${storage.currentVolume}/${storage.maxVolume}"
         gunText.line = "Equipped gun: ${storage.gun?.entity}"
-        val gun = storage.gun?.entity?.invoke<Gun>()
+        val gun = storage.gun
         val dice = (gun?.damage ?: "0".toDice()) + (gun?.ammo?.damage ?: "0".toDice())
-        ammoText.line = "|--Ammo: ${gun?.ammo?.amount} / ${gun?.ammo?.capacity}"
-        dmgText.line = "|--Damage: ${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
-        spreadText.line = "|--Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}"
+        ammoText.line = "${195.toChar()}--Ammo: ${gun?.ammo?.amount} / ${gun?.ammo?.capacity}"
+        dmgText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
+        spreadText.line = "${195.toChar()}--Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}"
 
         itemsList.forEach { it.line = "" }
         storage.contents.forEachIndexed { index, item ->
@@ -318,9 +318,9 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
         ui.hud.forEachTile { x, y, data ->
             if (data.character != EMPTY_CHAR) {
-                ui.world.putChar(data.character, x, y, fg = data.foregroundColor, bg = data.backgroundColor)
-            } else if (data.backgroundColor != ui.hud.bgColor) {
-                ui.world.changeColors(x, y, data.foregroundColor, data.backgroundColor)
+                ui.world.putChar(data.character, x, y, fg = data.fgColor, bg = data.bgColor)
+            } else if (data.bgColor != ui.hud.bgColor) {
+                ui.world.changeColors(x, y, data.fgColor, data.bgColor)
             }
         }
     }

@@ -10,7 +10,7 @@ import java.util.*
 
 typealias Prediction = ArrayList<Pair<Point, Glyph>>
 
-class Level(size: Size, val depth: Int = 0, val id: String = UUID.randomUUID().toString()) : FovLevel(size) {
+open class Level(size: Size, val depth: Int = 0, val id: String = UUID.randomUUID().toString()) : FovLevel(size) {
 
     fun predictWithGlyph(behaviour: PredictableBehaviour<Any>, duration: Long): Prediction {
         val realEntity = behaviour.entity

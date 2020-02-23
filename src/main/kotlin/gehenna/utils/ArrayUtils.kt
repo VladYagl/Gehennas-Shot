@@ -2,26 +2,34 @@
 
 package gehenna.utils
 
+/**
+ * Functions to create/manipulate 2-dimensional arrays of Double/Boolean/Int
+ */
+
 inline fun <reified T> Array(width: Int, height: Int, init: () -> T) = Array(width) { Array(height) { init() } }
 
 inline fun DoubleArray(width: Int, height: Int, init: () -> Double) = Array(width) { DoubleArray(height) { init() } }
 
 inline fun BooleanArray(width: Int, height: Int, init: () -> Boolean = { false }) =
-    Array(width) { BooleanArray(height) { init() } }
+        Array(width) { BooleanArray(height) { init() } }
 
 inline fun IntArray(width: Int, height: Int, init: () -> Int = { 0 }) =
-    Array(width) { IntArray(height) { init() } }
+        Array(width) { IntArray(height) { init() } }
 
+inline fun CharArray(width: Int, height: Int, init: () -> Char = { 0.toChar() }) =
+        Array(width) { CharArray(height) { init() } }
 
 inline fun <reified T> Array(size: Size, init: () -> T) = Array(size.width, size.height, init)
 inline fun DoubleArray(size: Size, init: () -> Double) = DoubleArray(size.width, size.height, init)
 inline fun BooleanArray(size: Size, init: () -> Boolean = { false }) = BooleanArray(size.width, size.height, init)
 inline fun IntArray(size: Size, init: () -> Int = { 0 }) = IntArray(size.width, size.height, init)
+inline fun CharArray(size: Size, init: () -> Char = { 0.toChar() }) = CharArray(size.width, size.height, init)
 
 fun <T> Array<Array<T>>.fill(init: () -> T) = forEach { it.fill(init()) }
 fun Array<DoubleArray>.fill(element: Double = 0.0) = forEach { it.fill(element) }
 fun Array<BooleanArray>.fill(element: Boolean = false) = forEach { it.fill(element) }
 fun Array<IntArray>.fill(element: Int = 0) = forEach { it.fill(element) }
+fun Array<CharArray>.fill(element: Char = 0.toChar()) = forEach { it.fill(element) }
 
 
 operator fun <T> Array<Array<T>>.get(x: Int, y: Int): T = get(x)[y]
@@ -81,5 +89,21 @@ operator fun Array<IntArray>.set(x: Int, y: Int, a: Int) {
 }
 
 operator fun Array<IntArray>.set(point: Point, a: Int) {
+    this[point.x, point.y] = a
+}
+
+operator fun Array<CharArray>.get(x: Int, y: Int): Char {
+    return get(x)[y]
+}
+
+operator fun Array<CharArray>.get(point: Point): Char {
+    return this[point.x, point.y]
+}
+
+operator fun Array<CharArray>.set(x: Int, y: Int, a: Char) {
+    get(x)[y] = a
+}
+
+operator fun Array<CharArray>.set(point: Point, a: Char) {
     this[point.x, point.y] = a
 }

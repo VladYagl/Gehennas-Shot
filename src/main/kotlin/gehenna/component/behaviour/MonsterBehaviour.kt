@@ -41,8 +41,7 @@ data class MonsterBehaviour(
     }
 
     private fun shoot(target: Position): Action? {
-        return entity<Inventory>()?.gun?.entity?.invoke<Gun>()
-                ?.let { gun ->
+        return entity<Inventory>()?.gun?.let { gun ->
 
                     val ammo = gun.ammo
                     if (ammo == null || ammo.amount == 0) {

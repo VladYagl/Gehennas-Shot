@@ -1,482 +1,258 @@
-package asciiPanel;
+package gehenna.ui.panel
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.LookupOp;
-import java.awt.image.ShortLookupTable;
-import java.io.IOException;
-import java.util.Objects;
+import gehenna.utils.Point
+import gehenna.utils.Size
+import gehenna.utils.at
+import gehenna.utils.*
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Image
+import java.awt.image.BufferedImage
+import java.awt.image.LookupOp
+import java.awt.image.ShortLookupTable
+import java.io.IOException
+import java.util.*
+import javax.imageio.ImageIO
+import javax.swing.JPanel
 
 /**
  * This simulates a code page 437 ASCII terminal display.
  *
- * @author Trystan Spangler
+ * @author of java version Trystan Spangler
  */
-public class AsciiPanel extends JPanel {
-    private static final long serialVersionUID = -4167851861147593092L;
+open class AsciiPanel(val size: Size, font: AsciiFont, var defaultFg: Color = white, var defaultBg: Color = black) : JPanel() {
 
-    public static final Color black = new Color(0, 0, 0);
+    private val charWidth = font.width
+    private val charHeight = font.height
+    private var terminalFontFile: String = font.fontFilename
 
-    public static final Color red = new Color(128, 0, 0);
+    private val chars = CharArray(size)
+    private var oldChars = CharArray(size)
 
-    public static final Color green = new Color(0, 128, 0);
+    private val bgColors = Array(size) { defaultBg }
+    private val fgColors = Array(size) { defaultFg }
+    private val oldFgColors = Array<Color?>(size) { null }
+    private val oldBgColors = Array<Color?>(size) { null }
 
-    public static final Color yellow = new Color(128, 128, 0);
+    private val panelSize = Dimension(charWidth * size.width, charHeight * size.height)
+    private var offscreenBuffer: Image = BufferedImage(panelSize.width, panelSize.height, BufferedImage.TYPE_INT_RGB)
+    private var offscreenGraphics: Graphics = (offscreenBuffer as BufferedImage).graphics
+    private var glyphSprite: BufferedImage? = null
+    private var glyphs: Array<BufferedImage?> = arrayOfNulls(256)
 
-    public static final Color blue = new Color(0, 0, 128);
 
-    public static final Color magenta = new Color(128, 0, 128);
+    protected var cursor: Point = 0 at 0
+//        set(point) {
+//            checkInBounds(point.x, point.y)
+//            field = point
+//        }
 
-    public static final Color cyan = new Color(0, 128, 128);
-
-    public static final Color white = new Color(192, 192, 192);
-
-    public static final Color brightBlack = new Color(128, 128, 128);
-
-    public static final Color brightRed = new Color(255, 0, 0);
-
-    public static final Color brightGreen = new Color(0, 255, 0);
-
-    public static final Color brightYellow = new Color(255, 255, 0);
-
-    public static final Color brightBlue = new Color(0, 0, 255);
-
-    public static final Color brightMagenta = new Color(255, 0, 255);
-
-    public static final Color brightCyan = new Color(0, 255, 255);
-
-    public static final Color brightWhite = new Color(255, 255, 255);
-
-    private Image offscreenBuffer;
-    private Graphics offscreenGraphics;
-    private int widthInCharacters;
-    private int heightInCharacters;
-    private int charWidth = 9;
-    private int charHeight = 16;
-    private String terminalFontFile = "cp437_9x16.png";
-    private Color defaultBackgroundColor;
-    private Color defaultForegroundColor;
-    private int cursorX;
-    private int cursorY;
-    private BufferedImage glyphSprite;
-    private BufferedImage[] glyphs;
-    private char[][] chars;
-    private Color[][] backgroundColors;
-    private Color[][] foregroundColors;
-    private char[][] oldChars;
-    private Color[][] oldBackgroundColors;
-    private Color[][] oldForegroundColors;
-    private AsciiFont asciiFont;
-
-    private void checkChar(char character) {
-        if (character >= glyphs.length)
-            throw new IllegalArgumentException("character " + character + " must be within range [0," + glyphs.length + "].");
-    }
-
-    private void checkX(int x) {
-        if (x < 0 || x >= widthInCharacters)
-            throw new IllegalArgumentException("x " + x + " must be within range [0," + widthInCharacters + ").");
-    }
-
-    private void checkY(int y) {
-        if (y < 0 || y >= heightInCharacters)
-            throw new IllegalArgumentException("y " + y + " must be within range [0," + heightInCharacters + ").");
-    }
-
-    private void checkInBounds(int x, int y) {
-        checkX(x);
-        checkY(y);
-    }
-
-    private void checkBoxBounds(int x, int y, int width, int height) {
-        if (width < 1)
-            throw new IllegalArgumentException("width " + width + " must be greater than 0.");
-
-        if (height < 1)
-            throw new IllegalArgumentException("height " + height + " must be greater than 0.");
-
-        if (x + width > widthInCharacters)
-            throw new IllegalArgumentException("x + width " + (x + width) + " must be less than " + (widthInCharacters + 1) + ".");
-
-        if (y + height > heightInCharacters)
-            throw new IllegalArgumentException("y + height " + (y + height) + " must be less than " + (heightInCharacters + 1) + ".");
-    }
-
-    public int getCharHeight() {
-        return charHeight;
-    }
-
-    public int getCharWidth() {
-        return charWidth;
-    }
-
-    public int getHeightInCharacters() {
-        return heightInCharacters;
-    }
-
-    public int getWidthInCharacters() {
-        return widthInCharacters;
-    }
-
-    public int getCursorX() {
-        return cursorX;
-    }
-
-    public void setCursorX(int cursorX) {
-        checkX(cursorX);
-
-        this.cursorX = cursorX;
-    }
-
-    public int getCursorY() {
-        return cursorY;
-    }
-
-    public void setCursorY(int cursorY) {
-        checkY(cursorY);
-
-        this.cursorY = cursorY;
-    }
-
-    public void setCursorPosition(int x, int y) {
-        setCursorX(x);
-        setCursorY(y);
-    }
-
-    public Color getDefaultBackgroundColor() {
-        return defaultBackgroundColor;
-    }
-
-    public void setDefaultBackgroundColor(Color defaultBackgroundColor) {
-        if (defaultBackgroundColor == null)
-            throw new NullPointerException("defaultBackgroundColor must not be null.");
-
-        this.defaultBackgroundColor = defaultBackgroundColor;
-    }
-
-    public Color getDefaultForegroundColor() {
-        return defaultForegroundColor;
-    }
-
-    public void setDefaultForegroundColor(Color defaultForegroundColor) {
-        if (defaultForegroundColor == null)
-            throw new NullPointerException("defaultForegroundColor must not be null.");
-
-        this.defaultForegroundColor = defaultForegroundColor;
-    }
-
-    public AsciiFont getAsciiFont() {
-        return asciiFont;
-    }
-
-    public void setAsciiFont(AsciiFont font) {
-        if (this.asciiFont == font) {
-            return;
+    private fun moveCursor() {
+        cursor = if (cursor.x == size.width - 1) {
+            0 at cursor.y + 1
+        } else {
+            (cursor.x + 1) at cursor.y
         }
-        this.asciiFont = font;
-
-        this.charHeight = font.getHeight();
-        this.charWidth = font.getWidth();
-        this.terminalFontFile = font.getFontFilename();
-
-        Dimension panelSize = new Dimension(charWidth * widthInCharacters, charHeight * heightInCharacters);
-        setPreferredSize(panelSize);
-
-        glyphs = new BufferedImage[256];
-
-        offscreenBuffer = new BufferedImage(panelSize.width, panelSize.height, BufferedImage.TYPE_INT_RGB);
-        offscreenGraphics = offscreenBuffer.getGraphics();
-
-        loadGlyphs();
-
-        oldChars = new char[widthInCharacters][heightInCharacters];
     }
 
-    public AsciiPanel() {
-        this(80, 24);
+    private fun checkChar(character: Char) {
+        assert(character.toInt() < glyphs.size) { "character " + character + " must be within range [0," + glyphs.size + "]." }
     }
 
-    public AsciiPanel(int width, int height) {
-        this(width, height, null);
+    private fun checkInBounds(x: Int, y: Int) {
+        assert(size.contains(x at y)) { "x:$x must be in range [0, ${size.width}] and y:$y must be in range [0, ${size.height}]" }
     }
 
-    public AsciiPanel(int width, int height, AsciiFont font) {
-        super();
-
-        if (width < 1) {
-            throw new IllegalArgumentException("width " + width + " must be greater than 0.");
-        }
-
-        if (height < 1) {
-            throw new IllegalArgumentException("height " + height + " must be greater than 0.");
-        }
-
-        widthInCharacters = width;
-        heightInCharacters = height;
-
-        defaultBackgroundColor = black;
-        defaultForegroundColor = white;
-
-        chars = new char[widthInCharacters][heightInCharacters];
-        backgroundColors = new Color[widthInCharacters][heightInCharacters];
-        foregroundColors = new Color[widthInCharacters][heightInCharacters];
-
-        oldBackgroundColors = new Color[widthInCharacters][heightInCharacters];
-        oldForegroundColors = new Color[widthInCharacters][heightInCharacters];
-
-        if (font == null) {
-            font = AsciiFont.CP437_9x16;
-        }
-        setAsciiFont(font);
+    private fun checkBoxBounds(x: Int, y: Int, width: Int, height: Int) {
+        assert(width >= 1) { "width $width must be greater than 0." }
+        assert(height >= 1) { "height $height must be greater than 0." }
+        assert(x + width <= size.width) { "x + width " + (x + width) + " must be less than " + (size.width + 1) + "." }
+        assert(y + height <= size.height) { "y + height " + (y + height) + " must be less than " + (size.height + 1) + "." }
     }
 
-    @Override
-    public void update(Graphics g) {
-        paint(g);
+    override fun update(g: Graphics) {
+        paint(g)
     }
 
-    @Override
-    public void paint(Graphics g) {
-        if (g == null)
-            throw new NullPointerException();
-
-        for (int x = 0; x < widthInCharacters; x++) {
-            for (int y = 0; y < heightInCharacters; y++) {
-                if (oldBackgroundColors[x][y] == backgroundColors[x][y]
-                        && oldForegroundColors[x][y] == foregroundColors[x][y]
-                        && oldChars[x][y] == chars[x][y])
-                    continue;
-
-                Color bg = backgroundColors[x][y];
-                Color fg = foregroundColors[x][y];
-
-                LookupOp op = setColors(bg, fg);
-                BufferedImage img = op.filter(glyphs[chars[x][y]], null);
-                offscreenGraphics.drawImage(img, x * charWidth, y * charHeight, null);
-
-                oldBackgroundColors[x][y] = backgroundColors[x][y];
-                oldForegroundColors[x][y] = foregroundColors[x][y];
-                oldChars[x][y] = chars[x][y];
+    override fun paint(g: Graphics?) {
+        if (g == null) throw NullPointerException()
+        for (x in 0 until size.width) {
+            for (y in 0 until size.height) {
+                if (oldBgColors[x][y] === bgColors[x][y] && oldFgColors[x][y] === fgColors[x][y] && oldChars[x][y] == chars[x][y]) continue
+                val bg = bgColors[x][y]
+                val fg = fgColors[x][y]
+                val op = setColors(bg, fg)
+                val img = op.filter(glyphs[chars[x][y].toInt()], null)
+                offscreenGraphics.drawImage(img, x * charWidth, y * charHeight, null)
+                oldBgColors[x][y] = bgColors[x][y]
+                oldFgColors[x][y] = fgColors[x][y]
+                oldChars[x][y] = chars[x][y]
             }
         }
-
-        g.drawImage(offscreenBuffer, 0, 0, this);
+        g.drawImage(offscreenBuffer, 0, 0, this)
     }
 
-    private void loadGlyphs() {
+    private fun loadGlyphs() {
         try {
-            glyphSprite = ImageIO.read(Objects.requireNonNull(AsciiPanel.class.getClassLoader().getResource(terminalFontFile)));
-        } catch (IOException e) {
-            System.err.println("loadGlyphs(): " + e.getMessage());
+            glyphSprite = ImageIO.read(Objects.requireNonNull(AsciiPanel::class.java.classLoader.getResource(terminalFontFile)))
+        } catch (e: IOException) {
+            System.err.println("loadGlyphs(): " + e.message)
         }
-
-        for (int i = 0; i < 256; i++) {
-            int sx = (i % 16) * charWidth;
-            int sy = (i / 16) * charHeight;
-
-            glyphs[i] = new BufferedImage(charWidth, charHeight, BufferedImage.TYPE_INT_ARGB);
-            glyphs[i].getGraphics().drawImage(glyphSprite, 0, 0, charWidth, charHeight, sx, sy, sx + charWidth, sy + charHeight, null);
+        for (i in 0..255) {
+            val sx = i % 16 * charWidth
+            val sy = i / 16 * charHeight
+            glyphs[i] = BufferedImage(charWidth, charHeight, BufferedImage.TYPE_INT_ARGB)
+            glyphs[i]!!.graphics.drawImage(glyphSprite, 0, 0, charWidth, charHeight, sx, sy, sx + charWidth, sy + charHeight, null)
         }
     }
 
     /**
-     * Create a <code>LookupOp</code> object (lookup table) mapping the original
+     * Create a `LookupOp` object (lookup table) mapping the original
      * pixels to the background and foreground colors, respectively.
      *
-     * @param bgColor the background color
-     * @param fgColor the foreground color
-     * @return the <code>LookupOp</code> object (lookup table)
+     * @return the `LookupOp` object (lookup table)
      */
-    private LookupOp setColors(Color bgColor, Color fgColor) {
-        short[] a = new short[256];
-        short[] r = new short[256];
-        short[] g = new short[256];
-        short[] b = new short[256];
-
-        byte bga = (byte) (bgColor.getAlpha());
-        byte bgr = (byte) (bgColor.getRed());
-        byte bgg = (byte) (bgColor.getGreen());
-        byte bgb = (byte) (bgColor.getBlue());
-
-        byte fga = (byte) (fgColor.getAlpha());
-        byte fgr = (byte) (fgColor.getRed());
-        byte fgg = (byte) (fgColor.getGreen());
-        byte fgb = (byte) (fgColor.getBlue());
-
-        for (int i = 0; i < 256; i++) {
+    private fun setColors(bgColor: Color?, fgColor: Color?): LookupOp {
+        val a = ShortArray(256)
+        val r = ShortArray(256)
+        val g = ShortArray(256)
+        val b = ShortArray(256)
+        val bga = bgColor!!.alpha.toByte()
+        val bgr = bgColor.red.toByte()
+        val bgg = bgColor.green.toByte()
+        val bgb = bgColor.blue.toByte()
+        val fga = fgColor!!.alpha.toByte()
+        val fgr = fgColor.red.toByte()
+        val fgg = fgColor.green.toByte()
+        val fgb = fgColor.blue.toByte()
+        for (i in 0..255) {
             if (i == 0) {
-                a[i] = bga;
-                r[i] = bgr;
-                g[i] = bgg;
-                b[i] = bgb;
+                a[i] = bga.toShort()
+                r[i] = bgr.toShort()
+                g[i] = bgg.toShort()
+                b[i] = bgb.toShort()
             } else {
-                a[i] = fga;
-                r[i] = fgr;
-                g[i] = fgg;
-                b[i] = fgb;
+                a[i] = fga.toShort()
+                r[i] = fgr.toShort()
+                g[i] = fgg.toShort()
+                b[i] = fgb.toShort()
             }
         }
-
-        short[][] table = {r, g, b, a};
-        return new LookupOp(new ShortLookupTable(0, table), null);
+        val table = arrayOf(r, g, b, a)
+        return LookupOp(ShortLookupTable(0, table), null)
     }
 
-    public AsciiPanel clear() {
-        return clear(' ', 0, 0, widthInCharacters, heightInCharacters, defaultForegroundColor, defaultBackgroundColor);
-    }
-
-    public AsciiPanel clear(char character) {
-        return clear(character, 0, 0, widthInCharacters, heightInCharacters, defaultForegroundColor, defaultBackgroundColor);
-    }
-
-    public AsciiPanel clear(char character, Color foreground, Color background) {
-        return clear(character, 0, 0, widthInCharacters, heightInCharacters, foreground, background);
-    }
-
-    public AsciiPanel clear(char character, int x, int y, int width, int height) {
-        return clear(character, x, y, width, height, defaultForegroundColor, defaultBackgroundColor);
-    }
-
-    public AsciiPanel clear(char character, int x, int y, int width, int height, Color foreground, Color background) {
-        checkChar(character);
-        checkInBounds(x, y);
-        checkBoxBounds(x, y, width, height);
-
-        int originalCursorX = cursorX;
-        int originalCursorY = cursorY;
-        for (int xo = x; xo < x + width; xo++) {
-            for (int yo = y; yo < y + height; yo++) {
-                write(character, xo, yo, foreground, background);
+    /**
+     * Clear the section of the screen with the specified character and whatever
+     * the specified foreground and background colors are.
+     */
+    @JvmOverloads
+    fun clear(
+            character: Char = ' ',
+            x: Int = 0,
+            y: Int = 0,
+            width: Int = size.width,
+            height: Int = size.height,
+            fg: Color = defaultFg,
+            bg: Color = defaultBg
+    ): AsciiPanel {
+        checkChar(character)
+        checkInBounds(x, y)
+        checkBoxBounds(x, y, width, height)
+        val originalCursor = cursor
+        for (xo in x until x + width) {
+            for (yo in y until y + height) {
+                write(character, xo, yo, fg, bg, false)
             }
         }
-        cursorX = originalCursorX;
-        cursorY = originalCursorY;
-
-        return this;
+        cursor = originalCursor
+        return this
     }
 
-    public AsciiPanel write(char character) {
-        return write(character, cursorX, cursorY, defaultForegroundColor, defaultBackgroundColor);
+    /**
+     * Write a character to the specified position with the specified foreground and background colors.
+     * This updates the cursor's position but not the default foreground or background colors.
+     */
+    @JvmOverloads
+    fun write(
+            character: Char,
+            x: Int = cursor.x,
+            y: Int = cursor.y,
+            fg: Color = defaultFg,
+            bg: Color = defaultBg,
+            moveCursor: Boolean = true
+    ): AsciiPanel {
+        checkChar(character)
+        checkInBounds(x, y)
+        chars[x][y] = character
+        fgColors[x][y] = fg
+        bgColors[x][y] = bg
+        if (moveCursor) moveCursor()
+        return this
     }
 
-    public AsciiPanel write(char character, Color foreground) {
-        return write(character, cursorX, cursorY, foreground, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(char character, Color foreground, Color background) {
-        return write(character, cursorX, cursorY, foreground, background);
-    }
-
-    public AsciiPanel write(char character, int x, int y) {
-        return write(character, x, y, defaultForegroundColor, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(char character, int x, int y, Color foreground) {
-        return write(character, x, y, foreground, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(char character, int x, int y, Color foreground, Color background) {
-        checkChar(character);
-        checkInBounds(x, y);
-
-        if (foreground == null) foreground = defaultForegroundColor;
-        if (background == null) background = defaultBackgroundColor;
-
-        chars[x][y] = character;
-        foregroundColors[x][y] = foreground;
-        backgroundColors[x][y] = background;
-        cursorX = x + 1;
-        cursorY = y;
-        return this;
-    }
-
-    public AsciiPanel write(String string) {
-        return write(string, cursorX, cursorY, defaultForegroundColor, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(String string, Color foreground) {
-        return write(string, cursorX, cursorY, foreground, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(String string, Color foreground, Color background) {
-        return write(string, cursorX, cursorY, foreground, background);
-    }
-
-    public AsciiPanel write(String string, int x, int y) {
-        return write(string, x, y, defaultForegroundColor, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(String string, int x, int y, Color foreground) {
-        return write(string, x, y, foreground, defaultBackgroundColor);
-    }
-
-    public AsciiPanel write(String string, int x, int y, Color foreground, Color background) {
-        if (string == null)
-            throw new NullPointerException("string must not be null.");
-
-        checkX(x + string.length() - 1);
-        checkInBounds(x, y);
-
-        for (int i = 0; i < string.length(); i++) {
-            write(string.charAt(i), x + i, y, foreground, background);
+    /**
+     * Write a string to the specified position with the specified foreground and background colors.
+     * Automatically wraps string at the end of the line.
+     *
+     * This updates the cursor's position but not the default foreground or background colors.
+     */
+    @JvmOverloads
+    fun write(
+            string: String,
+            x: Int = cursor.x,
+            y: Int = cursor.y,
+            fg: Color = defaultFg,
+            bg: Color = defaultBg
+    ): AsciiPanel {
+        for (i in string.indices) {
+            write(string[i], x + i, y, fg, bg)
         }
-        return this;
+        return this
     }
 
-    public AsciiPanel changeCharColors(int x, int y, Color foreground, Color background) {
-        checkInBounds(x, y);
-
-        foregroundColors[x][y] = foreground;
-        backgroundColors[x][y] = background;
-        return this;
+    /**
+     * Updates foreground and background colors of char
+     */
+    fun changeCharColors(x: Int, y: Int, fg: Color, bg: Color): AsciiPanel {
+        checkInBounds(x, y)
+        fgColors[x][y] = fg
+        bgColors[x][y] = bg
+        return this
     }
 
-    public AsciiPanel writeCenter(String string, int y) {
-        return writeCenter(string, y, defaultForegroundColor, defaultBackgroundColor);
+    /**
+     * Applies transformer to each tile in (left, top)-(left+width, top+height) rectangle
+     * Transformer may change TileData, this changes will be applied to actual characters on panel
+     */
+    fun withEachTile(
+            left: Int = 0,
+            top: Int = 0,
+            width: Int = size.width,
+            height: Int = size.height,
+            transformer: (Int, Int, TileData) -> Unit
+    ) {
+        for (x0 in 0 until width) for (y0 in 0 until height) {
+            val x = left + x0
+            val y = top + y0
+            if (x < 0 || y < 0 || x >= size.width || y >= size.height) continue
+            val data = TileData(chars[x][y], fgColors[x][y], bgColors[x][y])
+            transformer.invoke(x, y, data)
+            chars[x][y] = data.character
+            fgColors[x][y] = data.fgColor
+            bgColors[x][y] = data.bgColor
+        }
     }
 
-    public AsciiPanel writeCenter(String string, int y, Color foreground) {
-        return writeCenter(string, y, foreground, defaultBackgroundColor);
+    init {
+        require(size.width >= 1) { "width ${size.width} must be greater than 0." }
+        require(size.height >= 1) { "height ${size.height} must be greater than 0." }
+
+        preferredSize = panelSize
+        loadGlyphs()
     }
 
-    public AsciiPanel writeCenter(String string, int y, Color foreground, Color background) {
-        if (string == null)
-            throw new NullPointerException("string must not be null.");
-
-        if (string.length() > widthInCharacters)
-            throw new IllegalArgumentException("string.length() " + string.length() + " must be less than " + widthInCharacters + ".");
-
-        int x = (widthInCharacters - string.length()) / 2;
-
-        return write(string, x, y, foreground, background);
-    }
-
-    public void withEachTile(TileTransformer transformer) {
-        withEachTile(0, 0, widthInCharacters, heightInCharacters, transformer);
-    }
-
-    public void withEachTile(int left, int top, int width, int height, TileTransformer transformer) {
-        AsciiCharacterData data = new AsciiCharacterData();
-
-        for (int x0 = 0; x0 < width; x0++)
-            for (int y0 = 0; y0 < height; y0++) {
-                int x = left + x0;
-                int y = top + y0;
-
-                if (x < 0 || y < 0 || x >= widthInCharacters || y >= heightInCharacters)
-                    continue;
-
-                data.character = chars[x][y];
-                data.foregroundColor = foregroundColors[x][y];
-                data.backgroundColor = backgroundColors[x][y];
-
-                transformer.transformTile(x, y, data);
-
-                chars[x][y] = data.character;
-                foregroundColors[x][y] = data.foregroundColor;
-                backgroundColors[x][y] = data.backgroundColor;
-            }
-    }
+    data class TileData(var character: Char, var fgColor: Color, var bgColor: Color)
+    data class AsciiFont(val fontFilename: String, val width: Int, val height: Int)
 }

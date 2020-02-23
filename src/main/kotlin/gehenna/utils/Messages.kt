@@ -3,6 +3,7 @@
 package gehenna.utils
 
 import gehenna.core.Entity
+import gehenna.exceptions.GehennaException
 import java.awt.Color
 
 const val _Actor = "%Actor%"
@@ -30,7 +31,7 @@ fun _bg(color: String, message: String): String {
 }
 
 fun String.toColor() : Color {
-    return colorMap[this] ?: throw Exception("Unknown color : '$this'")
+    return colorMap[this] ?: throw GehennaException("Unknown color : '$this'")
 }
 
 fun String.prepareMessage(firstPerson: Boolean = false, actor: Entity = Entity.world, args: Map<String, String> = emptyMap()): String {

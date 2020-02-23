@@ -8,15 +8,23 @@ import gehenna.core.Entity
 import gehenna.utils.*
 import java.io.Serializable
 
+/**
+ * Basic level with 2-d array of cells and 2-d array of memory
+ */
 abstract class BasicLevel(val size: Size) : Serializable {
     protected val cells = Array(size) { HashSet<Entity>() }
     private var memory = Array(size) { 0L to null as Glyph? }
 
-    //todo remove
+    /**
+     * Returns all entities on the level
+     */
     fun getAll(): List<Entity> {
         return cells.flatten().flatten()
     }
 
+    /**
+     * Returns all entities in cell
+     */
     operator fun get(point: Point): Set<Entity> {
         return cells[point]
     }

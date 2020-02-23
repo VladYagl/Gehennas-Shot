@@ -1,15 +1,17 @@
 package gehenna.utils
 
+import gehenna.core.Entity
+import gehenna.exceptions.GehennaException
 import java.io.Serializable
-import java.lang.Exception
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 private const val runs = 100_000
 
 abstract class Dice : Serializable {
     abstract fun roll(): Int
 
+    /**
+     * prints roll distribution, needed for testing
+     */
     fun visualise(): String {
         val histogram = (1..runs).groupingBy {
             roll()
@@ -20,8 +22,8 @@ abstract class Dice : Serializable {
         }.joinToString(separator = "\n")
     }
 
-    val mean: Double by lazy { (1..runs).map { roll() }.sum().toDouble() / runs }
-    val std: Double by lazy { sqrt((1..runs).map { roll().toDouble().pow(2) }.sum() / runs - mean.pow(2)) }
+    val mean: Double by lazy { (1..runs).map { roll() }.mean }
+    val std: Double by lazy { (1..runs).map { roll() }.std }
 
     data class Const(val value: Int) : Dice() {
         override fun roll() = value
@@ -43,7 +45,11 @@ abstract class Dice : Serializable {
         override fun roll() = (0 until count).map { dice.roll() }.sum()
 
         override fun toString(): String {
-            return "$count$dice"
+            return if (dice is SingleDice) {
+                "$count$dice"
+            } else {
+                "$count($dice)"
+            }
         }
     }
 
@@ -63,19 +69,50 @@ abstract class Dice : Serializable {
         }
     }
 
-    operator fun plus(other: Dice) = Addition(this, other)
+    operator fun plus(other: Dice): Dice {
+        return when {
+            //TODO: Tried rewriting it a little bit -> Pls finish it
+            other is Addition -> (this + other.a) + other.b
+            this is Addition && this.b is Const && other !is Const -> (this.a + other) + this.b
+            this is Addition && this.b is Const && other is Const -> this.a + Const(this.b.value + other.value)
+            this is Const && other !is Const -> other + this
+            this is Const && other is Const -> Const(this.value + other.value)
+            this is SingleDice && other is SingleDice && this.sides == other.sides -> this * 2
+            this is Multiplication && this.dice is SingleDice && other is SingleDice && this.dice.sides == other.sides ->
+                Multiplication(this.dice, this.count + 1)
+            other is Multiplication && other.dice is SingleDice && this is SingleDice && other.dice.sides == this.sides ->
+                Multiplication(other.dice, other.count + 1)
+            this is Multiplication && this.dice is SingleDice &&
+                    other is Multiplication && other.dice is SingleDice &&
+                    this.dice.sides == other.dice.sides -> Multiplication(this.dice, this.count + other.count)
+            other is Const && other.value == 0 -> this
+            else -> Addition(this, other)
+        }
+    }
 
     operator fun minus(other: Dice) = Subtraction(this, other)
 
-    operator fun plus(value: Int) = Addition(this, Const(value))
+    operator fun plus(value: Int) = this + Const(value)
 
-    operator fun minus(value: Int) = Subtraction(this, Const(value))
+    operator fun minus(value: Int) = this - Const(value)
 
     operator fun times(value: Int): Dice {
-        return if (this is Const) {
-            Const(this.value * value)
-        } else {
-            Multiplication(this, value)
+        return when (this) {
+            is Const -> {
+                Const(this.value * value)
+            }
+            is Addition -> {
+                this.a * value + this.b * value
+            }
+            is Subtraction -> {
+                this.a * value - this.b * value
+            }
+            is Multiplication -> {
+                Multiplication(this.dice, this.count * value)
+            }
+            else -> {
+                Multiplication(this, value)
+            }
         }
     }
 
@@ -141,7 +178,7 @@ abstract class Dice : Serializable {
                 '(' -> {
                     pos++
                     val dice = parseSum()
-                    if (next() != ')') throw Exception("Bad brackets")
+                    if (next() != ')') throw GehennaException("Bad brackets")
                     pos++
                     dice
                 }
@@ -166,16 +203,16 @@ fun String.roll() = Dice.fromString(this).roll()
 fun String.toDice(): Dice = Dice.fromString(this)
 
 fun main() {
-//    println(Dice.fromString("3(d6 + 5) + d8"))
+    println(Dice.fromString("3(2d6 + 5) + d6 + 4"))
 //    println(Dice.fromString("10d5 + 12"))
 //    println(Dice.fromString("101d12"))
 //    println(Dice.fromString("d6"))
 //    println(Dice.fromString("d6 + d8"))
-//    println("d20 + d10 + d30 + d40".toDice().visualise())
+//    println("d20 + d10 + d30 + d40".toDice())
 //
 //    println("d10".toDice().visualise())
 //    println("2d5".toDice().visualise())
-    println("2d5".toDice().mean)
-    println("2d5".toDice().std)
+//    println("2d5".toDice().mean)
+//    println("2d5".toDice().std)
 }
 

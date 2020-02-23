@@ -4,7 +4,7 @@ import com.beust.klaxon.Converter
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
-import asciiPanel.AsciiFont
+import gehenna.ui.panel.AsciiPanel.AsciiFont
 import java.awt.Color
 import java.awt.Color.lightGray
 import java.io.InputStream

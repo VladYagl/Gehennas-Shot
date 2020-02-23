@@ -64,9 +64,7 @@
             "damage": "1d5 + 3",
             "speed": 500,
             "projectileName": "bullet",
-            "capacity": 12
-        },
-        "item": {
+            "capacity": 12,
             "volume": 1
         },
         "glyph": {
@@ -82,6 +80,7 @@
 
             "delay": 10,
             "time": 50,
+            "volume": 15,
 
             "minSpread": 0.0,
             "maxSpread": 0.6,
@@ -89,9 +88,6 @@
             "walkSpread": 0.45,
             "spreadReduce": 0.025,
             "spreadReduceTick": 10
-        },
-        "item": {
-            "volume": 15
         },
         "glyph": {
             "char": 138
@@ -107,6 +103,7 @@
             "delay": 10,
             "burstCount": 3,
             "time": 33,
+            "volume": 50,
 
             "minSpread": 0.08,
             "maxSpread": 0.7,
@@ -114,9 +111,6 @@
             "walkSpread": 0.525,
             "spreadReduce": 0.03,
             "spreadReduceTick": 10
-        },
-        "item": {
-            "volume": 50
         },
         "glyph": {
             "char": 139
@@ -133,6 +127,7 @@
             "burstCount": 4,
             "time": 1,
             "shootTime": 50,
+            "volume": 50,
 
             "minSpread": 0.25,
             "maxSpread": 0.35,
@@ -140,9 +135,6 @@
             "walkSpread": 0.625,
             "spreadReduce": 0.04,
             "spreadReduceTick": 10
-        },
-        "item": {
-            "volume": 50
         },
         "glyph": {
             "char": 139

@@ -1,5 +1,6 @@
 package gehenna.ui
 
+import gehenna.exceptions.GehennaException
 import gehenna.ui.panel.GehennaPanel
 import gehenna.ui.panel.MenuPanel
 import gehenna.utils.Size
@@ -129,8 +130,8 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
 
     override fun printException(e: Throwable) {
         showError(e) // todo: make this switchable
-        info.writeLine(e.message ?: "no message", info.heightInCharacters - 3, fg = Color.RED)
-        info.writeLine(e.toString(), info.heightInCharacters - 2, fg = Color.RED)
+        info.writeLine(e.message ?: "no message", info.size.height - 3, fg = Color.RED)
+        info.writeLine(e.toString(), info.size.height - 2, fg = Color.RED)
     }
 
     private fun JComponent.paintImmediately() {
@@ -184,7 +185,7 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
             window.keyHandler?.let { keyEventHandlers.remove(it) }
             mainPane.repaint()
         } else {
-            throw Exception("MainFrame can't remove $window")
+            throw GehennaException("MainFrame can't remove $window")
         }
     }
 

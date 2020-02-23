@@ -25,7 +25,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
                 pos.move(pos + dir)
                 //update weapon spread FIXME: maybe it should be in different place, but here is OK
                 //TODO: maybe it should depend on a speed?
-                entity<Inventory>()?.gun?.entity?.invoke<Gun>()?.applyWalkSpread()
+                entity<Inventory>()?.gun?.applyWalkSpread()
                 pos.level[pos].forEach {
                     it.any<PredictableBehaviour<*>>()?.let { behaviour ->
                         entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity}")
@@ -55,16 +55,13 @@ data class Shoot(
         val ammo = gun.ammo
         if (ammo == null || ammo.amount == 0) {
             logFor(pos.entity, "Click! $_Actor_s ${gun.entity} is out of ammo")
-            return end()
+            return fail()
         } else {
             val bullet = context.factory.new(ammo.projectileName)
             pos.spawnHere(bullet)
-            val shootDir = if (gun.spread > 0) {
-                (dir.angle + random.nextDouble(gun.spread) - random.nextDouble(gun.spread)).toLineDir(dir.errorShift)
-            } else dir
             bullet.add(LineBulletBehaviour(
                     bullet,
-                    shootDir,
+                    random.nextLineDir(dir, gun.spread),
                     gun.damage + ammo.damage,
                     gun.speed + ammo.speed,
                     ammo.bounce,
@@ -150,13 +147,13 @@ data class Pickup(private val entity: Entity, private val items: List<Item>) : A
     }
 }
 
-data class Equip(private val entity: Entity, private val item: Item?) : Action(15) {
+data class Equip(private val entity: Entity, private val gun: Gun?) : Action(15) {
     override fun perform(context: Context): ActionResult {
         val inventory = entity.one<Inventory>()
         val old = inventory.gun
-        inventory.equip(item)
-        if (item != null) {
-            logFor(entity, "$_Actor have equipped a ${item.entity}")
+        inventory.equip(gun)
+        if (gun != null) {
+            logFor(entity, "$_Actor have equipped a ${gun.entity}")
         } else {
             logFor(entity, "$_Actor unequipped a ${old?.entity}")
         }
@@ -167,16 +164,10 @@ data class Equip(private val entity: Entity, private val item: Item?) : Action(1
 data class Reload(private val entity: Entity, private val ammo: Ammo?) : Action(15) {
     override fun perform(context: Context): ActionResult {
         val inventory = entity.one<Inventory>()
-        inventory.gun?.entity?.invoke<Gun>()?.let { gun ->
-            // TODO: Ammo -> Item // Gun -> Item ???
-            gun.unload()?.entity?.invoke<Item>()?.let {
-                logFor(entity, "$_Actor unloaded ${it.entity} from ${gun.entity}")
-                inventory.add(it.entity.one())
-            }
-            gun.load(ammo)
+        inventory.gun?.let { gun ->
+            gun.unload(entity).perform(context)
             if (ammo != null) {
-                inventory.remove(ammo.entity.one())
-                logFor(entity, "$_Actor loaded ${ammo.entity} to ${gun.entity}")
+                gun.load(entity, ammo).perform(context)
             }
         }
         return end()

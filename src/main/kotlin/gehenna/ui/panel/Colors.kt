@@ -1,0 +1,30 @@
+package gehenna.ui.panel
+
+import java.awt.Color
+
+val black = Color(0, 0, 0)
+val red = Color(128, 0, 0)
+val green = Color(0, 128, 0)
+val yellow = Color(128, 128, 0)
+val blue = Color(0, 0, 128)
+val magenta = Color(128, 0, 128)
+val cyan = Color(0, 128, 128)
+val white = Color(192, 192, 192)
+val brightBlack = Color(128, 128, 128)
+val brightRed = Color(255, 0, 0)
+val brightGreen = Color(0, 255, 0)
+val brightYellow = Color(255, 255, 0)
+val brightBlue = Color(0, 0, 255)
+val brightMagenta = Color(255, 0, 255)
+val brightCyan = Color(0, 255, 255)
+val brightWhite = Color(255, 255, 255)
+
+val CP437_8x8 = AsciiPanel.AsciiFont("cp437_8x8.png", 8, 8)
+val CP437_10x10 = AsciiPanel.AsciiFont("cp437_10x10.png", 10, 10)
+val CP437_12x12 = AsciiPanel.AsciiFont("cp437_12x12.png", 12, 12)
+val CP437_16x16 = AsciiPanel.AsciiFont("cp437_16x16.png", 16, 16)
+val CP437_9x16 = AsciiPanel.AsciiFont("cp437_9x16.png", 9, 16)
+val DRAKE_10x10 = AsciiPanel.AsciiFont("drake_10x10.png", 10, 10)
+val TAFFER_10x10 = AsciiPanel.AsciiFont("taffer_10x10.png", 10, 10)
+val QBICFEET_10x10 = AsciiPanel.AsciiFont("qbicfeet_10x10.png", 10, 10)
+val TALRYTH_15_15 = AsciiPanel.AsciiFont("talryth_square_15x15.png", 15, 15)

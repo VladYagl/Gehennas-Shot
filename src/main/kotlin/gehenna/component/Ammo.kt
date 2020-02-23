@@ -22,7 +22,10 @@ data class Ammo(
         val bounce: Boolean = false,
 
         val capacity: Int,
-        var amount: Int = capacity
-) : Component() {
+        var amount: Int = capacity,
 
+        private val volume: Int
+) : Component() {
+    val item = Item(entity, volume)
+    override val children: List<Component> = listOf(item)
 }

@@ -1,7 +1,7 @@
 package gehenna.ui
 
-import asciiPanel.AsciiCharacterData
 import gehenna.ui.panel.MenuPanel
+import gehenna.ui.panel.AsciiPanel
 import gehenna.utils.Size
 import java.awt.Color
 import javax.swing.JPanel
@@ -23,12 +23,12 @@ interface Window {
 
     fun clear(char: Char = ' '): Window
     fun clearLine(y: Int)
-    fun writeLine(line: String, y: Int, alignment: Alignment = Alignment.left, fg: Color = fgColor, bg: Color = bgColor)
+    fun writeLine(line: String, y: Int, alignment: Alignment = Alignment.left, fg: Color = fgColor, bg: Color = bgColor, wrap: Boolean = false)
     fun putChar(char: Char, x: Int, y: Int, fg: Color = fgColor, bg: Color = bgColor)
     fun changeColors(x: Int, y: Int, fg: Color, bg: Color)
     fun repaint()
 
-    fun forEachTile(transformer: (Int, Int, AsciiCharacterData) -> Unit)
+    fun forEachTile(transformer: (Int, Int, AsciiPanel.TileData) -> Unit)
 }
 
 interface UI {

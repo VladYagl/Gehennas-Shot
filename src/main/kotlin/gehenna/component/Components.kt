@@ -81,7 +81,7 @@ data class Inventory(
         override val entity: Entity,
         val maxVolume: Int,
         val items: ArrayList<Item> = ArrayList(),
-        var gun: Item? = null
+        var gun: Gun? = null
 ) : Component() {
     var currentVolume = items.sumBy { it.volume }
         private set
@@ -103,8 +103,8 @@ data class Inventory(
         item.inventory = null
     }
 
-    fun equip(item: Item?) {
-        gun = item
+    fun equip(newGun: Gun?) {
+        gun = newGun
     }
 
     fun unequip() {
@@ -115,7 +115,7 @@ data class Inventory(
         get() = items.toList()
 
     init {
-        gun?.let { add(it) }
+        gun?.let { add(it.item) }
         //todo: Do you need death? You can call it on entity.remove?
         //todo: enemies don't drop weapons
         subscribe<Health.Death> {

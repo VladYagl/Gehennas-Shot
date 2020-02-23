@@ -2,12 +2,14 @@ package gehenna.utils
 
 import gehenna.component.Position
 import gehenna.component.Reflecting
+import gehenna.exceptions.GehennaException
 import gehenna.level.Level
 import gehenna.utils.Point.Companion.zero
 import java.io.Serializable
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
+import kotlin.test.assertTrue
 
 interface Point : Serializable {
     val x: Int
@@ -81,7 +83,7 @@ data class Dir(override val x: Int, override val y: Int) : Point {
             north -> "north"
             northeast -> "northeast"
             zero -> "zero"
-            else -> throw Exception("This is not a direction [$x on $y]???")
+            else -> throw GehennaException("This is not a direction [$x on $y]???")
         }
     }
 
@@ -101,9 +103,10 @@ data class Size(val width: Int, val height: Int) : Point {
 
 val Pair<Int, Int>.point: Point get() = PointImpl(first, second)
 val Pair<Int, Int>.dir get() = Dir(first, second)
+
+infix fun Point.equals(other: Point) = (this - other).max == 0
 infix fun Int.at(y: Int): Point = PointImpl(this, y)
 infix fun Int.on(y: Int) = Dir(this, y)
-infix fun Point.equals(other: Point) = (this - other).max == 0
 
 fun Dir.bounce(pos: Position, p: Point = this): Point {
     return bounce(pos, pos.level, p)
@@ -114,12 +117,12 @@ fun Dir.bounce(pos: Point, level: Level, p: Point = this): Point {
     val h = level.obstacle(newx - x at newy)?.has<Reflecting>() ?: false
     val v = level.obstacle(newx at newy - y)?.has<Reflecting>() ?: false
     return if (h && v) {
-        -p.x on -p.y
+        -p.x at -p.y
     } else if (h) {
-        +p.x on -p.y
+        +p.x at -p.y
     } else if (v) {
-        -p.x on +p.y
+        -p.x at +p.y
     } else {
-        -p.x on -p.y
+        -p.x at -p.y
     }
 }

@@ -5,10 +5,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import javax.swing.JOptionPane.PLAIN_MESSAGE
 import javax.swing.JOptionPane.showMessageDialog
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sign
-import kotlin.math.sin
+import kotlin.math.*
 import kotlin.random.Random
 
 operator fun Color.times(alpha: Double) = Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
@@ -30,15 +27,24 @@ fun Random.next4way(vararg dir: Dir = emptyArray()): Dir {
     }
 }
 
+val <T : Number> Collection<T>.mean
+    get() = sumByDouble { it.toDouble() } / size
+
+val <T : Number> Collection<T>.std
+    get() = sqrt(map { it.toDouble().pow(2) }.mean - mean.pow(2))
+
+/**
+ * Cartesian product of two collections
+ */
 operator fun <T, S> Iterable<T>.times(other: Iterable<S>): List<Pair<T, S>> {
     return cartesianProduct(other) { first, second -> first to second }
 }
 
-fun <T, S: Comparable<S>> Iterable<T>.minOf(func: (T) -> S): S? {
+fun <T, S : Comparable<S>> Iterable<T>.minOf(func: (T) -> S): S? {
     return asSequence().map { func(it) }.min()
 }
 
-fun <T, S: Comparable<S>> Iterable<T>.maxOf(func: (T) -> S): S? {
+fun <T, S : Comparable<S>> Iterable<T>.maxOf(func: (T) -> S): S? {
     return asSequence().map { func(it) }.max()
 }
 
@@ -46,18 +52,30 @@ fun <T, S, V> Iterable<T>.cartesianProduct(other: Iterable<S>, transformer: (fir
     return flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
 }
 
+/**
+ * Max of two colors by their brightness (sum of RGB)
+ */
 fun max(a: Color, b: Color): Color {
     return if (a > b) a else b
 }
 
+/**
+ * Min of two colors by their brightness (sum of RGB)
+ */
 fun min(a: Color, b: Color): Color {
     return if (a < b) a else b
 }
 
+/**
+ * Compares angle by sum of RGB values, kinda compares color brightness
+ */
 operator fun Color.compareTo(other: Color): Int {
     return (this.red + this.blue + this.green).compareTo(other.red + other.green + other.blue)
 }
 
+/**
+ * Sets variable value through reflection by name, used for setting default values when reading objects from save file
+ */
 inline fun <reified T> T.setVal(name: String, value: Any?) {
     val field = T::class.java.getDeclaredField(name)
     field.isAccessible = true
@@ -68,6 +86,9 @@ fun sign(x: Int): Int {
     return sign(x.toDouble()).toInt()
 }
 
+/**
+ * Returns normalized angle in (-PI; PI)
+ */
 fun Double.normalizeAngle(): Double {
     return atan2(sin(this), cos(this))
 }

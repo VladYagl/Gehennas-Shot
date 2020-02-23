@@ -124,7 +124,7 @@ class TextInput(listener: InputListener) : InputConverter(listener) {
     )
 
     override fun consumeChar(char: Char): Input? {
-        return if (char.isLetter() || char == ' ') Input.Char(char) else null
+        return if (char.isLetterOrDigit() || char == ' ') Input.Char(char) else null
     }
 }
 
@@ -137,7 +137,7 @@ class MenuInput(listener: InputListener) : InputConverter(listener) {
 
     override fun consumeKey(e: KeyEvent): Input? {
         return getDir(e.keyCode)?.let {
-            if (it == north || it == south || it == east || it == west)
+            if ((it == north || it == south || it == east || it == west) && !e.isShiftDown)
                 Input.Direction(it)
             else null
         } ?: if (e.keyChar.isLetter()) {

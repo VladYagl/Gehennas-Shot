@@ -2,13 +2,11 @@ package gehenna.component
 
 import gehenna.action.ApplyEffect
 import gehenna.action.Shoot
-import gehenna.core.Action
+import gehenna.core.*
 import gehenna.core.Action.Companion.oneTurn
-import gehenna.core.Component
-import gehenna.core.Entity
-import gehenna.core.SimpleAction
 import gehenna.utils.Dice
 import gehenna.utils.LineDir
+import gehenna.utils._Actor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -19,6 +17,7 @@ data class Gun(
         val damage: Dice,
         val speed: Int,
         val delay: Long,
+        private val volume: Int,
         private val minSpread: Double = 0.0,
         private val maxSpread: Double = 0.0,
         private val shootSpread: Double = 0.0,
@@ -38,24 +37,38 @@ data class Gun(
             decSpread(spreadReduce)
         }
     }
+    val item = Item(entity, volume)
 
-    override val children: List<Component> = listOf(spreadReducer)
+    override val children: List<Component> = listOf(spreadReducer, item)
     private var curSpread = minSpread
     private var curWalkSpread: Double = 0.0
 
     var ammo: Ammo? = null
         private set
 
-    fun unload(): Ammo? {
-        val cur = ammo
-        ammo = null
-        return cur
+    fun unload(actor: Entity, inventory: Inventory? = actor.one()): Action {
+        return object : Action(15) {
+            override fun perform(context: Context): ActionResult {
+                ammo?.item?.let {
+                    logFor(actor, "$_Actor unloaded ${it.entity} from ${this@Gun.entity}")
+                    inventory?.add(it)
+                }
+                ammo = null
+                return end()
+            }
+        }
     }
 
-    fun load(new: Ammo?) {
-        assert(ammo != null)
-        assert(ammo?.type == ammoType)
-        ammo = new
+    fun load(actor: Entity, new: Ammo, inventory: Inventory? = actor.one()): Action {
+        assert(new.type == ammoType)
+        return object : Action(15) {
+            override fun perform(context: Context): ActionResult {
+                inventory?.remove(new.item)
+                logFor(actor, "$_Actor loaded ${new.entity} to ${this@Gun.entity}")
+                ammo = new
+                return end()
+            }
+        }
     }
 
     val spread: Double

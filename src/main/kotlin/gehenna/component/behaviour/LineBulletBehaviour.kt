@@ -7,6 +7,7 @@ import gehenna.component.Glyph
 import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.core.*
+import gehenna.exceptions.GehennaException
 import gehenna.utils.*
 
 data class LineBulletBehaviour(
@@ -37,12 +38,12 @@ data class LineBulletBehaviour(
                 Triple(pos, LineDir(dx, dy, error),
                         entity<DirectionalGlyph>()?.let {
                             glyph.copy(entity = glyph.entity, char = (it.glyphs[(dx at dy).dir]
-                                    ?: throw Exception("unknown direction for glyph")))
+                                    ?: throw GehennaException("unknown direction for glyph")))
                         } ?: glyph)
             } else {
                 Triple(next, LineDir(dir.x, dir.y, error), entity<DirectionalGlyph>()?.let {
                     val char = it.glyphs[dir.dir]
-                            ?: throw Exception("unknown direction for glyph")
+                            ?: throw GehennaException("unknown direction for glyph")
                     if (glyph.char != char)
                         glyph.copy(entity = glyph.entity, char = char)
                     else

@@ -4,6 +4,7 @@ import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.level.Level
 import kotlin.math.*
+import kotlin.random.Random
 
 /**
  * Converts angle in radians to a LineDir
@@ -33,6 +34,12 @@ fun Double.toLineDir(errorShift: Double = 0.0): LineDir {
     } else {
         LineDir(-x, -y, error.roundToInt())
     }
+}
+
+fun Random.nextLineDir(dir: LineDir, spread: Double): LineDir {
+    return if (spread > 0) {
+        (dir.angle + this.nextDouble(spread) - this.nextDouble(spread)).toLineDir(dir.errorShift)
+    } else dir
 }
 
 /**
@@ -114,62 +121,73 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
      */
     fun findBestError(from: Position): Int? {
         val target = from + this.point
-//         TODO: maybe this can work, but for now the dumb way is better
-//        val path = from.level.getLOS(from, target)
-//        if (path != null && (path.last() equals target)) {
-//            val dx = abs(this.x)
-//            val dy = -abs(this.y)
-//            var eMin = this.minError
-//            var eMax = this.maxError
-//            var eAdd: Int = 0
-//            var last: Point = from
-//
-//            path.drop(1).dropLast(1).forEach {
-//                val oldE = eAdd
-//                if (last.x != it.x) { // error >= dy / 2 - eAdd
-//                    eMin = max(eMin, dy / 2 - oldE)
-//                    eAdd += dy
-//                } else { // error < dy / 2 - eAdd
-//                    eMax = min(eMax, (dy - 1) / 2 - oldE) // TODO check the math!
-//                }
-//                if (last.y != it.y) { // error <= dx / 2 - eAdd
-//                    eMax = min(eMax, dx / 2 - oldE)
-//                    eAdd += dx
-//                } else { // error > dx / 2 - eAdd
-//                    eMin = max(eMin, (dx + 1) / 2 - oldE)
-//                }
-//                last = it
-//            }
-//
-//            println("ans = ($eMin --- $eMax), \n$path")
-//            return (eMin + eMax) / 2
-//        } else {
-//            println("NO LINE OF SIGHT!!!")
-        for (error in (this.minError..this.maxError)) {
-            var good = false
-            LineDir(this.x, this.y, error).walkLine(from, (target - from).max, from.level) {
-                if (it equals target) {
-                    good = true
+        val path = from.level.getLOS(from, target)
+        if (path != null && (path.last() equals target)) {
+            val dx = abs(this.x)
+            val dy = -abs(this.y)
+            var eMin = this.minError
+            var eMax = this.maxError
+            var eAdd: Int = 0
+            var last: Point = from
+
+            path.drop(1).forEach {
+                val oldE = eAdd
+                if (last.x != it.x) { // error >= dy / 2 - eAdd
+                    eMin = max(eMin, dy / 2 - oldE)
+                    eAdd += dy
+                    assert((eMin + oldE) * 2 >= dy) { "eMin = $eMin, oldE = $oldE, dy = $dy" }
+                } else { // error < dy / 2 - eAdd
+                    eMax = min(eMax, dy / 2 - 1 - oldE)
+                    assert((eMax + oldE) * 2 < dy) { "eMax = $eMax, oldE = $oldE, dy = $dy" }
                 }
-                true
+                if (last.y != it.y) { // error <= dx / 2 - eAdd
+                    eMax = min(eMax, dx / 2 - oldE)
+                    eAdd += dx
+                    assert((eMax + oldE) * 2 <= dx) { "eMax = $eMax, oldE = $oldE, dx = $dx" }
+                } else { // error > dx / 2 - eAdd
+                    eMin = max(eMin, dx / 2 + 1 - oldE)
+                    assert((eMin + oldE) * 2 > dx) { "eMin = $eMin, oldE = $oldE, dx = $dx" }
+                }
+                last = it
             }
-            if (good) {
-//                    println("Found line: $error")
-                return error
+
+            println("ans = ($eMin --- $eMax), \n$path")
+            return (eMin + eMax) / 2
+        } else {
+            val goods = (this.minError..this.maxError).mapNotNull {error ->
+                var good = false
+                LineDir(this.x, this.y, error).walkLine(from, (target - from).max, from.level) {
+                    if (it equals target) {
+                        good = true
+                    }
+                    true
+                }
+                if (good) {
+                    error
+                } else {
+                    null
+                }
+            }
+            return if (goods.isNotEmpty()) {
+                println("Found Line")
+                goods.mean.roundToInt()
+            } else {
+                println("Default Error // No line")
+                null
             }
         }
-//            println("Default Error // No line")
-        return null
-//        }
     }
 
     /**
-     * Return next point in line from <other> point
+     * Return next point in line from <other> point, overrides plus for backward compatibility with ordinary 8-way dir
      */
     override fun plus(other: Point): Point {
         return next(other).second
     }
 
+    /**
+     * I don't know how nor do I need a way to calculate previous point in the line
+     */
     override fun minus(other: Point): Point {
         throw UnsupportedOperationException("No minus with Line Direction")
     }

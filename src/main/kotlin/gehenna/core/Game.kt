@@ -7,12 +7,9 @@ import gehenna.component.Senses
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.factory.Factory
 import gehenna.factory.LevelPart
-import gehenna.level.DungeonLevelFactory
 import gehenna.level.Level
 import gehenna.level.LevelFactory
-import gehenna.level.StubLevelFactory
 import gehenna.utils.SaveData
-import gehenna.utils.Size
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -75,7 +72,8 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
             }.forEach { entry ->
                 when (entry.sense) {
                     Senses.Sight::class.simpleName -> {
-                        if (sight?.isVisible(entry.position!!) == true) {
+                        val pos = entry.position
+                        if (pos == null || sight?.isVisible(pos) == true) {
                             player<Logger>()?.add(entry.text)
                         }
                     }

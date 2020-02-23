@@ -6,9 +6,13 @@ import gehenna.action.Move
 import gehenna.action.Reload
 import gehenna.action.Wait
 import gehenna.component.*
+import gehenna.component.behaviour.Behaviour
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
+import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
+import gehenna.core.SimpleAction
+import gehenna.exceptions.GehennaException
 import gehenna.level.Level
 import gehenna.ui.panel.ConsolePanel
 import gehenna.ui.panel.MenuPanel
@@ -17,6 +21,7 @@ import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
 import java.awt.Color
 import kotlin.math.abs
+import kotlin.random.Random
 
 abstract class State {
     open fun handleInput(input: Input): Pair<State, Boolean> = this to false
@@ -101,9 +106,29 @@ private abstract class Target(
         if (drawLine) {
             val playerPos: Position = context.player.one()
             val inventory = context.player.one<Inventory>()
-            val gun = inventory.gun?.entity?.invoke<Gun>() ?: throw Exception("Targeting without a gun, why?")
-            val ammo: Ammo = gun.ammo ?: throw Exception("Targeting without an ammo, why?") // TODO:
+            val gun = inventory.gun ?: throw GehennaException("Targeting without a gun, why?")
+            val ammo: Ammo = gun.ammo ?: throw GehennaException("Targeting without an ammo, why?") // TODO:
             val range = context.player<Senses.Sight>()?.range ?: 100
+
+            //Calculating chance to hit the most retarded way possible: shooting 100 bullets and count how many hit
+            val rand = Random(1488) // create new seeded random -> so results are always the same
+            var successCount = 0
+            if (dir.max > 0) {
+                for (i in (1..10000)) { // TODO: this might be too much
+                    val randDir = rand.nextLineDir(dir, gun.spread)
+                    randDir.walkLine(playerPos, dir.max, playerPos.level) {
+                        if (it equals (playerPos + dir.point)) {
+                            successCount++
+                            false
+                        } else {
+                            true
+                        }
+                    }
+                }
+            }
+
+            val time = Behaviour.scaleTime(dir.max.toLong() * oneTurn, gun.speed + ammo.speed)
+            context.log.addTemp("Bullet will reach its destination in $time with ${successCount / 100}% chance")
 
             //            val color = context.hud.fgColor * 0.8 // TODO: constants
             val color = Color(128, 160, 210) * 0.5
@@ -198,6 +223,16 @@ private abstract class Target(
 
 private class Normal(private val context: UIContext) : State() {
 
+    private fun askForAmmo(ammoType: AmmoType, func: (Ammo?) -> Unit) {
+        context.addWindow(SelectPanel(
+                context,
+                context.player.one<Inventory>().contents
+                        .mapNotNull { it.entity<Ammo>() }
+                        .filter { it.type == ammoType } + (null as Ammo?),
+                title = "Load what?") { func(it) }
+        )
+    }
+
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
             if (input.dir == Dir.zero) {
@@ -230,7 +265,7 @@ private class Normal(private val context: UIContext) : State() {
         }
         Input.Fire -> {
             val inventory = context.player.one<Inventory>()
-            val gun = inventory.gun?.entity?.invoke<Gun>()
+            val gun = inventory.gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun equipped")
                 this to true
@@ -270,14 +305,30 @@ private class Normal(private val context: UIContext) : State() {
                 context.addWindow(MenuPanel(100, 30, context.settings).apply {
                     setOnCancel { context.removeWindow(this) }
                     addItem(TextItem("${selectedItem.entity} -- vol.: ${selectedItem.volume}"))
-                    addItem(ButtonItem("Equip", {
-                        context.action = gehenna.action.Equip(context.player, selectedItem)
-                        context.removeWindow(this)
-                    }, 'e'))
-                    addItem(ButtonItem("Use", {
-                        context.action = selectedItem.entity.any<Consumable>()?.apply(context.player)
-                        context.removeWindow(this)
-                    }, 'u'))
+                    selectedItem.entity<Consumable>()?.let { usableItem ->
+                        addItem(ButtonItem("Use", {
+                            context.action = usableItem.apply(context.player)
+                            context.removeWindow(this)
+                        }, 'u'))
+                    }
+                    selectedItem.entity<Gun>()?.let { gun ->
+                        addItem(ButtonItem("Equip", {
+                            context.action = gehenna.action.Equip(context.player, gun)
+                            context.removeWindow(this)
+                        }, 'e'))
+                        addItem(ButtonItem("Load", {
+                            askForAmmo(gun.ammoType) {
+                                if (it != null) {
+                                    context.action = gun.load(context.player, it)
+                                }
+                                context.removeWindow(this)
+                            }
+                        }, 'L'))
+                        addItem(ButtonItem("Unload", {
+                            context.action = gun.unload(context.player)
+                            context.removeWindow(this)
+                        }, 'U'))
+                    }
                     addItem(ButtonItem("Drop", {
                         context.action = gehenna.action.Drop(context.player, listOf(selectedItem))
                         context.removeWindow(this)
@@ -299,24 +350,18 @@ private class Normal(private val context: UIContext) : State() {
         Input.Equip -> {
             context.addWindow(SelectPanel(
                     context,
-                    context.player.one<Inventory>().contents.filter { it.entity.has<Gun>() } + (null as Item?),
+                    context.player.one<Inventory>().contents.mapNotNull { it.entity<Gun>() } + (null as Gun?),
                     title = "Equip what?") { context.action = gehenna.action.Equip(context.player, it) }
             )
             this to true
         }
         Input.Reload -> {
             //TODO :
-            val gun = context.player.one<Inventory>().gun?.entity?.invoke<Gun>()
+            val gun = context.player.one<Inventory>().gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun to reload")
             } else {
-                context.addWindow(SelectPanel(
-                        context,
-                        context.player.one<Inventory>().contents
-                                .mapNotNull { it.entity<Ammo>() }
-                                .filter { it.type == gun.ammoType } + (null as Ammo?),
-                        title = "Load what?") { context.action = Reload(context.player, it) }
-                )
+                askForAmmo(gun.ammoType) { context.action = Reload(context.player, it) }
             }
             this to true
         }

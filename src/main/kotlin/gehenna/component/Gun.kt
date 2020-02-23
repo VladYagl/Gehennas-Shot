@@ -96,6 +96,7 @@ data class Gun(
             RepeatAction<Shoot>(actor, gun.burstCount, { gun.action(actor, dir) })
 
     fun fire(actor: Entity, dir: LineDir): Action? {
+        if (ammo == null || ammo?.amount == 0) return action(actor, dir) // return gun action to get no ammo message
         return ApplyEffect(actor, BurstFire(actor, dir, this), true, shootTime)
     }
 }

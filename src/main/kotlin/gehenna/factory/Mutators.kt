@@ -1,14 +1,15 @@
 package gehenna.factory
 
-import gehenna.component.Gun
-import gehenna.component.Inventory
-import gehenna.component.Item
+import gehenna.component.*
+import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.exceptions.GehennaException
 import gehenna.utils.random
 import java.io.Serializable
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
-interface EntityMutator: Serializable {
+interface EntityMutator : Serializable {
     fun mutate(entity: Entity)
 }
 
@@ -18,13 +19,11 @@ class GiveOneOf(private val items: ArrayList<Item>) : EntityMutator {
     }
 }
 
-class GiveGun(private val gun: Item) : EntityMutator {
+class EquipItem(private val item: Item, private val slot: KClass<out Component>) : EntityMutator {
     override fun mutate(entity: Entity) {
-        val gun = gun.entity<Gun>() ?: throw GehennaException("Give Gun item must be a gun")
-        entity<Inventory>()?.let {inventory ->
-            inventory.add(gun.item)
-            inventory.equip(gun)
-        }
+        assert(slot.isSubclassOf(Slot::class)) { "$slot is not a subclass of Slot!" }
+        entity<Inventory>()?.add(item)
+        (entity.invoke(slot) as Slot).equip(item)
     }
 }
 

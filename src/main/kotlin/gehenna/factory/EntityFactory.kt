@@ -15,7 +15,7 @@ class EntityFactory : JsonFactory<Entity> {
     private val entities = HashMap<String, EntityBuilder>()
 
     private val reflections = Reflections("gehenna")
-    private val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
+    val components = reflections.getSubTypesOf(Component::class.java).map { it.kotlin }
     private val mutators = reflections.getSubTypesOf(EntityMutator::class.java).map { it.kotlin }
 
     init {

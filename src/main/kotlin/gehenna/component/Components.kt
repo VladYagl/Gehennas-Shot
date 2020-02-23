@@ -69,19 +69,65 @@ data class Stairs(override val entity: Entity, var destination: Pair<Level, Poin
 
 data class Item(override val entity: Entity, val volume: Int) : Component() {
     var inventory: Inventory? = null
+    var slot: Slot? = null
+
+    /**
+     * Unequips items if it is in a slot, others does nothing
+     */
+    fun unequip() {
+        val slot = slot
+        assert(slot == null || slot.item == this)
+        slot?.unequip()
+    }
 
     init {
-        subscribe<Entity.Remove> { inventory?.remove(this) }
+        subscribe<Entity.Remove> {
+            unequip()
+            inventory?.remove(this)
+        }
     }
 }
 
 data class Reflecting(override val entity: Entity) : Component()
 
+interface Slot {
+    var item: Item?
+
+    fun equip(newItem: Item) {
+        assert(item == null) { "Trying to equip $newItem in busy slot: $this" }
+        assert(isValid(newItem))
+        item = newItem
+        newItem.slot = this
+    }
+
+    fun unequip() {
+        item?.slot = null
+        item = null
+    }
+
+    fun isValid(item: Item): Boolean = true
+}
+
+data class MainHandSlot(override val entity: Entity, override var item: Item? = null) : Component(), Slot {
+    val gun: Gun? get() = item?.entity?.invoke()
+
+    val damage: Dice
+        get() {
+            val item = item
+            return if (item == null) {
+                "d3".toDice() // TODO: Fist damage
+            } else {
+                item.entity<MeleeWeapon>()?.damage ?: Dice.SingleDice(item.volume / 5)
+            }
+        }
+}
+
+data class MeleeWeapon(override val entity: Entity, val damage: Dice) : Component()
+
 data class Inventory(
         override val entity: Entity,
         val maxVolume: Int,
-        val items: ArrayList<Item> = ArrayList(),
-        var gun: Gun? = null
+        val items: ArrayList<Item> = ArrayList()
 ) : Component() {
     var currentVolume = items.sumBy { it.volume }
         private set
@@ -97,27 +143,17 @@ data class Inventory(
     }
 
     fun remove(item: Item) {
-        if (gun?.entity == item.entity) gun = null
+        item.unequip()
         currentVolume -= item.volume
         items.remove(item)
         item.inventory = null
-    }
-
-    fun equip(newGun: Gun?) {
-        gun = newGun
-    }
-
-    fun unequip() {
-        gun = null
     }
 
     val contents
         get() = items.toList()
 
     init {
-        gun?.let { add(it.item) }
         //todo: Do you need death? You can call it on entity.remove?
-        //todo: enemies don't drop weapons
         subscribe<Health.Death> {
             entity<Position>()?.let { pos ->
                 items.forEach { item ->
@@ -209,6 +245,7 @@ sealed class Senses : Component() {
     data class Hearing(override val entity: Entity) : Senses() {
         //todo: is visible should return true in radius, so you can add stuff like hearing gun shots
         override fun isVisible(point: Point): Boolean = false
+
         override fun visitFov(visitor: (Entity, Point) -> Unit) {} // TODO
     }
 }

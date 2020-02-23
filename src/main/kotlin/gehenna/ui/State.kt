@@ -1,17 +1,13 @@
 package gehenna.ui
 
 import com.beust.klaxon.internal.firstNotNullResult
-import gehenna.action.ClimbStairs
-import gehenna.action.Move
-import gehenna.action.Reload
-import gehenna.action.Wait
+import gehenna.action.*
 import gehenna.component.*
 import gehenna.component.behaviour.Behaviour
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
-import gehenna.core.SimpleAction
 import gehenna.exceptions.GehennaException
 import gehenna.level.Level
 import gehenna.ui.panel.ConsolePanel
@@ -20,7 +16,6 @@ import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.*
 import java.awt.Color
-import kotlin.math.abs
 import kotlin.random.Random
 
 abstract class State {
@@ -105,8 +100,8 @@ private abstract class Target(
 
         if (drawLine) {
             val playerPos: Position = context.player.one()
-            val inventory = context.player.one<Inventory>()
-            val gun = inventory.gun ?: throw GehennaException("Targeting without a gun, why?")
+            val hand = context.player.one<MainHandSlot>()
+            val gun = hand.gun ?: throw GehennaException("Targeting without a gun, why?")
             val ammo: Ammo = gun.ammo ?: throw GehennaException("Targeting without an ammo, why?") // TODO:
             val range = context.player<Senses.Sight>()?.range ?: 100
 
@@ -240,14 +235,26 @@ private class Normal(private val context: UIContext) : State() {
                 this to true
             } else {
                 val playerPos = context.player.one<Position>()
+
                 // check for closed do
                 playerPos.level[playerPos + input.dir].firstNotNullResult {
                     if (it<Door>()?.closed == true) it<Door>() else null
                 }?.let { door ->
                     context.action = gehenna.action.UseDoor(door, close = false)
-                } ?: run {
-                    context.action = Move(context.player, input.dir)
+                    return this to true
                 }
+
+                // check for melee attack
+                playerPos.level[playerPos + input.dir].firstNotNullResult {
+                    it.any<CharacterBehaviour>()?.faction?.let { faction ->
+                        if (context.player.one<PlayerBehaviour>().faction.isEnemy(faction)) it else null
+                    }
+                }?.let { _ ->
+                    context.action = Attack(context.player, input.dir)
+                    return this to true
+                }
+
+                context.action = Move(context.player, input.dir)
                 this to true
             }
         }
@@ -264,8 +271,7 @@ private class Normal(private val context: UIContext) : State() {
             this to true
         }
         Input.Fire -> {
-            val inventory = context.player.one<Inventory>()
-            val gun = inventory.gun
+            val gun = context.player.one<MainHandSlot>().gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun equipped")
                 this to true
@@ -313,7 +319,7 @@ private class Normal(private val context: UIContext) : State() {
                     }
                     selectedItem.entity<Gun>()?.let { gun ->
                         addItem(ButtonItem("Equip", {
-                            context.action = gehenna.action.Equip(context.player, gun)
+                            context.action = gehenna.action.Equip(context.player, context.player.one<MainHandSlot>(), gun.item)
                             context.removeWindow(this)
                         }, 'e'))
                         addItem(ButtonItem("Load", {
@@ -348,16 +354,18 @@ private class Normal(private val context: UIContext) : State() {
             this to true
         }
         Input.Equip -> {
-            context.addWindow(SelectPanel(
+            val select = SelectPanel(
                     context,
-                    context.player.one<Inventory>().contents.mapNotNull { it.entity<Gun>() } + (null as Gun?),
-                    title = "Equip what?") { context.action = gehenna.action.Equip(context.player, it) }
-            )
+                    context.player.one<Inventory>().contents + (null as Item?),
+                    title = "Equip what?") {
+                context.action = Equip(context.player, context.player.one<MainHandSlot>(), it)
+            }
+            context.addWindow(select)
             this to true
         }
         Input.Reload -> {
             //TODO :
-            val gun = context.player.one<Inventory>().gun
+            val gun = context.player.one<MainHandSlot>().gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun to reload")
             } else {

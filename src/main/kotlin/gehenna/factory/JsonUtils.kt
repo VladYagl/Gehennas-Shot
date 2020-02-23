@@ -4,6 +4,7 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
 import gehenna.component.AmmoType
 import gehenna.component.Item
+import gehenna.core.Component
 import gehenna.core.Faction
 import gehenna.core.NamedFaction
 import gehenna.core.SoloFaction
@@ -14,10 +15,7 @@ import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.toDice
 import java.lang.Exception
-import kotlin.reflect.KFunction
-import kotlin.reflect.KParameter
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeProjection
+import kotlin.reflect.*
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.safeCast
@@ -28,6 +26,9 @@ val projection = KTypeProjection.invariant(Item::class.createType())
 val itemListType = ArrayList::class.createType(listOf(projection))
 val itemType = Item::class.createType(nullable = true)
 val itemTypeNoNull = Item::class.createType(nullable = false)
+
+val componentProjection = KTypeProjection.covariant(Component::class.createType())
+val componentType = KClass::class.createType(listOf(componentProjection), nullable = false)
 
 fun JsonReader.beginObject(parser: (String) -> Unit) {
     beginObject {
@@ -64,6 +65,7 @@ fun JsonReader.nextValueFromType(type: KType): Any {
         itemListType -> nextStringList()
         itemType -> nextString()
         itemTypeNoNull -> nextString()
+        componentType -> nextString()
         else -> {
             if (type.jvmErasure.isSubclassOf(Enum::class)) {
                 nextString()
@@ -108,6 +110,10 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
         }
         itemTypeNoNull -> {
             factory.new(value as String)<Item>()!!
+        }
+        componentType -> {
+            //TODO: exposes factory.components
+            factory.components.first { it.simpleName?.toLowerCase() == (value as String).toLowerCase() }
         }
         else -> if (type.jvmErasure.isSubclassOf(Enum::class)) {
             Class.forName(type.jvmErasure.jvmName).enumConstants.first {

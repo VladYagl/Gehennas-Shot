@@ -185,11 +185,12 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         timeText.line = "in game time: " + game.time
         val pos = game.player.one<Position>()
         val storage = game.player.one<Inventory>()
+        val hand = game.player.one<MainHandSlot>()
         hpText.line = "HP : " + game.player<Health>()?.current + " / " + game.player<Health>()?.max
         effectsText.line = "Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }
         inventoryText.line = "Inventory ${storage.currentVolume}/${storage.maxVolume}"
-        gunText.line = "Equipped gun: ${storage.gun?.entity}"
-        val gun = storage.gun
+        gunText.line = "Equipped gun: ${hand.gun?.entity}"
+        val gun = hand.gun
         val dice = (gun?.damage ?: "0".toDice()) + (gun?.ammo?.damage ?: "0".toDice())
         ammoText.line = "${195.toChar()}--Ammo: ${gun?.ammo?.amount} / ${gun?.ammo?.capacity}"
         dmgText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"

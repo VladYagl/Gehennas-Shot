@@ -8,6 +8,7 @@ import gehenna.core.Entity
 import gehenna.core.Faction
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
+import javafx.geometry.Pos
 
 data class MonsterBehaviour(
         override val entity: Entity,
@@ -41,7 +42,7 @@ data class MonsterBehaviour(
     }
 
     private fun shoot(target: Position): Action? {
-        return entity<Inventory>()?.gun?.let { gun ->
+        return entity<MainHandSlot>()?.gun?.let { gun ->
 
                     val ammo = gun.ammo
                     if (ammo == null || ammo.amount == 0) {
@@ -92,6 +93,12 @@ data class MonsterBehaviour(
         }
     }
 
+    private fun attack(target: Position): Action? {
+        return if (target == target.entity<Position>() && (target - pos).max == 1) {
+            Attack(entity, (target - pos).dir)
+        } else null
+    }
+
     private fun dodge(): Action? {
         return if (pos.x at pos.y in dangerZone) {
             target?.minus(pos)?.dir?.let { dir ->
@@ -116,6 +123,6 @@ data class MonsterBehaviour(
         }
         updateSenses()
 //        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: randomMove()
-        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: wait()
+        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: attack(it) ?: goto(it) ?: randomMove() } ?: pickup() ?: wait()
     }
 }

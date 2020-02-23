@@ -25,7 +25,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
                 pos.move(pos + dir)
                 //update weapon spread FIXME: maybe it should be in different place, but here is OK
                 //TODO: maybe it should depend on a speed?
-                entity<Inventory>()?.gun?.applyWalkSpread()
+                entity<MainHandSlot>()?.gun?.applyWalkSpread()
                 pos.level[pos].forEach {
                     it.any<PredictableBehaviour<*>>()?.let { behaviour ->
                         entity<Logger>()?.add("You've perfectly dodged ${behaviour.entity}")
@@ -98,6 +98,22 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
     }
 }
 
+data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
+    override fun perform(context: Context): ActionResult {
+        val pos = entity.one<Position>()
+        entity<MainHandSlot>()?.let { hand ->
+            pos.level.obstacle(pos + dir)?.let { victim ->
+                victim<Health>()?.let {
+                    val damageRoll = hand.damage.roll()
+                    logFor(victim, "$_Actor were hit by $entity with a ${hand.item?.entity ?: "fist"} for $damageRoll damage")
+                    it.dealDamage(damageRoll, this)
+                }
+            } ?: return fail().also { logFor(entity, "$_Actor swings your ${hand.item?.entity ?: "fist"} in open space")}
+        } ?: return fail().also { logFor(entity, "$_Actor don't have a hand to attack")}
+        return end()
+    }
+}
+
 data class ApplyEffect(
         private val entity: Entity,
         private val effect: Effect,
@@ -147,24 +163,29 @@ data class Pickup(private val entity: Entity, private val items: List<Item>) : A
     }
 }
 
-data class Equip(private val entity: Entity, private val gun: Gun?) : Action(15) {
+/**
+ * Equip item in a slot, or unequip slot if item is null
+ */
+data class Equip(private val entity: Entity, private val slot: Slot, private val item: Item?) : Action(15) {
     override fun perform(context: Context): ActionResult {
-        val inventory = entity.one<Inventory>()
-        val old = inventory.gun
-        inventory.equip(gun)
-        if (gun != null) {
-            logFor(entity, "$_Actor have equipped a ${gun.entity}")
-        } else {
-            logFor(entity, "$_Actor unequipped a ${old?.entity}")
+        val old = slot.item
+        slot.unequip()
+        if (old != null) logFor(entity, "$_Actor unequipped a ${old.entity}")
+
+        if (item != null) {
+            slot.unequip()
+            slot.equip(item)
+            logFor(entity, "$_Actor have equipped a ${item.entity}")
         }
+
         return end()
     }
 }
 
 data class Reload(private val entity: Entity, private val ammo: Ammo?) : Action(15) {
     override fun perform(context: Context): ActionResult {
-        val inventory = entity.one<Inventory>()
-        inventory.gun?.let { gun ->
+        val hand = entity.one<MainHandSlot>()
+        hand.gun?.let { gun ->
             gun.unload(entity).perform(context)
             if (ammo != null) {
                 gun.load(entity, ammo).perform(context)

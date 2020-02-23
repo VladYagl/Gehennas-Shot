@@ -72,6 +72,15 @@
         }
     },
 
+    "knife": {
+        "meleeWeapon": {
+            "damage": "3d4"
+        },
+        "item": {
+            "volume": 10
+        }
+    },
+
     "pistol": {
         "gun": {
             "ammoType": "bullet9mm",

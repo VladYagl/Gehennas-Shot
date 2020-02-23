@@ -52,7 +52,11 @@ open class RepeatAction<T : Action>(
         set(_) {}
 
     override suspend fun action(): T {
-        count--
+        if (lastResult?.succeeded == false) {
+            count = 0
+        } else {
+            count--
+        }
         return actionFactory()
     }
 }

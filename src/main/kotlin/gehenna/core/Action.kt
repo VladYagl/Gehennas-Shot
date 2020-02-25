@@ -1,5 +1,6 @@
 package gehenna.core
 
+import gehenna.utils.*
 import gehenna.component.*
 import gehenna.utils.Point
 import gehenna.utils.prepareMessage
@@ -35,5 +36,5 @@ class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (
 }
 
 abstract class PredictableAction<T>(time: Long = oneTurn, addToQueue: Boolean = true) : Action(time, addToQueue) {
-    open fun predict(pos: Position, state: T, glyph: Glyph): Triple<Point, T, Glyph> = Triple(pos, state, glyph)
+    open fun predict(pos: Position, state: T, glyph: Glyph): Triple<Point, T, Glyph> = pos to state to glyph
 }

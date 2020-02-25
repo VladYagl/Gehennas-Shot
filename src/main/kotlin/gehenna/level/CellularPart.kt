@@ -5,8 +5,9 @@ import gehenna.utils.BooleanArray
 import gehenna.utils.*
 
 class CellularPart(
-    override val size: Size,
-    private val spawner: (Point) -> Unit
+        override val size: Size,
+        private val ignore: (Point) -> Boolean = { false },
+        private val spawner: (Point) -> Unit
 ) : LevelPart {
     var cells = BooleanArray(size)
 
@@ -14,7 +15,7 @@ class CellularPart(
         var cnt = 0
         for (dir in Dir) {
             val p = point + dir
-            if (cells.getOrNull(p.x)?.getOrNull(p.y) != false) cnt++
+            if (cells.getOrNull(p) != false && !ignore(p)) cnt++
         }
         return cnt
     }
@@ -30,9 +31,11 @@ class CellularPart(
         repeat(k) {
             val newCells = BooleanArray(size)
             for (point in size.range) {
-                newCells[point] = cells[point]
-                if (cells[point] && neighbours(point) < death) newCells[point] = false
-                if (!cells[point] && neighbours(point) > birth) newCells[point] = true
+                if (!ignore(point)) {
+                    newCells[point] = cells[point]
+                    if (cells[point] && neighbours(point) < death) newCells[point] = false
+                    if (!cells[point] && neighbours(point) > birth) newCells[point] = true
+                }
             }
             cells = newCells
         }

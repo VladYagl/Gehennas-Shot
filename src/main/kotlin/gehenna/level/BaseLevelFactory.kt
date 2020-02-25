@@ -70,26 +70,55 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         spawn(factory.new("wall"), at)
     }
 
+    protected fun Level.door(at: Point) {
+        spawn(factory.new("door"), at)
+    }
+
     protected fun Level.floor(at: Point) {
         spawn(factory.new("floor"), at)
     }
 
-    protected fun Level.automaton(point: Point) {
+    protected fun Level.automaton(
+            point: Point,
+            rules: List<Triple<Int, Int, Int>>,
+            scale: Int = 3,
+            offset: Int = 0,
+            initChance: Double = 0.4,
+            initEmpty: Boolean = true,
+            random: Random = gehenna.utils.random,
+            ignore: (Point) -> Boolean = { false }
+    ) {
+        //Real -> spawns floor, cellular -> scales to real
         val real = CellularPart(size) { floor(it) }
+        val trueScale = scale + offset * 2
         for ((i, j) in size.range) real.cells[i, j] = true
-        val cellular = CellularPart(Size(size.width / 3, size.height / 3)) {
-            for ((i, j) in Size(3, 3).range) {
-//                floor(3 * x1 + i, 3 * y1 + j)
-                real.cells[3 * it.x + i, 3 * it.y + j] = false
+        val cellular = CellularPart(Size(size.width / trueScale, size.height / trueScale), {
+            ignore(it.x / trueScale at it.y / trueScale)
+        }) {
+            for ((i, j) in Size(scale, scale).range) {
+                real.cells[trueScale * it.x + i + offset, trueScale * it.y + j + offset] = false
+            }
+
+            for ((i, j) in Size(offset, scale).range) {
+                real.cells[trueScale * it.x + i, trueScale * it.y + j + offset] = false
+                real.cells[trueScale * it.x + i + scale + offset, trueScale * it.y + j + offset] = false
+                real.cells[trueScale * it.x + j + offset, trueScale * it.y + i] = false
+                real.cells[trueScale * it.x + j + offset, trueScale * it.y + i + scale + offset] = false
             }
         }
-        for ((i, j) in Size(size.width / 3, size.height / 3).range) {
-            fun norm(x: Int) = x.toDouble().pow(0.5)
-            if (Random.nextDouble() < 0.4) cellular.cells[i, j] = true
+
+        //Initialises randomly
+        for ((i, j) in Size(size.width / trueScale, size.height / trueScale).range) {
+            if (random.nextDouble() < initChance) cellular.cells[i, j] = true
         }
-        cellular.automaton(2, 5, 2)
-        cellular.automaton(2, 7, 1)
-        cellular.cells[point.x / 3, point.y / 3] = false
+
+        //Play life for each rules
+        rules.forEach {
+            cellular.automaton(it.first, it.second, it.third)
+        }
+        if (initEmpty) {
+            cellular.cells[point.x / trueScale, point.y / trueScale] = false
+        }
         cellular.spawnTo(zero, this)
         real.spawnTo(zero, this)
     }
@@ -120,7 +149,10 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
 
     protected fun Level.clear() {
         for ((x, y) in size.range) {
-            get(x at y).toList().forEach { remove(it) }
+            get(x at y).toList().forEach {
+                remove(it)
+                it.clean()
+            }
         }
     }
 }

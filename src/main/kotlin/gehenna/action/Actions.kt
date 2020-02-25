@@ -13,7 +13,7 @@ data class Think(override var time: Long) : Action(time) {
 
 data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<Any>(oneTurn) {
     override fun predict(pos: Position, state: Any, glyph: Glyph): Triple<Point, Any, Glyph> {
-        return Triple(pos + dir, state, glyph)
+        return pos + dir to state to glyph
     }
 
     override fun perform(context: Context): ActionResult {
@@ -21,7 +21,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
             end()
         } else {
             val pos = entity.one<Position>()
-            if (pos.level.isWalkable(pos + dir)) {
+            if (!pos.level.isBlocked(pos + dir) && (entity.has<Flying>() || pos.level.isWalkable(pos + dir))) {
                 pos.move(pos + dir)
                 //update weapon spread FIXME: maybe it should be in different place, but here is OK
                 //TODO: maybe it should depend on a speed?
@@ -84,7 +84,7 @@ data class Destroy(private val entity: Entity) : Action(0, false) {
 
 data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : PredictableAction<Any>(oneTurn, false) {
     override fun predict(pos: Position, state: Any, glyph: Glyph): Triple<Point, Any, Glyph> {
-        return Triple(victim.one<Position>(), state, glyph)
+        return victim.one<Position>() to state to glyph
     }
 
     override fun perform(context: Context): ActionResult {

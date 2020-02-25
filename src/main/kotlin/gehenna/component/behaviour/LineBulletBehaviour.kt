@@ -30,18 +30,17 @@ data class LineBulletBehaviour(
         override fun predict(pos: Position, state: LineDir, glyph: Glyph): Triple<Point, LineDir, Glyph> {
             val (error, next) = dir.next(pos)
             if (!pos.level.inBounds(next)) { // TODO : looks suspicious
-                return Triple(pos, state, glyph)
+                return pos to state to glyph
             }
             val obstacle = pos.level.obstacle(next)
             return if (obstacle?.has<Reflecting>() == true && bounce) {
                 val (dx, dy) = (next - pos).dir.bounce(pos, dir)
-                Triple(pos, LineDir(dx, dy, error),
-                        entity<DirectionalGlyph>()?.let {
-                            glyph.copy(entity = glyph.entity, char = (it.glyphs[(dx at dy).dir]
-                                    ?: throw GehennaException("unknown direction for glyph")))
-                        } ?: glyph)
+                pos to LineDir(dx, dy, error) to (entity<DirectionalGlyph>()?.let {
+                    glyph.copy(entity = glyph.entity, char = (it.glyphs[(dx at dy).dir]
+                            ?: throw GehennaException("unknown direction for glyph")))
+                } ?: glyph)
             } else {
-                Triple(next, LineDir(dir.x, dir.y, error), entity<DirectionalGlyph>()?.let {
+                next to LineDir(dir.x, dir.y, error) to (entity<DirectionalGlyph>()?.let {
                     val char = it.glyphs[dir.dir]
                             ?: throw GehennaException("unknown direction for glyph")
                     if (glyph.char != char)

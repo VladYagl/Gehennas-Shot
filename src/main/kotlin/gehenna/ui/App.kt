@@ -96,19 +96,19 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                     uiJob.join()
                     false
                 }
-                game.player<Position>()?.level?.depth == 2 -> {
-                    ui.addWindow(GehennaPanel(19, 4, context.settings, keyHandler = MenuInput(object : InputListener {
-                        override fun onInput(input: Input) = when (input) {
-                            Input.Accept, Input.Cancel -> exitProcess(0)
-                            else -> false
-                        }
-                    })).apply {
-                        writeLine("WE WON ZULUL", 1, Alignment.center)
-                    })
-                    uiJob.cancel()
-                    uiJob.join()
-                    false
-                }
+//                game.player<Position>()?.level?.depth == 2 -> {
+//                    ui.addWindow(GehennaPanel(19, 4, context.settings, keyHandler = MenuInput(object : InputListener {
+//                        override fun onInput(input: Input) = when (input) {
+//                            Input.Accept, Input.Cancel -> exitProcess(0)
+//                            else -> false
+//                        }
+//                    })).apply {
+//                        writeLine("WE WON ZULUL", 1, Alignment.center)
+//                    })
+//                    uiJob.cancel()
+//                    uiJob.join()
+//                    false
+//                }
                 else -> true
             }
         }

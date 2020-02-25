@@ -1,5 +1,6 @@
 package gehenna.utils
 
+import gehenna.exceptions.GehennaException
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -25,6 +26,20 @@ fun Random.next4way(vararg dir: Dir = emptyArray()): Dir {
         val rand = Dir[nextInt(4) * 2]
         if (rand !in dir) return rand
     }
+}
+
+fun <T> Collection<Pair<T, Double>>.random(random: Random = gehenna.utils.random): T {
+    assert(this.sumByDouble { it.second } == 1.0)
+    val value = random.nextDouble()
+    var sum = 0.0
+    this.forEach {
+        sum += it.second
+        if (sum >= value) {
+            return it.first
+        }
+    }
+
+    throw GehennaException("For some reason random failed: sum = $sum, value = $value, array = $this")
 }
 
 val <T : Number> Collection<T>.mean
@@ -91,4 +106,12 @@ fun sign(x: Int): Int {
  */
 fun Double.normalizeAngle(): Double {
     return atan2(sin(this), cos(this))
+}
+
+infix fun <A, B, C> Pair<A, B>.to(that: C): Triple<A, B, C> {
+    return Triple(this.first, this.second, that)
+}
+
+infix fun <A, B, C> A.to(that: Pair<B, C>): Triple<A, B, C> {
+    return Triple(this, that.first, that.second)
 }

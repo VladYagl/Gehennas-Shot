@@ -150,7 +150,8 @@
             },
             "priority": 80,
             "memorable": false
-        }
+        },
+        "flying": {}
     },
 
     "test": {

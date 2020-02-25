@@ -22,7 +22,7 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
 
     //path find
     @Transient
-    private val navGrid = NavigationGrid(Array(size) { GridCell() }, true)
+    private val navGrid = NavGrid(Array(size) { GridCell() }, true)
     @Transient
     private val pathFinderOptions = GridFinderOptions(
             true,

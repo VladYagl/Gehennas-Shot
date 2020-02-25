@@ -31,7 +31,7 @@ data class BulletBehaviour(
             } else {
                 glyph
             }
-            return Triple(pos, dir, newGlyph)
+            return pos to dir to newGlyph
         }
 
         override fun perform(context: Context): ActionResult {

@@ -416,7 +416,8 @@ private class Examine(context: UIContext) : Target(context) {
             addItem(TextItem("This is a $entity"))
             setOnCancel { context.removeWindow(this) }
             entity.components.values.filterNot {
-                it is Glyph || it is Inventory || it is DirectionalGlyph || it is Position
+//                it is Glyph || it is Inventory || it is DirectionalGlyph || it is Position
+                it is Glyph || it is Inventory || it is DirectionalGlyph
             }.forEach { component ->
                 addItem(TextItem("${component::class.simpleName}"))
                 component.toString().split(", ", ",", "(", ")").drop(1).filterNot {

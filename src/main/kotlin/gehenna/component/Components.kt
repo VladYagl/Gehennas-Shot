@@ -90,6 +90,8 @@ data class Item(override val entity: Entity, val volume: Int) : Component() {
 
 data class Reflecting(override val entity: Entity) : Component()
 
+data class Flying(override val entity: Entity) : Component()
+
 interface Slot {
     var item: Item?
 

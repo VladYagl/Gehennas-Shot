@@ -6,13 +6,14 @@ class SelectPanel<T>(
         context: UIContext,
         items: Iterable<T>,
         title: String? = null,
+        toString: (T) -> String = { it.toString() },
         onSelect: (T) -> Unit
 ) : MenuPanel(100, 30, context.settings) {
 
     init {
         title?.let { addItem(TextItem(it)) }
         items.forEachIndexed { index, item ->
-            addItem(ButtonItem(item.toString(), {
+            addItem(ButtonItem(toString(item), {
                 onSelect(item)
                 context.removeWindow(this)
             }, 'a' + index))
@@ -27,12 +28,13 @@ class SelectPanel<T>(
 class MultiSelectPanel<T>(
         context: UIContext,
         items: List<T>,
-        onSelect: (List<T>) -> Unit,
-        title: String? = null
+        title: String? = null,
+        toString: (T) -> String = { it.toString() },
+        onSelect: (List<T>) -> Unit
 ) : MenuPanel(100, 30, context.settings) {
 
     private val checkBoxes: List<Pair<CheckItem, T>> = items.mapIndexed { index, item ->
-        CheckItem(item.toString(), 'a' + index) to item
+        CheckItem(toString(item), 'a' + index) to item
     }
 
     init {

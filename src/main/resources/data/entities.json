@@ -5,7 +5,6 @@
             "blockMove": true,
             "blockPath": false
         },
-        "trueSight": {},
         "sight": {
             "range": 15
         },
@@ -47,7 +46,8 @@
                 "item": "pistol"
             },
             "giveItem": {
-                "item": "9mmClip"
+                "item": "9mmRound",
+                "amount": 24
             },
             "giveItem": {
                 "item": "toy"
@@ -70,10 +70,8 @@
                 "slot": "mainHandSlot"
             },
             "giveItem": {
-                "item": "9mmClip"
-            },
-            "giveItem": {
-                "item": "9mmClip"
+                "item": "9mmRound",
+                "amount": 24
             }
         },
         "health": {
@@ -98,7 +96,8 @@
                 "slot": "mainHandSlot"
             },
             "giveItem": {
-                "item": "9mmClip"
+                "item": "9mmRound",
+                "amount": 90
             }
         },
         "health": {

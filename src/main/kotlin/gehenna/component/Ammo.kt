@@ -7,7 +7,7 @@ import gehenna.utils.Dice
 
 @Suppress("EnumEntryName")
 enum class AmmoType {
-    bullet9mm, shell
+    c9mm, shell
 }
 
 data class Ammo(
@@ -21,11 +21,8 @@ data class Ammo(
         val lifeTime: Long = 3 * oneTurn,
         val bounce: Boolean = false,
 
-        val capacity: Int,
-        var amount: Int = capacity,
-
-        private val volume: Int
+        private val volume: Int = 0
 ) : Component() {
-    val item = Item(entity, volume)
+    val item = Item(entity, volume, true)
     override val children: List<Component> = listOf(item)
 }

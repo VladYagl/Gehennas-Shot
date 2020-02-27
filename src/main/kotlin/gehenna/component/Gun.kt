@@ -3,8 +3,8 @@ package gehenna.component
 import gehenna.action.ApplyEffect
 import gehenna.action.Shoot
 import gehenna.core.*
-import gehenna.core.Action.Companion.oneTurn
 import gehenna.utils.Dice
+import gehenna.utils.FixedQueue
 import gehenna.utils.LineDir
 import gehenna.utils._Actor
 import kotlin.math.max
@@ -13,6 +13,7 @@ import kotlin.math.min
 data class Gun(
         override val entity: Entity,
         val ammoType: AmmoType,
+        val magazineCapacity: Int,
 
         val damage: Dice,
         val speed: Int,
@@ -39,33 +40,43 @@ data class Gun(
     }
     val item = Item(entity, volume)
 
+    val fullDamage get() = damage + (magazine.firstOrNull()?.damage ?: Dice.Const(0))
+
     override val children: List<Component> = listOf(spreadReducer, item)
     private var curSpread = minSpread
     private var curWalkSpread: Double = 0.0
 
-    var ammo: Ammo? = null
-        private set
+    var magazine: FixedQueue<Ammo> = FixedQueue(magazineCapacity)
 
     fun unload(actor: Entity, inventory: Inventory? = actor.one()): Action {
         return object : Action(15) {
             override fun perform(context: Context): ActionResult {
-                ammo?.item?.let {
-                    logFor(actor, "$_Actor unloaded ${it.entity} from ${this@Gun.entity}")
-                    inventory?.add(it)
+                if (magazine.size > 0) {
+                    logFor(actor, "$_Actor unloaded ${magazine.first().entity}x${magazine.size} from ${this@Gun.entity}")
+                } else {
+                    logFor(actor, "${this@Gun.entity.toString().capitalize()} is Empty!")
                 }
-                ammo = null
+                while (magazine.size > 0) {
+                    inventory?.add(magazine.remove().item)
+                }
                 return end()
             }
         }
     }
 
-    fun load(actor: Entity, new: Ammo, inventory: Inventory? = actor.one()): Action {
-        assert(new.type == ammoType)
+    fun load(actor: Entity, ammoStack: Collection<Ammo>, inventory: Inventory? = actor.one()): Action {
         return object : Action(15) {
             override fun perform(context: Context): ActionResult {
-                inventory?.remove(new.item)
-                logFor(actor, "$_Actor loaded ${new.entity} to ${this@Gun.entity}")
-                ammo = new
+                var cnt = 0
+                ammoStack.forEach { new ->
+                    if (!magazine.isFull()) {
+                        assert(new.type == ammoType)
+                        inventory?.remove(new.item)
+                        magazine.add(new)
+                        cnt++
+                    }
+                }
+                logFor(actor, "$_Actor loaded $cnt rounds to ${this@Gun.entity}")
                 return end()
             }
         }
@@ -96,7 +107,7 @@ data class Gun(
             RepeatAction<Shoot>(actor, gun.burstCount, { gun.action(actor, dir) })
 
     fun fire(actor: Entity, dir: LineDir): Action? {
-        if (ammo == null || ammo?.amount == 0) return action(actor, dir) // return gun action to get no ammo message
+        if (magazine.isEmpty()) return action(actor, dir) // return gun action to get no ammo message
         return ApplyEffect(actor, BurstFire(actor, dir, this), true, shootTime)
     }
 }

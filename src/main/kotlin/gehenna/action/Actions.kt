@@ -52,11 +52,11 @@ data class Shoot(
         override var time: Long = oneTurn
 ) : Action() {
     override fun perform(context: Context): ActionResult {
-        val ammo = gun.ammo
-        if (ammo == null || ammo.amount == 0) {
+        if (gun.magazine.isEmpty()) {
             logFor(pos.entity, "Click! $_Actor_s ${gun.entity} is out of ammo")
             return fail()
         } else {
+            val ammo = gun.magazine.remove()
             val bullet = context.factory.new(ammo.projectileName)
             pos.spawnHere(bullet)
             bullet.add(LineBulletBehaviour(
@@ -69,7 +69,6 @@ data class Shoot(
             ))
             bullet.add(DestroyTimer(bullet, ammo.lifeTime))
             gun.applyShootSpread()
-            ammo.amount -= 1
             return end()
         }
     }
@@ -105,11 +104,14 @@ data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
             pos.level.obstacle(pos + dir)?.let { victim ->
                 victim<Health>()?.let {
                     val damageRoll = hand.damage.roll()
-                    logFor(victim, "$_Actor were hit by $entity with a ${hand.item?.entity ?: "fist"} for $damageRoll damage")
+                    logFor(victim, "$_Actor were hit by $entity with a ${hand.item?.entity
+                            ?: "fist"} for $damageRoll damage")
                     it.dealDamage(damageRoll, this)
                 }
-            } ?: return fail().also { logFor(entity, "$_Actor swings your ${hand.item?.entity ?: "fist"} in open space")}
-        } ?: return fail().also { logFor(entity, "$_Actor don't have a hand to attack")}
+            } ?: return fail().also {
+                logFor(entity, "$_Actor swings your ${hand.item?.entity ?: "fist"} in open space")
+            }
+        } ?: return fail().also { logFor(entity, "$_Actor don't have a hand to attack") }
         return end()
     }
 }
@@ -158,7 +160,7 @@ data class Pickup(private val entity: Entity, private val items: List<Item>) : A
             item.entity.remove<Position>()
             entity.one<Inventory>().add(item)
         }
-        logFor(entity, "$_Actor picked up: " + items.joinToString { it.entity.name })
+        logFor(entity, "$_Actor picked up: " + items.packStacks().joinToString { it.entity.name })
         return end()
     }
 }
@@ -182,19 +184,6 @@ data class Equip(private val entity: Entity, private val slot: Slot, private val
     }
 }
 
-data class Reload(private val entity: Entity, private val ammo: Ammo?) : Action(15) {
-    override fun perform(context: Context): ActionResult {
-        val hand = entity.one<MainHandSlot>()
-        hand.gun?.let { gun ->
-            gun.unload(entity).perform(context)
-            if (ammo != null) {
-                gun.load(entity, ammo).perform(context)
-            }
-        }
-        return end()
-    }
-}
-
 data class Drop(private val entity: Entity, private val items: List<Item>, private val pos: Position = entity.one()) :
         Action(45) {
     override fun perform(context: Context): ActionResult {
@@ -202,7 +191,7 @@ data class Drop(private val entity: Entity, private val items: List<Item>, priva
             entity.one<Inventory>().remove(item)
             pos.spawnHere(item.entity)
         }
-        logFor(entity, "$_Actor have dropped: ${items.joinToString { it.entity.name }}")
+        logFor(entity, "$_Actor have dropped: ${items.packStacks().joinToString { it.entity.name }}")
         return end()
     }
 }

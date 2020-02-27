@@ -1,6 +1,8 @@
 package gehenna.component
 
-import gehenna.core.*
+import gehenna.core.Action
+import gehenna.core.Component
+import gehenna.core.Entity
 import gehenna.level.FovLevel
 import gehenna.level.Level
 import gehenna.utils.*
@@ -67,27 +69,6 @@ data class Logger(override val entity: Entity) : Component() {
 
 data class Stairs(override val entity: Entity, var destination: Pair<Level, Point>? = null) : Component()
 
-data class Item(override val entity: Entity, val volume: Int) : Component() {
-    var inventory: Inventory? = null
-    var slot: Slot? = null
-
-    /**
-     * Unequips items if it is in a slot, others does nothing
-     */
-    fun unequip() {
-        val slot = slot
-        assert(slot == null || slot.item == this)
-        slot?.unequip()
-    }
-
-    init {
-        subscribe<Entity.Remove> {
-            unequip()
-            inventory?.remove(this)
-        }
-    }
-}
-
 data class Reflecting(override val entity: Entity) : Component()
 
 data class Flying(override val entity: Entity) : Component()
@@ -125,46 +106,6 @@ data class MainHandSlot(override val entity: Entity, override var item: Item? = 
 }
 
 data class MeleeWeapon(override val entity: Entity, val damage: Dice) : Component()
-
-data class Inventory(
-        override val entity: Entity,
-        val maxVolume: Int,
-        val items: ArrayList<Item> = ArrayList()
-) : Component() {
-    var currentVolume = items.sumBy { it.volume }
-        private set
-
-    fun add(item: Item): Boolean {
-        if (item.volume + currentVolume > maxVolume) {
-            return false
-        }
-        currentVolume += item.volume
-        items.add(item)
-        item.inventory = this
-        return true
-    }
-
-    fun remove(item: Item) {
-        item.unequip()
-        currentVolume -= item.volume
-        items.remove(item)
-        item.inventory = null
-    }
-
-    val contents
-        get() = items.toList()
-
-    init {
-        //todo: Do you need death? You can call it on entity.remove?
-        subscribe<Health.Death> {
-            entity<Position>()?.let { pos ->
-                items.forEach { item ->
-                    pos.spawnHere(item.entity)
-                }
-            }
-        }
-    }
-}
 
 data class Door(
         override val entity: Entity,

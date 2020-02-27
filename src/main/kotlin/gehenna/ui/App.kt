@@ -151,7 +151,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private val ammoText = TextItem(bg = Color.darkGray)
     private val dmgText = TextItem(bg = Color.darkGray)
     private val spreadText = TextItem(bg = Color.darkGray)
-    private val itemsList = List(5) { TextItem() }
+    private val itemsList = List(10) { TextItem() }
     private val enemiesText = TextItem("Enemies", ui.info.fgColor, Color.darkGray, Alignment.center)
     private val enemiesList = List(5) { TextItem() }
     private val objectsText = TextItem("Objects", ui.info.fgColor, Color.darkGray, Alignment.center)
@@ -167,17 +167,11 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         ui.info.addItem(ammoText)
         ui.info.addItem(dmgText)
         ui.info.addItem(spreadText)
-        itemsList.forEach {
-            ui.info.addItem(it)
-        }
+        itemsList.forEach { ui.info.addItem(it) }
         ui.info.addItem(enemiesText)
-        enemiesList.forEach {
-            ui.info.addItem(it)
-        }
+        enemiesList.forEach { ui.info.addItem(it) }
         ui.info.addItem(objectsText)
-        objectsList.forEach {
-            ui.info.addItem(it)
-        }
+        objectsList.forEach { ui.info.addItem(it) }
     }
 
     private val enemies = ArrayList<CharacterBehaviour>()
@@ -191,20 +185,16 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         inventoryText.line = "Inventory ${storage.currentVolume}/${storage.maxVolume}"
         gunText.line = "Equipped gun: ${hand.gun?.entity}"
         val gun = hand.gun
-        val dice = (gun?.damage ?: "0".toDice()) + (gun?.ammo?.damage ?: "0".toDice())
-        ammoText.line = "${195.toChar()}--Ammo: ${gun?.ammo?.amount} / ${gun?.ammo?.capacity}"
+        val dice = gun?.fullDamage ?: Dice.Const(0)
+        ammoText.line = "${195.toChar()}--Ammo: ${gun?.magazine?.size} / ${gun?.magazine?.capacity}"
         dmgText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
         spreadText.line = "${195.toChar()}--Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}"
 
         itemsList.forEach { it.line = "" }
-        storage.contents.forEachIndexed { index, item ->
-            val ammo = item.entity<Ammo>()
-            if (ammo != null) {
-                itemsList[index].line = "${item.entity}[${ammo.amount}/${ammo.capacity}]"
-            } else {
-                itemsList[index].line = item.entity.toString()
-            }
+        storage.stacks.take(10).forEachIndexed { index, item ->
+            itemsList[index].line = item.entity.toString()
         }
+        //TODO: take 5 - is not perfect
 
         enemiesList.forEach { it.line = "" }
         enemies.take(5).forEachIndexed { index, enemy ->
@@ -213,7 +203,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
 
         objectsList.forEach { it.line = "" }
-        pos.neighbors.forEachIndexed { index, entity ->
+        pos.neighbors.packEntities().take(5).forEachIndexed { index, entity ->
             objectsList[index].line = entity.toString()
         }
 
@@ -229,6 +219,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         followPlayer = false
         focus = point
     }
+
     fun focusPlayer() {
         followPlayer = true
     }

@@ -58,14 +58,12 @@
         "super": "album"
     },
 
-    "9mmClip": {
+    "9mmRound": {
         "ammo": {
-            "type": "bullet9mm",
+            "type": "c9mm",
             "damage": "1d5 + 3",
             "speed": 500,
-            "projectileName": "bullet",
-            "capacity": 12,
-            "volume": 1
+            "projectileName": "bullet"
         },
         "glyph": {
             "char": 13
@@ -83,7 +81,8 @@
 
     "pistol": {
         "gun": {
-            "ammoType": "bullet9mm",
+            "ammoType": "c9mm",
+            "magazineCapacity": 12,
             "damage": "1d5",
             "speed": 500,
 
@@ -105,7 +104,8 @@
 
     "rifle": {
         "gun": {
-            "ammoType": "bullet9mm",
+            "ammoType": "c9mm",
+            "magazineCapacity": 30,
             "damage": "1d3+3",
             "speed": 500,
 
@@ -129,6 +129,7 @@
     "shotgun": {
         "gun": {
             "ammoType": "shell",
+            "magazineCapacity": 1,
             "damage": "d4+2",
             "speed": 850,
 

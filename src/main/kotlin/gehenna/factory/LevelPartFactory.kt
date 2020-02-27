@@ -15,8 +15,14 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
         //For some reason for map arguments are always java.lang.Class
         override fun canConvert(cls: Class<*>) = cls == java.lang.Class::class.java
 
-        private fun fromString(name: String): EntityConfig {
-            return EntityConfig.Name(name)
+        private fun fromString(config: String): EntityConfig {
+            val split = config.split(" ")
+            return if (split.size == 1) {
+                EntityConfig.Name(config)
+            } else {
+                val (name, count) = split
+                EntityConfig.Multiple((1..count.toInt()).map { EntityConfig.Name(name) })
+            }
         }
 
         private fun fromArray(array: JsonArray<*>): EntityConfig {
@@ -34,7 +40,7 @@ class LevelPartFactory(private val factory: Factory<Entity>) : JsonFactory<Level
                     is JsonObject -> {
                         val list = it.map.map { (name, chance) ->
                             require(chance is Double) { "Chance to spawn should be Double: name = $name, chance = $chance" }
-                            EntityConfig.Name(name) to chance
+                            fromString(name) to chance
                         }
                         EntityConfig.Choice(list)
                     }

@@ -4,6 +4,7 @@ import gehenna.exceptions.GehennaException
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.util.*
 import javax.swing.JOptionPane.PLAIN_MESSAGE
 import javax.swing.JOptionPane.showMessageDialog
 import kotlin.math.*
@@ -114,4 +115,22 @@ infix fun <A, B, C> Pair<A, B>.to(that: C): Triple<A, B, C> {
 
 infix fun <A, B, C> A.to(that: Pair<B, C>): Triple<A, B, C> {
     return Triple(this, that.first, that.second)
+}
+
+class FixedQueue<T>(val capacity: Int) : Queue<T> by FixedQueueImpl<T>(capacity) {
+    fun isFull(): Boolean {
+        return size == capacity
+    }
+}
+
+private open class FixedQueueImpl<T>(private val maxCapacity: Int, private val deq: ArrayDeque<T> = ArrayDeque(maxCapacity)) : Queue<T> by deq {
+    override fun offer(a: T): Boolean {
+        assert(size < maxCapacity)
+        return deq.offer(a)
+    }
+
+    override fun add(element: T): Boolean {
+        assert(size < maxCapacity)
+        return deq.add(element)
+    }
 }

@@ -52,7 +52,7 @@ private abstract class Target(
         protected val drawLine: Boolean = false)
     : State() {
 
-    protected lateinit var cursor: Point
+    protected var cursor: Point
     protected var error: Int = 0
     protected val dir: LineDir
         get() {
@@ -95,7 +95,7 @@ private abstract class Target(
         context.moveFocus(cursor)
         context.hud.clear(EMPTY_CHAR)
         if (level.inBounds(cursor) && isVisible(cursor)) {
-            context.log.addTemp("Here is: " + level.safeGet(cursor).joinToString(separator = ", ") { it.name })
+            context.log.addTemp("Here is: " + level.safeGet(cursor).packEntities().joinToString(separator = ", ") { it.name })
         } else {
             context.log.addTemp("You can't see this shit")
         }
@@ -104,7 +104,7 @@ private abstract class Target(
             val playerPos: Position = context.player.one()
             val hand = context.player.one<MainHandSlot>()
             val gun = hand.gun ?: throw GehennaException("Targeting without a gun, why?")
-            val ammo: Ammo = gun.ammo ?: throw GehennaException("Targeting without an ammo, why?") // TODO:
+            val ammo: Ammo? = gun.magazine.firstOrNull()
             val range = context.player<Senses.Sight>()?.range ?: 100
 
             //Calculating chance to hit the most retarded way possible: shooting 100 bullets and count how many hit
@@ -124,7 +124,7 @@ private abstract class Target(
                 }
             }
 
-            val time = Behaviour.scaleTime(dir.max.toLong() * oneTurn, gun.speed + ammo.speed)
+            val time = Behaviour.scaleTime(dir.max.toLong() * oneTurn, gun.speed + (ammo?.speed ?: 0))
             context.log.addTemp("Bullet will reach its destination in $time with ${successCount}% chance")
 
             //            val color = context.hud.fgColor * 0.8 // TODO: constants
@@ -136,7 +136,7 @@ private abstract class Target(
                     (dir.angle - gun.spread).toLineDir(dir.errorShift).drawLine(playerPos, range, null, color)
                 }
 
-                dir.drawLine(playerPos, range, if (ammo.bounce) playerPos.level else null)
+                dir.drawLine(playerPos, range, if (ammo?.bounce == true) playerPos.level else null)
                 println("Line Dir : $dir, errorSift: ${dir.errorShift}, angle: ${dir.angle}")
             }
         }
@@ -220,13 +220,14 @@ private abstract class Target(
 
 private class Normal(private val context: UIContext) : State() {
 
-    private fun askForAmmo(ammoType: AmmoType, func: (Ammo?) -> Unit) {
+    private fun askForAmmo(ammoType: AmmoType, func: (Collection<Ammo>) -> Unit) {
         context.addWindow(SelectPanel(
                 context,
                 context.player.one<Inventory>().contents
-                        .mapNotNull { it.entity<Ammo>() }
-                        .filter { it.type == ammoType } + (null as Ammo?),
-                title = "Load what?") { func(it) }
+                        .filter { it.entity<Ammo>()?.type == ammoType }
+                        .packStacks(),
+                title = "Load what?",
+                toString = { it.entity.name }) { func(it.entity.one<ItemStack>().items.map { el -> el.entity.one<Ammo>() }) }
         )
     }
 
@@ -242,7 +243,7 @@ private class Normal(private val context: UIContext) : State() {
                 playerPos.level[playerPos + input.dir].firstNotNullResult {
                     if (it<Door>()?.closed == true) it<Door>() else null
                 }?.let { door ->
-                    context.action = gehenna.action.UseDoor(door, close = false)
+                    context.action = UseDoor(door, close = false)
                     return this to true
                 }
 
@@ -286,20 +287,33 @@ private class Normal(private val context: UIContext) : State() {
                 context.log.addTemp("There is no items to pickup(((")
                 this to true
             } else {
-                context.addWindow(MultiSelectPanel(context, neighbors, { items ->
-                    context.action = gehenna.action.Pickup(context.player, items)
-                }, "Pick up what?"))
+                context.addWindow(MultiSelectPanel(
+                        context,
+                        neighbors.packStacks(),
+                        "Pick up what?",
+                        toString = { it.entity.name }
+                ) { items ->
+                    context.action = Pickup(context.player, items.unpackStacks())
+                })
                 this to true
             }
         }
         Input.Drop -> {
-            context.addWindow(MultiSelectPanel(context, context.player.one<Inventory>().contents, { items ->
-                context.action = gehenna.action.Drop(context.player, items)
-            }, "Drop what?"))
+            context.addWindow(MultiSelectPanel(
+                    context,
+                    context.player.one<Inventory>().stacks,
+                    "Drop what?",
+                    toString = { it.entity.toString() }
+            ) { items -> context.action = Drop(context.player, items.unpackStacks()) })
             this to true
         }
         Input.Use -> {
-            context.addWindow(SelectPanel(context, context.player.one<Inventory>().contents.filter { it.entity.has<Consumable>() }, "Use what?") {
+            context.addWindow(SelectPanel(
+                    context,
+                    context.player.one<Inventory>().stacks.filter { it.entity.has<Consumable>() },
+                    "Use what?",
+                    toString = { it.entity.toString() }
+            ) {
                 context.action = it.entity.any<Consumable>()?.apply(context.player)
             })
             this to true
@@ -307,8 +321,9 @@ private class Normal(private val context: UIContext) : State() {
         Input.Inventory -> {
             context.addWindow(SelectPanel(
                     context,
-                    context.player.one<Inventory>().contents,
-                    "Inventory ${context.player.one<Inventory>().currentVolume}/${context.player.one<Inventory>().maxVolume}"
+                    context.player.one<Inventory>().stacks,
+                    "Inventory ${context.player.one<Inventory>().currentVolume}/${context.player.one<Inventory>().maxVolume}",
+                    toString = { it.entity.toString() }
             ) { selectedItem ->
                 context.addWindow(MenuPanel(100, 30, context.settings).apply {
                     setOnCancel { context.removeWindow(this) }
@@ -321,14 +336,12 @@ private class Normal(private val context: UIContext) : State() {
                     }
                     selectedItem.entity<Gun>()?.let { gun ->
                         addItem(ButtonItem("Equip", {
-                            context.action = gehenna.action.Equip(context.player, context.player.one<MainHandSlot>(), gun.item)
+                            context.action = Equip(context.player, context.player.one<MainHandSlot>(), gun.item)
                             context.removeWindow(this)
                         }, 'e'))
                         addItem(ButtonItem("Load", {
                             askForAmmo(gun.ammoType) {
-                                if (it != null) {
-                                    context.action = gun.load(context.player, it)
-                                }
+                                context.action = gun.load(context.player, it)
                                 context.removeWindow(this)
                             }
                         }, 'L'))
@@ -338,7 +351,7 @@ private class Normal(private val context: UIContext) : State() {
                         }, 'U'))
                     }
                     addItem(ButtonItem("Drop", {
-                        context.action = gehenna.action.Drop(context.player, listOf(selectedItem))
+                        context.action = Drop(context.player, listOf(selectedItem))
                         context.removeWindow(this)
                     }, 'd'))
                     addItem(TextItem(""))
@@ -358,8 +371,9 @@ private class Normal(private val context: UIContext) : State() {
         Input.Equip -> {
             val select = SelectPanel(
                     context,
-                    context.player.one<Inventory>().contents + (null as Item?),
-                    title = "Equip what?") {
+                    context.player.one<Inventory>().stacks + (null as Item?),
+                    title = "Equip what?",
+                    toString = { it?.entity?.toString() ?: " - unequip current" }) {
                 context.action = Equip(context.player, context.player.one<MainHandSlot>(), it)
             }
             context.addWindow(select)
@@ -370,7 +384,7 @@ private class Normal(private val context: UIContext) : State() {
             if (gun == null) {
                 context.log.addTemp("You don't have a gun to reload")
             } else {
-                askForAmmo(gun.ammoType) { context.action = Reload(context.player, it) }
+                askForAmmo(gun.ammoType) { context.action = gun.load(context.player, it) }
             }
             this to true
         }
@@ -396,7 +410,7 @@ private class UseDoor(context: UIContext, private val close: Boolean) : Directio
     override fun onDir(dir: Dir): State {
         val playerPos = context.player.one<Position>()
         playerPos.level[playerPos + dir].firstNotNullResult { it<Door>() }?.let { door ->
-            context.action = gehenna.action.UseDoor(door, close)
+            context.action = UseDoor(door, close)
         } ?: context.log.addTemp("There is no door.")
         return Normal(context)
     }
@@ -416,7 +430,7 @@ private class Examine(context: UIContext) : Target(context) {
             addItem(TextItem("This is a $entity"))
             setOnCancel { context.removeWindow(this) }
             entity.components.values.filterNot {
-//                it is Glyph || it is Inventory || it is DirectionalGlyph || it is Position
+                //                it is Glyph || it is Inventory || it is DirectionalGlyph || it is Position
                 it is Glyph || it is Inventory || it is DirectionalGlyph
             }.forEach { component ->
                 addItem(TextItem("${component::class.simpleName}"))
@@ -430,7 +444,7 @@ private class Examine(context: UIContext) : Target(context) {
     }
 
     override fun select(): State {
-        val entities = level.safeGet(cursor)
+        val entities = level.safeGet(cursor).packEntities()
         when (entities.size) {
             0 -> context.log.addTemp("There is nothing to examine")
             1 -> examine(entities.first())

@@ -2,7 +2,6 @@ package gehenna.factory
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
-import gehenna.component.AmmoType
 import gehenna.component.Item
 import gehenna.core.*
 import gehenna.exceptions.NotAnItemException
@@ -11,18 +10,20 @@ import gehenna.exceptions.UnknownTypeException
 import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.toDice
-import java.lang.Exception
 import kotlin.reflect.*
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.safeCast
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 
-val projection = KTypeProjection.invariant(Item::class.createType())
-val itemListType = ArrayList::class.createType(listOf(projection))
 val itemType = Item::class.createType(nullable = true)
 val itemTypeNoNull = Item::class.createType(nullable = false)
+val projection = KTypeProjection.invariant(itemTypeNoNull)
+val itemListType = ArrayList::class.createType(listOf(projection))
+
+val itemBuilderTypeNoNull = ItemBuilder::class.createType(nullable = false)
+val builderProjection = KTypeProjection.invariant(itemBuilderTypeNoNull)
+val itemBuilderListType = ArrayList::class.createType(listOf(builderProjection))
 
 val componentProjection = KTypeProjection.covariant(Component::class.createType())
 val componentType = KClass::class.createType(listOf(componentProjection), nullable = false)
@@ -62,6 +63,8 @@ fun JsonReader.nextValueFromType(type: KType): Any {
         itemListType -> nextStringList()
         itemType -> nextString()
         itemTypeNoNull -> nextString()
+        itemBuilderTypeNoNull -> nextString()
+        itemBuilderListType -> nextStringList()
         componentType -> nextString()
         else -> {
             if (type.jvmErasure.isSubclassOf(Enum::class)) {
@@ -100,11 +103,28 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
                 factory.new(it)<Item>() ?: throw NotAnItemException(it)
             }
         }
+        itemBuilderListType -> {
+            @Suppress("UNCHECKED_CAST")
+            (value as List<String>).map {
+                object : ItemBuilder {
+                    override fun build(): Item {
+                        return factory.new(it as String)<Item>()!!
+                    }
+                }
+            }
+        }
         itemType -> {
             factory.new(value as String)<Item>()
         }
         itemTypeNoNull -> {
             factory.new(value as String)<Item>()!!
+        }
+        itemBuilderTypeNoNull -> {
+            object : ItemBuilder {
+                override fun build(): Item {
+                    return factory.new(value as String)<Item>()!!
+                }
+            }
         }
         componentType -> {
             factory.componentClassByName(value as String)

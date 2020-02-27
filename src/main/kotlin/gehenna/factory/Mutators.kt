@@ -3,7 +3,6 @@ package gehenna.factory
 import gehenna.component.*
 import gehenna.core.Component
 import gehenna.core.Entity
-import gehenna.exceptions.GehennaException
 import gehenna.utils.random
 import java.io.Serializable
 import kotlin.reflect.KClass
@@ -13,22 +12,29 @@ interface EntityMutator : Serializable {
     fun mutate(entity: Entity)
 }
 
-class GiveOneOf(private val items: ArrayList<Item>) : EntityMutator {
+interface ItemBuilder {
+    fun build(): Item
+}
+
+class GiveOneOf(private val items: ArrayList<ItemBuilder>) : EntityMutator {
     override fun mutate(entity: Entity) {
-        entity<Inventory>()?.add(items.random(random))
+        entity<Inventory>()?.add(items.random(random).build())
     }
 }
 
-class EquipItem(private val item: Item, private val slot: KClass<out Component>) : EntityMutator {
+class EquipItem(private val item: ItemBuilder, private val slot: KClass<out Component>) : EntityMutator {
     override fun mutate(entity: Entity) {
         assert(slot.isSubclassOf(Slot::class)) { "$slot is not a subclass of Slot!" }
-        entity<Inventory>()?.add(item)
-        (entity.invoke(slot) as Slot).equip(item)
+        val newItem = item.build()
+        entity<Inventory>()?.add(newItem)
+        (entity.invoke(slot) as Slot).equip(newItem)
     }
 }
 
-class GiveItem(private val item: Item) : EntityMutator {
+class GiveItem(private val item: ItemBuilder, private val amount: Int = 1) : EntityMutator {
     override fun mutate(entity: Entity) {
-        entity<Inventory>()?.add(item)
+        repeat(amount) {
+            entity<Inventory>()?.add(item.build())
+        }
     }
 }

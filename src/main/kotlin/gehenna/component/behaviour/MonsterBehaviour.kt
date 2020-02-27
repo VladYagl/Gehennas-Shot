@@ -7,8 +7,6 @@ import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Faction
 import gehenna.utils.*
-import gehenna.utils.Dir.Companion.zero
-import javafx.geometry.Pos
 
 data class MonsterBehaviour(
         override val entity: Entity,
@@ -44,27 +42,33 @@ data class MonsterBehaviour(
     private fun shoot(target: Position): Action? {
         return entity<MainHandSlot>()?.gun?.let { gun ->
 
-                    val ammo = gun.ammo
-                    if (ammo == null || ammo.amount == 0) {
-                        val newAmmo = entity<Inventory>()?.items?.mapNotNull { it.entity<Ammo>() }?.firstOrNull { it.amount > 0 }
-                        return if (newAmmo != null) {
-                            Reload(entity, newAmmo)
-                        } else {
-                            null
-                        }
+            if (gun.magazine.isEmpty()) {
+                val newAmmo = entity<Inventory>()?.items?.mapNotNull {
+                    val ammo = it.entity<Ammo>()
+                    if (ammo?.type == gun.ammoType) {
+                        ammo
+                    } else {
+                        null
                     }
-
-                    if (target == target.entity<Position>()) {
-                        val diff = target - pos
-                        val tempDir = LineDir(diff.x, diff.y)
-
-                        tempDir.findBestError(pos)?.let { error ->
-                            return gun.fire(entity, LineDir(diff.x, diff.y, error))
-                        }
-
-                        return null
-                    } else null
                 }
+                return if (newAmmo != null && newAmmo.isNotEmpty()) {
+                    gun.load(entity, newAmmo)
+                } else {
+                    null
+                }
+            }
+
+            if (target == target.entity<Position>()) {
+                val diff = target - pos
+                val tempDir = LineDir(diff.x, diff.y)
+
+                tempDir.findBestError(pos)?.let { error ->
+                    return gun.fire(entity, LineDir(diff.x, diff.y, error))
+                }
+
+                return null
+            } else null
+        }
     }
 
     private fun pickup(): Action? { //todo find items and go to them
@@ -123,6 +127,7 @@ data class MonsterBehaviour(
         }
         updateSenses()
 //        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: goto(it) ?: randomMove() } ?: pickup() ?: randomMove()
-        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: attack(it) ?: goto(it) ?: randomMove() } ?: pickup() ?: wait()
+        return dodge() ?: target?.let { shoot(it) ?: pickup() ?: attack(it) ?: goto(it) ?: randomMove() } ?: pickup()
+        ?: wait()
     }
 }

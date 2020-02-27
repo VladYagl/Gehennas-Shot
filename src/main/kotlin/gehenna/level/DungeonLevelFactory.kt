@@ -101,7 +101,8 @@ class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
             for (i in 0..1000) {
 
 
-                listOf("hall", "triangle", null).random()?.let { room ->
+//                listOf("hall", "triangle", null).random()?.let { room ->
+                listOf("triangle").random()?.let { room ->
                     val part = partFactory.new(room)
                     part.spawnTo(random.nextPoint((size - part.size).size), this)
                 }

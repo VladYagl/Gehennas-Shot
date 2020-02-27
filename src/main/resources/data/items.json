@@ -62,8 +62,25 @@
         "ammo": {
             "type": "c9mm",
             "damage": "1d5 + 3",
-            "speed": 500,
+            "speed": 500
+        },
+        "projectileSpawner" : {
             "projectileName": "bullet"
+        },
+        "glyph": {
+            "char": 13
+        }
+    },
+
+    "shell": {
+        "ammo": {
+            "type": "shell",
+            "damage": "1d3",
+            "speed": 400
+        },
+        "projectileSpawner" : {
+            "projectileName": "bullet",
+            "amount": 5
         },
         "glyph": {
             "char": 13
@@ -130,11 +147,10 @@
         "gun": {
             "ammoType": "shell",
             "magazineCapacity": 1,
-            "damage": "d4+2",
-            "speed": 850,
+            "damage": "2",
+            "speed": 450,
 
             "delay": 1,
-            "burstCount": 4,
             "time": 1,
             "shootTime": 50,
             "volume": 50,

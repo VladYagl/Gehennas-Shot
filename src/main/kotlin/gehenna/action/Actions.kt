@@ -4,6 +4,7 @@ import gehenna.component.*
 import gehenna.component.behaviour.LineBulletBehaviour
 import gehenna.component.behaviour.PredictableBehaviour
 import gehenna.core.*
+import gehenna.exceptions.GehennaException
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
 
@@ -57,17 +58,19 @@ data class Shoot(
             return fail()
         } else {
             val ammo = gun.magazine.remove()
-            val bullet = context.factory.new(ammo.projectileName)
-            pos.spawnHere(bullet)
-            bullet.add(LineBulletBehaviour(
-                    bullet,
-                    random.nextLineDir(dir, gun.spread),
-                    gun.damage + ammo.damage,
-                    gun.speed + ammo.speed,
-                    ammo.bounce,
-                    gun.delay
-            ))
-            bullet.add(DestroyTimer(bullet, ammo.lifeTime))
+            ammo.entity.any<ShootFunc>()?.invoke(pos, dir, gun, ammo, context)
+                    ?: throw GehennaException("Ammo doesn't have ShootFunc!")
+//            val bullet = context.factory.new(ammo.projectileName)
+//            pos.spawnHere(bullet)
+//            bullet.add(LineBulletBehaviour(
+//                    bullet,
+//                    random.nextLineDir(dir, gun.spread),
+//                    gun.damage + ammo.damage,
+//                    gun.speed + ammo.speed,
+//                    ammo.bounce,
+//                    gun.delay
+//            ))
+//            bullet.add(DestroyTimer(bullet, ammo.lifeTime))
             gun.applyShootSpread()
             return end()
         }

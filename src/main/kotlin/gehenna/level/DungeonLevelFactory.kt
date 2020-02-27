@@ -100,7 +100,13 @@ class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
             //Place random walls and 3-tiles wide corridors
             for (i in 0..1000) {
 
-                part(10 at 10, "hall")
+
+                listOf("hall", "triangle", null).random()?.let { room ->
+                    val part = partFactory.new(room)
+                    part.spawnTo(random.nextPoint((size - part.size).size), this)
+                }
+
+//                part(10 at 10, "hall")
 //                rect(0 at 0, size)
                 automaton(startPosition, listOf(2 to 5 to 2, 2 to 7 to 1), 3, 0, 0.4) { has(it) }
 

@@ -1,10 +1,9 @@
 package gehenna.action
 
 import gehenna.component.*
-import gehenna.component.behaviour.LineBulletBehaviour
-import gehenna.component.behaviour.PredictableBehaviour
+import gehenna.core.PredictableBehaviour
 import gehenna.core.*
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
 

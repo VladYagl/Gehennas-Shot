@@ -1,7 +1,6 @@
 package gehenna.utils
 
-import gehenna.core.Entity
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import java.io.Serializable
 
 private const val runs = 100_000

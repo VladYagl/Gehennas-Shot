@@ -4,6 +4,7 @@ import gehenna.action.Move
 import gehenna.component.Position
 import gehenna.component.Senses
 import gehenna.core.Action
+import gehenna.core.Behaviour
 import gehenna.core.Entity
 import gehenna.utils.Dir
 import gehenna.utils.setVal

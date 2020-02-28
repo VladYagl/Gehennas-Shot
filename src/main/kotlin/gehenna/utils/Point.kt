@@ -2,14 +2,13 @@ package gehenna.utils
 
 import gehenna.component.Position
 import gehenna.component.Reflecting
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import gehenna.level.Level
 import gehenna.utils.Point.Companion.zero
 import java.io.Serializable
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
-import kotlin.test.assertTrue
 
 interface Point : Serializable {
     val x: Int

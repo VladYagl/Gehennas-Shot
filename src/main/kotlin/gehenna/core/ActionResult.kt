@@ -1,9 +1,11 @@
 package gehenna.core
 
 import gehenna.component.Position
+import gehenna.component.Senses
 import java.io.Serializable
+import kotlin.reflect.KClass
 
-typealias Sense = String
+typealias Sense = KClass<out Senses>
 
 data class LogEntry(val text: String, val position: Position?, val sense: Sense): Serializable
 

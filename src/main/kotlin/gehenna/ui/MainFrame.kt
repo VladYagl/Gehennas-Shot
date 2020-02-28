@@ -1,6 +1,6 @@
 package gehenna.ui
 
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import gehenna.ui.panel.GehennaPanel
 import gehenna.ui.panel.MenuPanel
 import gehenna.utils.Size

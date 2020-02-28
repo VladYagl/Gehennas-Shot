@@ -2,7 +2,7 @@ package gehenna.factory
 
 import com.beust.klaxon.JsonReader
 import gehenna.core.*
-import gehenna.exceptions.*
+import gehenna.exception.*
 import org.reflections.Reflections
 import java.io.InputStream
 import kotlin.reflect.KClass

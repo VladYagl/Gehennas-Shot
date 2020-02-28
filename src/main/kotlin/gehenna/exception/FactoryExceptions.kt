@@ -1,4 +1,4 @@
-package gehenna.exceptions
+package gehenna.exception
 
 import kotlin.reflect.KType
 

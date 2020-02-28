@@ -1,6 +1,6 @@
 package gehenna.utils
 
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import java.awt.Color
 import java.io.PrintWriter
 import java.io.StringWriter

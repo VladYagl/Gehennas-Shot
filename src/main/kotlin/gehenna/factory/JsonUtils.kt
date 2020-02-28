@@ -4,9 +4,9 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
 import gehenna.component.Item
 import gehenna.core.*
-import gehenna.exceptions.NotAnItemException
-import gehenna.exceptions.UnknownArgumentException
-import gehenna.exceptions.UnknownTypeException
+import gehenna.exception.NotAnItemException
+import gehenna.exception.UnknownArgumentException
+import gehenna.exception.UnknownTypeException
 import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.toDice

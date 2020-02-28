@@ -2,7 +2,7 @@ package gehenna.factory
 
 import com.beust.klaxon.*
 import gehenna.core.Entity
-import gehenna.exceptions.*
+import gehenna.exception.*
 import gehenna.utils.Point
 import gehenna.utils.at
 import java.io.InputStream

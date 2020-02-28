@@ -2,6 +2,26 @@ package gehenna.component
 
 import gehenna.core.Component
 import gehenna.core.Entity
+import gehenna.utils.Dice
+import gehenna.utils.toDice
+
+interface Slot {
+    var item: Item?
+
+    fun equip(newItem: Item) {
+        assert(item == null) { "Trying to equip $newItem in busy slot: $this" }
+        assert(isValid(newItem))
+        item = newItem
+        newItem.slot = this
+    }
+
+    fun unequip() {
+        item?.slot = null
+        item = null
+    }
+
+    fun isValid(item: Item): Boolean = true
+}
 
 data class Item(override val entity: Entity, val volume: Int, val stackable: Boolean = false) : Component() {
     var inventory: Inventory? = null
@@ -93,3 +113,18 @@ data class Inventory(
         }
     }
 }
+
+data class MainHandSlot(override val entity: Entity, override var item: Item? = null) : Component(), Slot {
+    val gun: Gun? get() = item?.entity?.invoke()
+
+    val damage: Dice
+        get() {
+            val item = item
+            return if (item == null) {
+                "d3".toDice() // TODO: Fist damage
+            } else {
+                item.entity<MeleeWeapon>()?.damage ?: Dice.SingleDice(item.volume / 5)
+            }
+        }
+}
+

@@ -1,7 +1,5 @@
 package gehenna.core
 
-import gehenna.component.ActiveComponent
-import gehenna.component.behaviour.PredictableBehaviour
 import java.util.*
 
 private val active: Queue<ActiveComponent> = PriorityQueue(compareBy({ it.waitTime }, { it.entity.id }))

@@ -7,7 +7,7 @@ import gehenna.component.Glyph
 import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.core.*
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import gehenna.utils.*
 
 //TODO: try some player seeking behaviour

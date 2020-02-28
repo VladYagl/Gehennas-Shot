@@ -1,11 +1,12 @@
 package gehenna.ui
 
 import gehenna.component.*
-import gehenna.component.behaviour.Behaviour
+import gehenna.core.Behaviour
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
-import gehenna.component.behaviour.PredictableBehaviour
+import gehenna.core.PredictableBehaviour
 import gehenna.core.Action.Companion.oneTurn
+import gehenna.core.Effect
 import gehenna.core.Entity
 import gehenna.core.Game
 import gehenna.factory.EntityFactory

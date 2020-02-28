@@ -2,7 +2,7 @@ package gehenna.level
 
 import gehenna.component.Glyph
 import gehenna.component.Position
-import gehenna.component.behaviour.PredictableBehaviour
+import gehenna.core.PredictableBehaviour
 import gehenna.core.Entity
 import gehenna.utils.Point
 import gehenna.utils.Size

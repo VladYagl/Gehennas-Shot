@@ -1,7 +1,5 @@
 package gehenna.core
 
-import gehenna.component.ActiveComponent
-import gehenna.component.Effect
 import gehenna.component.Logger
 import gehenna.component.Senses
 import gehenna.component.behaviour.PlayerBehaviour
@@ -69,12 +67,12 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
             if (result.addToQueue) actionQueue.add(first)
 
             val sight = player<Senses.Sight>()
-            sight?.visitFov { _, _ -> }
+//            sight?.visitFov { _, _ -> } // I needed this to show player that he saw enemy
             result.logEntries.asSequence().filter { entry: LogEntry ->
-                player.all<Senses>().any { entry.sense == it::class.simpleName }
+                player.all<Senses>().any { entry.sense == it::class }
             }.forEach { entry ->
                 when (entry.sense) {
-                    Senses.Sight::class.simpleName -> {
+                    Senses.Sight::class -> {
                         val pos = entry.position
                         if (pos == null || sight?.isVisible(pos) == true) {
                             player<Logger>()?.add(entry.text)

@@ -1,24 +1,10 @@
 package gehenna.component
 
 import gehenna.action.Destroy
-import gehenna.core.*
-import gehenna.core.Action.Companion.oneTurn
-
-abstract class ActiveComponent : Component() {
-    open var waitTime: Long = 0L
-    abstract suspend fun action(): Action
-    var lastResult: ActionResult? = null
-
-    init {
-        subscribe<Entity.Add> { ActionQueue.add(this) }
-        subscribe<Entity.Remove> { ActionQueue.remove(this) }
-    }
-}
-
-abstract class Effect : ActiveComponent() {
-    open var duration: Long = 0
-    open val endless: Boolean = false
-}
+import gehenna.core.Action
+import gehenna.core.Effect
+import gehenna.core.Entity
+import gehenna.core.SimpleAction
 
 data class PassiveHeal(
         override val entity: Entity,
@@ -33,7 +19,7 @@ data class PassiveHeal(
     }
 }
 
-data class DestroyTimer(override val entity: Entity, override var waitTime: Long = oneTurn * 10) : Effect() {
+data class DestroyTimer(override val entity: Entity, override var waitTime: Long = Action.oneTurn * 10) : Effect() {
     override var duration
         get() = 1L
         set(value) {}

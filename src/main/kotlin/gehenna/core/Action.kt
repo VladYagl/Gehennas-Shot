@@ -15,7 +15,7 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
     abstract fun perform(context: Context): ActionResult
 
     protected val log = ArrayList<LogEntry>()
-    private fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class.simpleName!!) {
+    private fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class) {
         log.add(LogEntry(text, position, sense))
     }
 

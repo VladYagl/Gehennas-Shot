@@ -1,6 +1,6 @@
 package gehenna.core
 
-import gehenna.exceptions.EntityMustHaveOneException
+import gehenna.exception.EntityMustHaveOneException
 import gehenna.utils.setVal
 import java.io.Serializable
 import java.util.*

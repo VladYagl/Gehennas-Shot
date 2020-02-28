@@ -6,6 +6,7 @@ import gehenna.core.Action
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
 import gehenna.core.Faction
+import gehenna.core.PredictableBehaviour
 import gehenna.utils.*
 
 data class MonsterBehaviour(

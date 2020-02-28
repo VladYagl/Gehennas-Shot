@@ -3,12 +3,12 @@ package gehenna.ui
 import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.*
 import gehenna.component.*
-import gehenna.component.behaviour.Behaviour
+import gehenna.core.Behaviour
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Entity
-import gehenna.exceptions.GehennaException
+import gehenna.exception.GehennaException
 import gehenna.level.Level
 import gehenna.ui.panel.ConsolePanel
 import gehenna.ui.panel.MenuPanel

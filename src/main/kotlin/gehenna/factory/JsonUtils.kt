@@ -13,6 +13,7 @@ import gehenna.utils.toDice
 import kotlin.reflect.*
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 
@@ -129,8 +130,8 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
         componentType -> {
             factory.componentClassByName(value as String)
         }
-        else -> if (type.jvmErasure.isSubclassOf(Enum::class)) {
-            Class.forName(type.jvmErasure.jvmName).enumConstants.first {
+        else -> if (type.jvmErasure.java.isEnum) {
+            type.jvmErasure.java.enumConstants.first {
                 value == it.toString() // toString from enum returns it's name, so it should work
             }
         } else when (type.jvmErasure) {

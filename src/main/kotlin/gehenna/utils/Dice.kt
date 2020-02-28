@@ -2,11 +2,12 @@ package gehenna.utils
 
 import gehenna.exception.GehennaException
 import java.io.Serializable
+import kotlin.random.Random
 
-private const val runs = 100_000
+private const val runs = 100
 
 abstract class Dice : Serializable {
-    abstract fun roll(): Int
+    abstract fun roll(random: Random = gehenna.utils.random): Int
 
     /**
      * prints roll distribution, needed for testing
@@ -21,11 +22,11 @@ abstract class Dice : Serializable {
         }.joinToString(separator = "\n")
     }
 
-    val mean: Double by lazy { (1..runs).map { roll() }.mean }
-    val std: Double by lazy { (1..runs).map { roll() }.std }
+    val mean: Double by lazy { Random(1488).let { rand -> (1..runs).map { roll(rand) }.mean } }
+    val std: Double by lazy { Random(1488).let { rand -> (1..runs).map { roll(rand) }.std } }
 
     data class Const(val value: Int) : Dice() {
-        override fun roll() = value
+        override fun roll(random: Random) = value
 
         override fun toString(): String {
             return "$value"
@@ -33,7 +34,7 @@ abstract class Dice : Serializable {
     }
 
     data class SingleDice(val sides: Int) : Dice() {
-        override fun roll() = random.nextInt(1, sides + 1)
+        override fun roll(random: Random) = random.nextInt(1, sides + 1)
 
         override fun toString(): String {
             return "d$sides"
@@ -41,7 +42,7 @@ abstract class Dice : Serializable {
     }
 
     data class Multiplication(val dice: Dice, val count: Int) : Dice() {
-        override fun roll() = (0 until count).map { dice.roll() }.sum()
+        override fun roll(random: Random) = (0 until count).map { dice.roll(random) }.sum()
 
         override fun toString(): String {
             return if (dice is SingleDice) {
@@ -53,7 +54,7 @@ abstract class Dice : Serializable {
     }
 
     data class Addition(val a: Dice, val b: Dice) : Dice() {
-        override fun roll() = a.roll() + b.roll()
+        override fun roll(random: Random) = a.roll(random) + b.roll(random)
 
         override fun toString(): String {
             return "$a+$b"
@@ -61,7 +62,7 @@ abstract class Dice : Serializable {
     }
 
     data class Subtraction(val a: Dice, val b: Dice) : Dice() {
-        override fun roll() = a.roll() - b.roll()
+        override fun roll(random: Random) = a.roll(random) - b.roll(random)
 
         override fun toString(): String {
             return "$a-$b"

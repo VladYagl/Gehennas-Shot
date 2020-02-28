@@ -136,8 +136,8 @@ class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
             allWalls()
 
             spawnEnemies()
-            placeStairs(previous, startPosition, backPoint)
-            spawn(factory.new("stairsDown"), startPosition + (1 at 1))
+//            placeStairs(previous, startPosition, backPoint)
+            spawn(factory.new("stairsDown"), startPosition)
         }, startPosition)
     }
 }

@@ -84,7 +84,7 @@
 
     "strongBandit": {
         "super": "human",
-        "name": "armored bandit",
+        "name": "bandit",
         "glyph": {
             "char": 0,
             "priority": 100,

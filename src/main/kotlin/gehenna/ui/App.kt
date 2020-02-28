@@ -18,6 +18,7 @@ import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
 import java.awt.Color
+import java.util.concurrent.Executors
 import kotlin.math.PI
 import kotlin.system.exitProcess
 import kotlin.system.measureNanoTime
@@ -115,7 +116,9 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
-    private val gameContext = newSingleThreadContext("GameContext")
+    //    private val gameContext = newSingleThreadContext("GameContext")
+    private val gameContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
     private suspend fun uiLoop() {
         while (true) {
             val fps = 1000_000_000L / measureNanoTime {

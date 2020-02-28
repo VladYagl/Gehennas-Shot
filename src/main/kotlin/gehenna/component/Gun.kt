@@ -42,7 +42,7 @@ data class Gun(
 
     val fullDamage get() = damage + (magazine.firstOrNull()?.damage ?: Dice.Const(0))
 
-    override val children: List<Component> = listOf(spreadReducer, item)
+    override val children: List<Component> = listOf(item)
     private var curSpread = minSpread
     private var curWalkSpread: Double = 0.0
 
@@ -89,15 +89,18 @@ data class Gun(
 
     fun applyShootSpread() {
         curSpread = min(curSpread + shootSpread, maxSpread)
+        if (!spreadReducer.attached) entity.add(spreadReducer)
     }
 
     fun applyWalkSpread() {
         curWalkSpread = walkSpread
+        if (!spreadReducer.attached) entity.add(spreadReducer)
     }
 
     fun decSpread(dec: Double) {
         curSpread = max(curSpread - dec, minSpread)
         curWalkSpread = max(curWalkSpread - dec, 0.0)
+        if (spread == 0.0 && spreadReducer.attached) entity.remove(spreadReducer)
     }
 
     private fun action(actor: Entity, dir: LineDir) =

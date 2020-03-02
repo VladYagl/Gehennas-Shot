@@ -58,15 +58,21 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
     }
 
     fun walkableSquare(point: Point): Int {
+        var cnt = 0;
+        visitWalkable(point) { cnt++ }
+        return cnt
+    }
+
+    fun visitWalkable(point: Point, visit: (Point) -> Unit) {
         val visited = HashSet<GridCell>()
-        fun visit(cell: GridCell) {
+        fun dfs(cell: GridCell) {
             visited.add(cell)
+            visit(cell.x at cell.y)
             navGrid.getNeighbors(cell, pathFinderOptions).toList().forEach {
-                if (!visited.contains(it)) visit(it)
+                if (!visited.contains(it)) dfs(it)
             }
         }
-        visit(navGrid.getCell(point.x, point.y))
-        return visited.size
+        dfs(navGrid.getCell(point.x, point.y))
     }
 
     override fun update(point: Point) {

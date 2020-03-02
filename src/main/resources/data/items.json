@@ -62,7 +62,7 @@
         "ammo": {
             "type": "c9mm",
             "damage": "1d5 + 3",
-            "speed": 500
+            "speed": 550
         },
         "projectileSpawner" : {
             "projectileName": "bullet"
@@ -101,17 +101,17 @@
             "ammoType": "c9mm",
             "magazineCapacity": 12,
             "damage": "1d5",
-            "speed": 500,
+            "speed": 700,
 
             "delay": 10,
             "time": 50,
             "volume": 15,
 
             "minSpread": 0.0,
-            "maxSpread": 0.6,
-            "shootSpread": 0.3,
-            "walkSpread": 0.45,
-            "spreadReduce": 0.025,
+            "maxSpread": 0.3,
+            "shootSpread": 0.2,
+            "walkSpread": 0.25,
+            "spreadReduce": 0.015,
             "spreadReduceTick": 10
         },
         "glyph": {
@@ -124,7 +124,7 @@
             "ammoType": "c9mm",
             "magazineCapacity": 30,
             "damage": "1d3+3",
-            "speed": 500,
+            "speed": 900,
 
             "delay": 10,
             "burstCount": 3,
@@ -132,10 +132,10 @@
             "volume": 50,
 
             "minSpread": 0.08,
-            "maxSpread": 0.7,
-            "shootSpread": 0.20,
-            "walkSpread": 0.525,
-            "spreadReduce": 0.03,
+            "maxSpread": 0.5,
+            "shootSpread": 0.15,
+            "walkSpread": 0.325,
+            "spreadReduce": 0.015,
             "spreadReduceTick": 10
         },
         "glyph": {
@@ -148,7 +148,7 @@
             "ammoType": "shell",
             "magazineCapacity": 1,
             "damage": "2",
-            "speed": 450,
+            "speed": 550,
 
             "delay": 1,
             "time": 1,

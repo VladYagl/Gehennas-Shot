@@ -2,6 +2,7 @@ package gehenna.level
 
 import gehenna.component.Floor
 import gehenna.component.Obstacle
+import gehenna.component.Stairs
 import gehenna.core.Context
 import gehenna.core.Entity
 import gehenna.factory.Factory
@@ -14,7 +15,7 @@ import kotlin.random.Random
 abstract class BaseLevelFactory<T : Level>(protected val context: Context) : LevelFactory<T> {
     protected var factory: Factory<Entity> = context.factory
     protected var partFactory: Factory<LevelPart> = context.partFactory
-    var size: Size = Size(5 * 8, 6 * 8)
+    open var size: Size = Size(5 * 8, 6 * 8)
 
     final override fun new(previous: Level?, backPoint: Point?): Pair<T, Point> {
         val (level, point) = this.build(previous, backPoint)
@@ -22,7 +23,7 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         return Pair(level, point)
     }
 
-    protected abstract fun build(previous: Level?, backPoint: Point?): Pair<T, Point>
+    abstract fun build(previous: Level?, backPoint: Point?): Pair<T, Point>
 
     protected fun Level.corridor(from: Point, dir: Dir, len: Int = 0, door: Boolean = false) {
         if (!inBounds(from) || get(from).isNotEmpty()) return
@@ -147,12 +148,112 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         return safeGet(point).isNotEmpty()
     }
 
+    protected fun Level.clear(point: Point) {
+        get(point).toList().forEach {
+            remove(it)
+            it.clean()
+        }
+    }
+
     protected fun Level.clear() {
         for ((x, y) in size.range) {
-            get(x at y).toList().forEach {
-                remove(it)
-                it.clean()
+            clear(x at y)
+        }
+    }
+
+    private fun Level.cleanFloors() {
+        size.range.forEach {
+            while (get(it).count { entity -> entity.has<Floor>() } > 1) {
+                remove(get(it).find { entity -> entity.has<Floor>() }!!) // todo: this remove double floors | maybe you can do it better
             }
         }
+    }
+
+    protected fun Level.checkWalkable(startPosition: Point): Boolean {
+        val floor = size.range.count { isWalkable(it) }
+        return !(walkableSquare(startPosition) < floor || !isWalkable(startPosition))
+    }
+
+    protected fun Level.filterBadComponents(threshold: Int): Pair<Int, Array<IntArray>> {
+        val colors = IntArray(size);
+        var color = 0
+        for (point in size.range) {
+            if (isWalkable(point) && colors[point] == 0) {
+                color++
+                var size = 0
+                visitWalkable(point) {
+                    colors[it] = color
+                    size++
+                }
+
+                if (size < threshold) {
+                    visitWalkable(point) {
+                        clear(it)
+                    }
+                }
+            }
+        }
+
+        return Pair(color, colors)
+    }
+
+    protected fun Level.placeStairs(previous: Level?, startPosition: Point, backPoint: Point?) {
+        //TODO: change it -> level factory can manage stairs down
+        while (true) {
+            val point = random.nextPoint(size)
+            if (isWalkable(point) && findPath(startPosition, point)?.size ?: 0 > 25) {
+                spawn(factory.new("stairsDown"), point)
+                break
+            }
+        }
+
+        previous?.let {
+            backPoint?.let {
+                val stairs = factory.new("stairsUp")
+                stairs<Stairs>()?.destination = previous to backPoint
+                spawn(stairs, startPosition)
+            }
+        }
+    }
+
+    private fun Level.spawnEnemies() {
+        //Place bandits depending on level
+        if (depth == 0) repeat(random.nextInt(6) + 4) {
+            while (true) {
+                val point = random.nextPoint(size)
+                if (isWalkable(point)) {
+                    spawn(factory.new("bandit"), point)
+                    break
+                }
+            }
+        }
+        else repeat(random.nextInt(6) + 4) {
+            while (true) {
+                val point = random.nextPoint(size)
+                if (isWalkable(point)) {
+                    spawn(factory.new("strongBandit"), point)
+                    break
+                }
+            }
+        }
+    }
+
+    protected fun Level.buildLoop(startPosition: Point, build: () -> Unit) {
+        for (i in 0..1000) {
+            build()
+            cleanFloors()
+
+            if (!checkWalkable(startPosition)) {
+                println("Level is not connected, trying again: $i")
+                clear()
+            } else break
+//                break
+        }
+        require(checkWalkable(startPosition)) { "Can't generate adequate level(" }
+
+        box(zero, size)
+        allWalls()
+
+        spawnEnemies()
     }
 }

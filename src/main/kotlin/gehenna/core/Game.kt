@@ -9,8 +9,8 @@ import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.level.Level
 import gehenna.level.LevelFactory
+import gehenna.ui.UIContext
 import gehenna.utils.SaveData
-import javafx.geometry.Pos
 
 class Game(override val factory: Factory<Entity>, override val partFactory: Factory<LevelPart>) : Context {
     override lateinit var player: Entity
@@ -46,7 +46,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
     fun isPlayerNext(): Boolean = actionQueue.firstOrNull() == player<PlayerBehaviour>()
 
     // TODO: Think about energy randomization / but maybe i don't really need one / you can add this in scale time inside behaviour/characterBehaviour
-    suspend fun update() {
+    suspend fun update(context: UIContext) {
         actionQueue.firstOrNull()?.let { first ->
             val time = first.waitTime
             globalTime += time
@@ -65,7 +65,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
 
             actionQueue.remove(first)
             if (first.entity<Position>()?.level?.equals(player<Position>()?.level) != false) {
-                val result = first.action().perform(this)
+                val result = first.action().perform(context)
                 first.lastResult = result
                 first.waitTime += result.time
                 if (result.addToQueue) actionQueue.add(first)

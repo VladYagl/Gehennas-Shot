@@ -2,6 +2,7 @@ package gehenna.core
 
 import gehenna.utils.*
 import gehenna.component.*
+import gehenna.ui.UIContext
 import gehenna.utils.Point
 import gehenna.utils.prepareMessage
 import java.io.Serializable
@@ -12,7 +13,7 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
         const val oneTurn: Long = 100
     }
 
-    abstract fun perform(context: Context): ActionResult
+    abstract fun perform(context: UIContext): ActionResult
 
     protected val log = ArrayList<LogEntry>()
     private fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class) {
@@ -28,8 +29,8 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
     protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
 }
 
-class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (context: Context) -> Unit): Action(time, addToQueue) {
-    override fun perform(context: Context): ActionResult {
+class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (context: UIContext) -> Unit): Action(time, addToQueue) {
+    override fun perform(context: UIContext): ActionResult {
         func(context)
         return end()
     }

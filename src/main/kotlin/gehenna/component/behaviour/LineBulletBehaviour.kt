@@ -8,6 +8,7 @@ import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.core.*
 import gehenna.exception.GehennaException
+import gehenna.ui.UIContext
 import gehenna.utils.*
 
 data class LineBulletBehaviour(
@@ -51,7 +52,7 @@ data class LineBulletBehaviour(
             }
         }
 
-        override fun perform(context: Context): ActionResult {
+        override fun perform(context: UIContext): ActionResult {
             val pos = entity.one<Position>()
             val (next, dir) = predict(pos, dir, Glyph(Entity.world, '?'))
             val obstacle = pos.level.obstacle(next)

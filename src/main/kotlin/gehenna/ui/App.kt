@@ -81,7 +81,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private suspend fun gameLoop(uiJob: Job): Boolean {
         return withContext(gameContext) {
             //            if (game.isPlayerNext()) saver.saveContext(game)
-            game.update()
+            game.update(context)
 
             when {
                 !game.player.has<Position>() -> {

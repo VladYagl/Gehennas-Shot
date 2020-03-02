@@ -4,11 +4,15 @@ import gehenna.component.*
 import gehenna.core.PredictableBehaviour
 import gehenna.core.*
 import gehenna.exception.GehennaException
+import gehenna.ui.UIContext
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 data class Think(override var time: Long) : Action(time) {
-    override fun perform(context: Context): ActionResult = end()
+    override fun perform(context: UIContext): ActionResult = end()
 }
 
 data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<Any>(oneTurn) {
@@ -16,7 +20,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
         return pos + dir to state to glyph
     }
 
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         return if (dir == zero) {
             end()
         } else {
@@ -40,7 +44,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
 }
 
 object Wait : Action() {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         return ActionResult(context.actionQueue.minOf { it.waitTime }?.plus(1) ?: 0, true, log)
     }
 }
@@ -51,7 +55,7 @@ data class Shoot(
         private val gun: Gun,
         override var time: Long = oneTurn
 ) : Action() {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         if (gun.magazine.isEmpty()) {
             logFor(pos.entity, "Click! $_Actor_s ${gun.entity} is out of ammo")
             return fail()
@@ -77,7 +81,7 @@ data class Shoot(
 }
 
 data class Destroy(private val entity: Entity) : Action(0, false) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         entity.clean()
         return end()
     }
@@ -88,7 +92,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
         return victim.one<Position>() to state to glyph
     }
 
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         val damageRoll = damage.roll()
         victim<Health>()?.let {
             logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
@@ -100,7 +104,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
 }
 
 data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         val pos = entity.one<Position>()
         entity<MainHandSlot>()?.let { hand ->
             pos.level.obstacle(pos + dir)?.let { victim ->
@@ -124,7 +128,7 @@ data class ApplyEffect(
         private val replace: Boolean = false,
         override var time: Long = oneTurn
 ) : Action() {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         if (!entity.has(effect::class)) {
             if (effect is Gun.BurstFire) {
                 logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")
@@ -143,10 +147,16 @@ data class ApplyEffect(
 }
 
 data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) : Action(oneTurn) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         val pos = entity.one<Position>()
-        val destination = stairs.destination ?: context.levelFactory.new(pos.level, pos).let { (level, pos) ->
-            (level to pos).also { stairs.destination = it }
+        val destination = stairs.destination ?: run {
+            runBlocking {
+                context.loadingWindow("LOADING") {
+                    context.levelFactory.new(pos.level, pos).let { (level, pos) ->
+                        (level to pos).also { stairs.destination = it }
+                    }
+                }
+            }
         }
         pos.level.remove(entity)
         destination.first.spawn(entity, destination.second)
@@ -157,7 +167,7 @@ data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) :
 
 //TODO: action time constants
 data class Pickup(private val entity: Entity, private val items: List<Item>) : Action(45) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         items.forEach { item ->
             item.entity.remove<Position>()
             entity.one<Inventory>().add(item)
@@ -171,7 +181,7 @@ data class Pickup(private val entity: Entity, private val items: List<Item>) : A
  * Equip item in a slot, or unequip slot if item is null
  */
 data class Equip(private val entity: Entity, private val slot: Slot, private val item: Item?) : Action(15) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         val old = slot.item
         slot.unequip()
         if (old != null) logFor(entity, "$_Actor unequipped a ${old.entity}")
@@ -188,7 +198,7 @@ data class Equip(private val entity: Entity, private val slot: Slot, private val
 
 data class Drop(private val entity: Entity, private val items: List<Item>, private val pos: Position = entity.one()) :
         Action(45) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         items.forEach { item ->
             entity.one<Inventory>().remove(item)
             pos.spawnHere(item.entity)
@@ -199,7 +209,7 @@ data class Drop(private val entity: Entity, private val items: List<Item>, priva
 }
 
 data class UseDoor(private val door: Door, private val close: Boolean) : Action(oneTurn) {
-    override fun perform(context: Context): ActionResult {
+    override fun perform(context: UIContext): ActionResult {
         if (door.closed == close) return fail()
         door.change(close)
         return end()

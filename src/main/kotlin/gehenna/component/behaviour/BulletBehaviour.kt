@@ -8,6 +8,7 @@ import gehenna.component.Position
 import gehenna.component.Reflecting
 import gehenna.core.*
 import gehenna.exception.GehennaException
+import gehenna.ui.UIContext
 import gehenna.utils.*
 
 //TODO: try some player seeking behaviour
@@ -34,7 +35,7 @@ data class BulletBehaviour(
             return pos to dir to newGlyph
         }
 
-        override fun perform(context: Context): ActionResult {
+        override fun perform(context: UIContext): ActionResult {
             val behaviour = entity<BulletBehaviour>()
             behaviour?.dir = dir.bounce(entity.one()).dir
             entity<DirectionalGlyph>()?.update(dir)

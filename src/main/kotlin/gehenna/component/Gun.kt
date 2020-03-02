@@ -3,6 +3,7 @@ package gehenna.component
 import gehenna.action.ApplyEffect
 import gehenna.action.Shoot
 import gehenna.core.*
+import gehenna.ui.UIContext
 import gehenna.utils.Dice
 import gehenna.utils.FixedQueue
 import gehenna.utils.LineDir
@@ -50,7 +51,7 @@ data class Gun(
 
     fun unload(actor: Entity, inventory: Inventory? = actor.one()): Action {
         return object : Action(15) {
-            override fun perform(context: Context): ActionResult {
+            override fun perform(context: UIContext): ActionResult {
                 if (magazine.size > 0) {
                     logFor(actor, "$_Actor unloaded ${magazine.first().entity}x${magazine.size} from ${this@Gun.entity}")
                 } else {
@@ -66,7 +67,7 @@ data class Gun(
 
     fun load(actor: Entity, ammoStack: Collection<Ammo>, inventory: Inventory? = actor.one()): Action {
         return object : Action(15) {
-            override fun perform(context: Context): ActionResult {
+            override fun perform(context: UIContext): ActionResult {
                 var cnt = 0
                 ammoStack.forEach { new ->
                     if (!magazine.isFull()) {

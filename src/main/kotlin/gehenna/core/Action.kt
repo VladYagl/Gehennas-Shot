@@ -29,10 +29,20 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
     protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
 }
 
-class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (context: UIContext) -> Unit): Action(time, addToQueue) {
+class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (context: UIContext) -> Unit) : Action(time, addToQueue) {
     override fun perform(context: UIContext): ActionResult {
         func(context)
         return end()
+    }
+}
+
+class SimpleReturnAction(
+        time: Long = oneTurn,
+        addToQueue: Boolean = true,
+        val func: (context: UIContext) -> ActionResult
+) : Action(time, addToQueue) {
+    override fun perform(context: UIContext): ActionResult {
+        return func(context)
     }
 }
 

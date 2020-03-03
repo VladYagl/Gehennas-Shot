@@ -114,10 +114,22 @@ data class Inventory(
     }
 }
 
-data class MainHandSlot(override val entity: Entity, override var item: Item? = null) : Component(), Slot {
+interface MeleeAttacker {
+    val damage: Dice
+    val name: String
+}
+
+data class Teeth(override val entity: Entity, override val damage: Dice) : Component(), MeleeAttacker {
+    override val name: String = "sharp teeth"
+}
+
+data class MainHandSlot(override val entity: Entity, override var item: Item? = null) : Component(), Slot, MeleeAttacker {
     val gun: Gun? get() = item?.entity?.invoke()
 
-    val damage: Dice
+    override val name: String
+        get() = item?.entity?.toString() ?: "fist"
+
+    override val damage: Dice
         get() {
             val item = item
             return if (item == null) {

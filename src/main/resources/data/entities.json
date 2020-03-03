@@ -116,6 +116,35 @@
         }
     },
 
+    "dog": {
+        "obstacle": {
+            "blockView": false,
+            "blockMove": true,
+            "blockPath": false
+        },
+        "teeth": {
+            "damage": "3d4"
+        },
+        "glyph": {
+            "char": 101,
+            "priority": 100,
+            "memorable": false
+        },
+        "sight": {
+            "range": 20
+        },
+        "health": {
+            "max": 10
+        },
+        "passiveHeal": {
+            "amount": 5
+        },
+        "MonsterBehaviour": {
+            "speed": 190,
+            "faction": "dogs"
+        }
+    },
+
     "dummy": {
         "name": "dummy",
         "glyph": {

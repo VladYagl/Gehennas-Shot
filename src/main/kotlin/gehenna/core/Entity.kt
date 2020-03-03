@@ -31,13 +31,13 @@ data class Entity(val name: String = "gehenna.core.Entity", val id: String = UUI
         return components[clazz]
     }
 
-    inline fun <reified T : Component> all(): List<T> {
+    inline fun <reified T: Any> all(): List<T> {
         return components.mapNotNull {
             T::class.safeCast(it.value)
         }
     }
 
-    inline fun <reified T : Component> any(): T? {
+    inline fun <reified T: Any> any(): T? {
         return components.mapNotNull {
             T::class.safeCast(it.value)
         }.firstOrNull()

@@ -68,7 +68,7 @@
             "projectileName": "bullet"
         },
         "glyph": {
-            "char": 13
+            "char": 34
         }
     },
 
@@ -84,7 +84,7 @@
             "amount": 5
         },
         "glyph": {
-            "char": 13
+            "char": 34
         }
     },
 
@@ -102,7 +102,7 @@
             "amount": 4
         },
         "glyph": {
-            "char": 13
+            "char": 34
         }
     },
 
@@ -112,6 +112,9 @@
         },
         "item": {
             "volume": 10
+        },
+        "glyph": {
+            "char": 251
         }
     },
 
@@ -129,7 +132,7 @@
             "minSpread": 0.0,
             "maxSpread": 0.3,
             "shootSpread": 0.2,
-            "walkSpread": 0.25,
+            "walkSpread": 0.3,
             "spreadReduce": 0.015,
             "spreadReduceTick": 10
         },
@@ -191,7 +194,8 @@
             "value": 15
         },
         "item": {
-            "volume": 20
+            "volume": 20,
+            "stackable": true
         },
         "glyph": {
             "char": 3

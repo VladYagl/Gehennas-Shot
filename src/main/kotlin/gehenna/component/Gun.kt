@@ -35,8 +35,8 @@ data class Gun(
         override val endless = true
         override val entity = this@Gun.entity
 
-        override suspend fun action() = SimpleAction(spreadReduceTick) {
-            decSpread(spreadReduce)
+        override suspend fun action() = SimpleReturnAction(spreadReduceTick) {
+            ActionResult(spreadReduceTick, true, addToQueue = decSpread(spreadReduce))
         }
     }
     val item = Item(entity, volume)
@@ -90,18 +90,25 @@ data class Gun(
 
     fun applyShootSpread() {
         curSpread = min(curSpread + shootSpread, maxSpread)
-        if (!spreadReducer.attached) spreadReducer.attach()
+        if (!spreadReducer.attached)
+            spreadReducer.attach()
     }
 
     fun applyWalkSpread() {
         curWalkSpread = walkSpread
-        if (!spreadReducer.attached) spreadReducer.attach()
+        if (!spreadReducer.attached)
+            spreadReducer.attach()
     }
 
-    fun decSpread(dec: Double) {
+    fun decSpread(dec: Double): Boolean {
         curSpread = max(curSpread - dec, minSpread)
         curWalkSpread = max(curWalkSpread - dec, 0.0)
-        if (spread == 0.0 && spreadReducer.attached) entity.remove(spreadReducer)
+        return if (spread == 0.0 && spreadReducer.attached) {
+            spreadReducer.detach()
+            false
+        } else {
+            true
+        }
     }
 
     private fun action(actor: Entity, dir: LineDir) =

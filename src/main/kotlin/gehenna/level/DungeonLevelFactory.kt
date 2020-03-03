@@ -1,5 +1,7 @@
 package gehenna.level
 
+import gehenna.component.Floor
+import gehenna.component.Obstacle
 import gehenna.core.Context
 import gehenna.utils.Point
 import gehenna.utils.*
@@ -23,7 +25,12 @@ class CaveLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
 
                 rect(startPosition - (2 at 2), Size(4, 4))
 
-                listOf("hall").random().let { room ->
+                listOf("dog_cave").random().let { room ->
+//                listOf(
+//                        "dog_cave" to 0.2,
+//                        "hall" to 0.1,
+//                        (null as String?) to 0.7
+//                ).random()?.let { room ->
                     val part = partFactory.new(room)
                     part.spawnTo(random.nextPoint((size - part.size).size), this)
                 }
@@ -66,12 +73,17 @@ class CorridorLevelFactory(context: Context) : BaseLevelFactory<Level>(context) 
             buildLoop(startPosition) {
                 rect(startPosition - (2 at 2), Size(4, 4))
 
-                listOf("triangle", null).random()?.let { room ->
+                listOf(
+                        "triangle" to 0.2,
+                        (null as String?) to 0.8
+                ).random()?.let { room ->
                     val part = partFactory.new(room)
                     part.spawnTo(random.nextPoint((size - part.size).size), this)
                 }
 
-                automaton(startPosition, listOf(2 to 5 to 2, 2 to 7 to 1), 3, 0, 0.4) { has(it) }
+                automaton(startPosition, listOf(2 to 5 to 2, 2 to 7 to 1), 3, 0, 0.4) {
+                    safeGet(it).none { it<Obstacle>()?.blockView == true } && safeGet(it).any { it.has<Floor>() }
+                }
 
                 putDoors()
             }
@@ -83,8 +95,8 @@ class CorridorLevelFactory(context: Context) : BaseLevelFactory<Level>(context) 
 
 class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
     private val factories = listOf(
-            CaveLevelFactory(context),
-            CorridorLevelFactory(context)
+            CaveLevelFactory(context)
+//            CorridorLevelFactory(context)
     )
 
     override var size: Size = super.size

@@ -55,7 +55,7 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
                 if (it is Effect && !it.endless) {
                     it.duration -= time
                     if (it.duration <= 0) {
-                        it.entity.remove(it)
+                        it.detach()
                         if (it == first) {
                             return
                         }

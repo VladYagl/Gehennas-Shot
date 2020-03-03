@@ -95,16 +95,16 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
 data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
     override fun perform(context: UIContext): ActionResult {
         val pos = entity.one<Position>()
-        entity<MainHandSlot>()?.let { hand ->
+        entity.all<MeleeAttacker>().forEach { attacker ->
             pos.level.obstacle(pos + dir)?.let { victim ->
                 victim<Health>()?.let {
-                    val damageRoll = hand.damage.roll()
-                    logFor(victim, "$_Actor were hit by $entity with a ${hand.item?.entity
-                            ?: "fist"} for $damageRoll damage")
+                    val damageRoll = attacker.damage.roll()
+                    logFor(victim, "$_Actor were hit by $entity with a ${attacker.name} " +
+                            "for $damageRoll damage")
                     it.dealDamage(damageRoll, this)
                 }
             } ?: return fail().also {
-                logFor(entity, "$_Actor swings your ${hand.item?.entity ?: "fist"} in open space")
+                logFor(entity, "$_Actor swings your ${attacker.name} in open space")
             }
         } ?: return fail().also { logFor(entity, "$_Actor don't have a hand to attack") }
         return end()
@@ -127,7 +127,7 @@ data class ApplyEffect(
             effect.attach()
         } else if (replace) {
             entity(effect::class)?.let {
-                entity.remove(it)
+                it.detach()
             }
             effect.attach()
         }

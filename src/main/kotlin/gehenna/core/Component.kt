@@ -17,6 +17,8 @@ abstract class Component : Serializable {
 
     fun attach() = entity.add(this)
 
+    fun detach() = entity.remove(this)
+
     init {
         //todo is it possible to not subscribe if children is empty?
         //todo dependencies through annotations maybe?

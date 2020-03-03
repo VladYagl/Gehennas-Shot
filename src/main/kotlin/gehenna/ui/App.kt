@@ -215,8 +215,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     }
 
     private var camera = zero
-//    private val cameraBound = 15 at 15
-    private val cameraBound = 10 at 10
+    private val cameraBound = 15 at 15
+//    private val cameraBound = 10 at 10
 
     private var followPlayer: Boolean = true
     private var focus: Point = 0 at 0

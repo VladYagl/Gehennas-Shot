@@ -90,12 +90,12 @@ data class Gun(
 
     fun applyShootSpread() {
         curSpread = min(curSpread + shootSpread, maxSpread)
-        if (!spreadReducer.attached) entity.add(spreadReducer)
+        if (!spreadReducer.attached) spreadReducer.attach()
     }
 
     fun applyWalkSpread() {
         curWalkSpread = walkSpread
-        if (!spreadReducer.attached) entity.add(spreadReducer)
+        if (!spreadReducer.attached) spreadReducer.attach()
     }
 
     fun decSpread(dec: Double) {
@@ -112,6 +112,6 @@ data class Gun(
 
     fun fire(actor: Entity, dir: LineDir): Action? {
         if (magazine.isEmpty()) return action(actor, dir) // return gun action to get no ammo message
-        return ApplyEffect(actor, BurstFire(actor, dir, this), true, shootTime)
+        return ApplyEffect(BurstFire(actor, dir, this), true, shootTime)
     }
 }

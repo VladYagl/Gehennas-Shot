@@ -2,6 +2,7 @@ package gehenna.ui.panel
 
 import gehenna.component.Inventory
 import gehenna.component.Position
+import gehenna.component.Senses
 import gehenna.ui.*
 
 class ConsolePanel(private val context: UIContext) : GehennaPanel(100, 2, context.settings), InputListener {
@@ -18,10 +19,17 @@ class ConsolePanel(private val context: UIContext) : GehennaPanel(100, 2, contex
                 val words = command.split(' ')
                 when (words[0]) {
                     "spawn" -> context.player.one<Position>().spawnHere(context.factory.new(words[1]))
-                    "give" -> context.player.one<Inventory>().add(context.factory.new(words[1])()!!)
+                    "give" -> {
+                        repeat(words.getOrNull(2)?.toInt() ?: 1) {
+                            context.player.one<Inventory>().add(context.factory.new(words[1])()!!)
+                        }
+                    }
                     "find" -> context.log.addTemp(
                             context.player.one<Position>().level.getAll().find { it.name == words[1] }?.invoke<Position>().toString()
                     )
+                    "trueSight" -> {
+                        Senses.TrueSight(context.player).attach()
+                    }
                 }
             } catch (e: Throwable) {
                 context.printException(e)

@@ -105,7 +105,9 @@ private abstract class Target(
             val hand = context.player.one<MainHandSlot>()
             val gun = hand.gun ?: throw GehennaException("Targeting without a gun, why?")
             val ammo: Ammo? = gun.magazine.firstOrNull()
-            val range = context.player<Senses.Sight>()?.range ?: 100
+
+            val speed = gun.speed + (ammo?.speed ?: 0)
+            val range = ((ammo?.lifeTime ?: oneTurn) * (speed / Behaviour.normalSpeed) / 100).toInt() + 1
 
             //Calculating chance to hit the most retarded way possible: shooting 100 bullets and count how many hit
             val rand = Random(1488) // create new seeded random -> so results are always the same
@@ -124,7 +126,7 @@ private abstract class Target(
                 }
             }
 
-            val time = Behaviour.scaleTime(dir.max.toLong() * oneTurn, gun.speed + (ammo?.speed ?: 0))
+            val time = Behaviour.scaleTime(dir.max.toLong() * oneTurn, speed)
             context.log.addTemp("Bullet will reach its destination in $time with ${successCount}% chance")
 
             //            val color = context.hud.fgColor * 0.8 // TODO: constants

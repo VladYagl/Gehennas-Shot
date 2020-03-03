@@ -55,7 +55,7 @@ data class ItemStack(val items: Collection<Item>) : Component() {
 
 fun Collection<Item>.packStacks(): List<Item> {
     return this.filter { !it.stackable } + this.filter { it.stackable }.groupBy { it.entity.name }.map {
-        ItemStack(it.value).also { stack -> stack.entity.add(stack) }.item
+        ItemStack(it.value).also { stack -> stack.attach() }.item
     }
 }
 

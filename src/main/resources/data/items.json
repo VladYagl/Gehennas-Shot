@@ -76,11 +76,30 @@
         "ammo": {
             "type": "shell",
             "damage": "1d3",
-            "speed": 400
+            "speed": 400,
+            "lifeTime": 150
         },
         "projectileSpawner" : {
             "projectileName": "bullet",
             "amount": 5
+        },
+        "glyph": {
+            "char": 13
+        }
+    },
+
+    "b-shell": {
+        "name": "bouncing shell",
+        "ammo": {
+            "type": "shell",
+            "damage": "1d4",
+            "speed": 400,
+            "bounce": true,
+            "lifeTime": 100
+        },
+        "projectileSpawner" : {
+            "projectileName": "bullet",
+            "amount": 4
         },
         "glyph": {
             "char": 13

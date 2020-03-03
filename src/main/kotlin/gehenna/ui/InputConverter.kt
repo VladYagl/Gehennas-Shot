@@ -124,7 +124,9 @@ class TextInput(listener: InputListener) : InputConverter(listener) {
     )
 
     override fun consumeChar(char: Char): Input? {
-        return if (char.isLetterOrDigit() || char == ' ') Input.Char(char) else null
+        return if (char.isLetterOrDigit() || char == ' ' || char == '-' || char == '_' || char == '.' || char == ',')
+            Input.Char(char)
+        else null
     }
 }
 

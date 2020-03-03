@@ -15,6 +15,8 @@ abstract class Component : Serializable {
         handlers.add { event -> if (event is T) handler(event) }
     }
 
+    fun attach() = entity.add(this)
+
     init {
         //todo is it possible to not subscribe if children is empty?
         //todo dependencies through annotations maybe?

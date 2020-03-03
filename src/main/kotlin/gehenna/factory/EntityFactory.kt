@@ -45,7 +45,7 @@ class EntityFactory : JsonFactory<Entity> {
     ) {
         fun build(name: String) = Entity(customName ?: name).also { entity ->
             components.forEach { builder ->
-                entity.add(builder.build(entity))
+                builder.build(entity).attach()
             }
             mutators.forEach { mutator ->
                 mutator(entity)

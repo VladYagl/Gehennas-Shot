@@ -23,7 +23,7 @@ data class Ammo(
 
         val damage: Dice,
         val speed: Int,
-        val lifeTime: Long = 3 * oneTurn,
+        val lifeTime: Long = 2 * oneTurn,
         val bounce: Boolean = false,
 
         private val volume: Int = 0
@@ -41,19 +41,19 @@ data class ProjectileSpawner(
         private val projectileName: String,
         private val amount: Int = 1
 ) : ShootFunc() {
-    override fun invoke(pos: Position, dir: LineDir, gun:Gun, ammo: Ammo, context: UIContext) {
+    override fun invoke(pos: Position, dir: LineDir, gun: Gun, ammo: Ammo, context: UIContext) {
         repeat(amount) {
             val bullet = context.factory.new(projectileName)
             pos.spawnHere(bullet)
-            bullet.add(LineBulletBehaviour(
+            LineBulletBehaviour(
                     bullet,
                     random.nextLineDir(dir, gun.spread),
                     gun.damage + ammo.damage,
                     gun.speed + ammo.speed,
                     ammo.bounce,
                     gun.delay
-            ))
-            bullet.add(DestroyTimer(bullet, ammo.lifeTime))
+            ).attach()
+            DestroyTimer(bullet, ammo.lifeTime).attach()
         }
     }
 }

@@ -63,17 +63,6 @@ data class Shoot(
             val ammo = gun.magazine.remove()
             ammo.entity.any<ShootFunc>()?.invoke(pos, dir, gun, ammo, context)
                     ?: throw GehennaException("Ammo doesn't have ShootFunc!")
-//            val bullet = context.factory.new(ammo.projectileName)
-//            pos.spawnHere(bullet)
-//            bullet.add(LineBulletBehaviour(
-//                    bullet,
-//                    random.nextLineDir(dir, gun.spread),
-//                    gun.damage + ammo.damage,
-//                    gun.speed + ammo.speed,
-//                    ammo.bounce,
-//                    gun.delay
-//            ))
-//            bullet.add(DestroyTimer(bullet, ammo.lifeTime))
             gun.applyShootSpread()
             return end()
         }
@@ -123,24 +112,24 @@ data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
 }
 
 data class ApplyEffect(
-        private val entity: Entity,
         private val effect: Effect,
         private val replace: Boolean = false,
         override var time: Long = oneTurn
 ) : Action() {
     override fun perform(context: UIContext): ActionResult {
+        val entity = effect.entity
         if (!entity.has(effect::class)) {
             if (effect is Gun.BurstFire) {
                 logFor(entity, "$_Actor fire[s] ${effect.gun.entity}")
             } else {
                 logFor(entity, "$_Actor start[s] ${effect::class.simpleName}")
             }
-            entity.add(effect)
+            effect.attach()
         } else if (replace) {
             entity(effect::class)?.let {
                 entity.remove(it)
             }
-            entity.add(effect)
+            effect.attach()
         }
         return end()
     }

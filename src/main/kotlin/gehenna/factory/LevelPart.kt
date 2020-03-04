@@ -3,18 +3,15 @@ package gehenna.factory
 import gehenna.component.Floor
 import gehenna.core.Entity
 import gehenna.level.BasicLevel
-import gehenna.utils.*
+import gehenna.utils.Point
+import gehenna.utils.Size
+import gehenna.utils.maxOf
+import gehenna.utils.random
 
 interface LevelPart {
     fun spawnTo(to: Point, level: BasicLevel)
     fun needs(point: Point): Boolean
     val size: Size
-}
-
-sealed class EntityConfig {
-    data class Name(val name: String) : EntityConfig()
-    data class Multiple(val list: List<EntityConfig>) : EntityConfig()
-    data class Choice(val list: List<Pair<EntityConfig, Double>>) : EntityConfig()
 }
 
 class FixedPart(
@@ -29,10 +26,8 @@ class FixedPart(
     )
 
     private fun BasicLevel.spawn(config: EntityConfig, to: Point) {
-        when (config) {
-            is EntityConfig.Name -> spawn(factory.new(config.name), to)
-            is EntityConfig.Choice -> spawn(config.list.random(), to)
-            is EntityConfig.Multiple -> config.list.forEach { spawn(it, to) }
+        config.build(factory).forEach {
+            spawn(it, to)
         }
     }
 

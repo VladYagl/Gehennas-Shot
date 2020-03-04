@@ -11,7 +11,8 @@
 
     "album": {
         "item": {
-            "volume": 3
+            "volume": 3,
+            "stackable": true
         },
         "glyph": {
             "char": 168

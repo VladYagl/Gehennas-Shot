@@ -30,7 +30,6 @@
             }
         }
     },
-
     "player": {
         "super": "human",
         "glyph": {
@@ -42,8 +41,14 @@
             "max": 50
         },
         "mutators": {
-            "giveItem": {
-                "item": "pistol"
+            "equipItem": {
+                "item": {
+                    "choice": {
+                        "knife": 0.5,
+                        "pistol": 0.5
+                    }
+                },
+                "slot": "mainHandSlot"
             },
             "giveItem": {
                 "item": "9mmRound",
@@ -56,7 +61,6 @@
         "playerBehaviour": {},
         "logger": {}
     },
-
     "bandit": {
         "super": "human",
         "glyph": {
@@ -81,7 +85,6 @@
             "faction": "bandits"
         }
     },
-
     "strongBandit": {
         "super": "human",
         "name": "bandit",
@@ -107,7 +110,6 @@
             "faction": "bandits"
         }
     },
-
     "soloBandit": {
         "name": "prisoner",
         "super": "bandit",
@@ -115,7 +117,6 @@
             "faction": "solo"
         }
     },
-
     "dog": {
         "obstacle": {
             "blockView": false,
@@ -144,7 +145,6 @@
             "faction": "dogs"
         }
     },
-
     "dummy": {
         "name": "dummy",
         "glyph": {
@@ -162,7 +162,6 @@
         },
         "NoBehaviour": {}
     },
-
     "bullet": {
         "directionalGlyph": {
             "glyphs": {
@@ -181,14 +180,12 @@
         },
         "flying": {}
     },
-
     "test": {
         "glyph": {
             "char": 249,
             "priority": 10
         }
     },
-
     "wall": {
         "glyph": {
             "char": 178,
@@ -200,7 +197,6 @@
         },
         "reflecting": {}
     },
-
     "floor": {
         "glyph": {
             "char": 46,
@@ -209,7 +205,6 @@
         "floor": {
         }
     },
-
     "stairsDown": {
         "glyph": {
             "char": 62,
@@ -217,7 +212,6 @@
         },
         "stairs": {}
     },
-
     "stairsUp": {
         "glyph": {
             "char": 60,
@@ -225,7 +219,6 @@
         },
         "stairs": {}
     },
-
     "door": {
         "door": {
             "closedChar": 43,
@@ -233,6 +226,5 @@
         },
         "reflecting": {}
     },
-
     "nothing": {}
 }

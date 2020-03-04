@@ -12,17 +12,15 @@ interface EntityMutator : Serializable {
     fun mutate(entity: Entity)
 }
 
-interface ItemBuilder {
-    fun build(): Item
-}
+class Builder<T>(val build: () -> T)
 
-class GiveOneOf(private val items: ArrayList<ItemBuilder>) : EntityMutator {
+class GiveOneOf(private val items: Builder<List<Item>>) : EntityMutator {
     override fun mutate(entity: Entity) {
-        entity<Inventory>()?.add(items.random(random).build())
+        entity<Inventory>()?.add(items.build().random(random))
     }
 }
 
-class EquipItem(private val item: ItemBuilder, private val slot: KClass<out Component>) : EntityMutator {
+class EquipItem(private val item: Builder<Item>, private val slot: KClass<out Component>) : EntityMutator {
     override fun mutate(entity: Entity) {
         assert(slot.isSubclassOf(Slot::class)) { "$slot is not a subclass of Slot!" }
         val newItem = item.build()
@@ -31,7 +29,7 @@ class EquipItem(private val item: ItemBuilder, private val slot: KClass<out Comp
     }
 }
 
-class GiveItem(private val item: ItemBuilder, private val amount: Int = 1) : EntityMutator {
+class GiveItem(private val item: Builder<Item>, private val amount: Int = 1) : EntityMutator {
     override fun mutate(entity: Entity) {
         repeat(amount) {
             entity<Inventory>()?.add(item.build())

@@ -2,52 +2,53 @@ package gehenna.factory
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonReader
+import com.beust.klaxon.Klaxon
+import com.beust.klaxon.token.LEFT_BRACE
+import com.beust.klaxon.token.LEFT_BRACKET
 import gehenna.component.Item
 import gehenna.core.*
-import gehenna.exception.NotAnItemException
-import gehenna.exception.UnknownArgumentException
-import gehenna.exception.UnknownTypeException
+import gehenna.exception.*
 import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.toDice
 import kotlin.reflect.*
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
-import kotlin.reflect.jvm.jvmName
 
-val itemType = Item::class.createType(nullable = true)
-val itemTypeNoNull = Item::class.createType(nullable = false)
-val projection = KTypeProjection.invariant(itemTypeNoNull)
-val itemListType = ArrayList::class.createType(listOf(projection))
+private val itemTypeNoNull = Item::class.createType(nullable = false)
+private val projection = KTypeProjection.invariant(itemTypeNoNull)
+private val listProjection = KTypeProjection.invariant(List::class.createType(listOf(projection)))
+private val itemListType = ArrayList::class.createType(listOf(projection))
 
-val itemBuilderTypeNoNull = ItemBuilder::class.createType(nullable = false)
-val builderProjection = KTypeProjection.invariant(itemBuilderTypeNoNull)
-val itemBuilderListType = ArrayList::class.createType(listOf(builderProjection))
+private val itemBuilderTypeNoNull = Builder::class.createType(listOf(projection))
+private val itemListBuilderType = Builder::class.createType(listOf(listProjection))
 
-val componentProjection = KTypeProjection.covariant(Component::class.createType())
-val componentType = KClass::class.createType(listOf(componentProjection), nullable = false)
+private val componentProjection = KTypeProjection.covariant(Component::class.createType())
+private val componentType = KClass::class.createType(listOf(componentProjection), nullable = false)
+
+val klaxon = Klaxon().converter(EntityConfig.ConfigConverter)
+
+interface JsonConverter<T> {
+    fun fromString(config: String): T
+    fun fromArray(array: List<*>): T
+    fun fromObject(obj: JsonObject): T
+}
+
+inline fun <reified T> JsonReader.next(converter: JsonConverter<T>? = null): T {
+    lexer.nextToken()
+    return when (lexer.peek()) {
+        is LEFT_BRACE -> klaxon.parse<T>(this)!!
+        is LEFT_BRACKET -> converter!!.fromArray(nextArray())
+        else -> converter!!.fromString(nextString())
+    }
+}
 
 fun JsonReader.beginObject(parser: (String) -> Unit) {
     beginObject {
         while (hasNext()) {
             parser(nextName())
         }
-    }
-}
-
-fun JsonReader.beginArray(parser: (String) -> Unit) {
-    beginArray {
-        while (hasNext()) {
-            parser(nextName())
-        }
-    }
-}
-
-fun JsonReader.nextStringList() = ArrayList<String>().also { list ->
-    beginArray { name ->
-        list.add(name)
     }
 }
 
@@ -61,11 +62,12 @@ fun JsonReader.nextValueFromType(type: KType): Any {
         Char::class.createType() -> nextInt().toChar()
         Faction::class.createType() -> nextString()
         Dice::class.createType() -> nextString()
-        itemListType -> nextStringList()
-        itemType -> nextString()
-        itemTypeNoNull -> nextString()
-        itemBuilderTypeNoNull -> nextString()
-        itemBuilderListType -> nextStringList()
+
+        itemTypeNoNull -> next(EntityConfig.ConfigConverter)
+        itemListType -> next(EntityConfig.ConfigConverter)
+        itemBuilderTypeNoNull -> next(EntityConfig.ConfigConverter)
+        itemListBuilderType -> next(EntityConfig.ConfigConverter)
+
         componentType -> nextString()
         else -> {
             if (type.jvmErasure.isSubclassOf(Enum::class)) {
@@ -98,34 +100,19 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
         Faction::class.createType() -> {
             (value as String).toFaction()
         }
-        itemListType -> {
-            @Suppress("UNCHECKED_CAST")
-            (value as List<String>).map {
-                factory.new(it)<Item>() ?: throw NotAnItemException(it)
-            }
-        }
-        itemBuilderListType -> {
-            @Suppress("UNCHECKED_CAST")
-            (value as List<String>).map {
-                object : ItemBuilder {
-                    override fun build(): Item {
-                        return factory.new(it as String)<Item>()!!
-                    }
-                }
-            }
-        }
-        itemType -> {
-            factory.new(value as String)<Item>()
-        }
         itemTypeNoNull -> {
-            factory.new(value as String)<Item>()!!
+            val list = (value as EntityConfig).build(factory)
+            assert(list.size == 1)
+            list.first().one<Item>()
+        }
+        itemListType -> {
+            (value as EntityConfig).build(factory).map { it.one<Item>() }
         }
         itemBuilderTypeNoNull -> {
-            object : ItemBuilder {
-                override fun build(): Item {
-                    return factory.new(value as String)<Item>()!!
-                }
-            }
+            Builder { (value as EntityConfig).build(factory).first().one<Item>() }
+        }
+        itemListBuilderType -> {
+            Builder { (value as EntityConfig).build(factory).map { it.one<Item>() } }
         }
         componentType -> {
             factory.componentClassByName(value as String)

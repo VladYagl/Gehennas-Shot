@@ -30,6 +30,20 @@ sealed class Senses : Component() {
         data class Saw(val entity: Entity) : Entity.Event
     }
 
+    data class Smell(override val entity: Entity, val range: Int) : Senses() {
+        override fun isVisible(point: Point): Boolean = (entity.one<Position>() - point).max <= range
+
+        override fun visitFov(visitor: (Entity, Point) -> Unit) {
+            entity<Position>()?.let { pos ->
+                for (point in pos.level.size.range) {
+                    if ((point - pos).max <= range) {
+                        pos.level[point].forEach { entity -> visitor(entity, point) }
+                    }
+                }
+            }
+        }
+    }
+
     data class TrueSight(override val entity: Entity) : Senses() {
         override fun isVisible(point: Point): Boolean = true
 

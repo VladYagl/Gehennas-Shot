@@ -14,6 +14,7 @@ import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelFactory
 import gehenna.level.StubLevelFactory
 import gehenna.ui.panel.GehennaPanel
+import gehenna.ui.state.State
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
@@ -164,13 +165,16 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     private fun initInfo() {
         ui.info.addItem(fpsText)
         ui.info.addItem(timeText)
+
         ui.info.addItem(hpText)
         ui.info.addItem(effectsText)
-        ui.info.addItem(inventoryText)
+
         ui.info.addItem(gunText)
         ui.info.addItem(ammoText)
         ui.info.addItem(dmgText)
         ui.info.addItem(spreadText)
+
+        ui.info.addItem(inventoryText)
         itemsList.forEach { ui.info.addItem(it) }
         ui.info.addItem(enemiesText)
         enemiesList.forEach { ui.info.addItem(it) }
@@ -187,12 +191,29 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         hpText.line = "HP : " + game.player<Health>()?.current + " / " + game.player<Health>()?.max
         effectsText.line = "Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }
         inventoryText.line = "Inventory ${storage.currentVolume}/${storage.maxVolume}"
-        gunText.line = "Equipped gun: ${hand.gun?.entity}"
+
         val gun = hand.gun
-        val dice = gun?.fullDamage ?: Dice.Const(0)
-        ammoText.line = "${195.toChar()}--Ammo: ${gun?.magazine?.size} / ${gun?.magazine?.capacity}"
-        dmgText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
-        spreadText.line = "${195.toChar()}--Spread: ${((gun?.spread ?: 0.0) / PI * 180).format(0)}${248.toChar()}"
+        val item = hand.item
+        if (gun != null) {
+            gunText.line = "Equipped gun: ${gun.entity}"
+            val dice = gun.fullDamage
+            ammoText.line = "${195.toChar()}--Ammo: ${gun.magazine.size} / ${gun.magazine.capacity}"
+            dmgText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
+            spreadText.line = "${195.toChar()}--Spread: ${(gun.spread / PI * 180).format(0)}${248.toChar()}"
+        } else {
+            dmgText.line = ""
+            spreadText.line = ""
+
+            if (item != null) {
+                gunText.line = "Equipped weapon: ${item.entity}"
+            } else {
+                gunText.line = "Nothing equipped (fight bare handed)"
+            }
+
+            val dice = hand.damage
+            ammoText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
+        }
+
 
         itemsList.forEach { it.line = "" }
         storage.stacks.take(10).forEachIndexed { index, item ->
@@ -229,7 +250,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         followPlayer = true
     }
 
-    private fun moveCamera(playerPos: Point) {
+    private fun moveCamera(playerPos: Point): Point {
         var x = camera.x
         var y = camera.y
         if (playerPos.x < camera.x + cameraBound.x) {
@@ -246,14 +267,14 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             y = playerPos.y + cameraBound.y - ui.worldSize.height + 1
         }
 
-        camera = x at y
+        return x at y
     }
 
     private fun inView(point: Point): Boolean {
         return point - camera in ui.worldSize
     }
 
-    private fun viewPoint(point: Point): Point {
+    private fun viewPoint(point: Point, camera: Point = this.camera): Point {
         return point - camera
     }
 
@@ -275,7 +296,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
     fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color, bg: Color) {
         val point = x at y
         if (inView(point)) {
-            val viewPoint = viewPoint(point)
+            val viewPoint = viewPoint(point, moveCamera(focus))
             ui.hud.putChar(char, viewPoint.x, viewPoint.y, fg, bg)
         }
     }
@@ -288,7 +309,8 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         val playerPos = game.player.one<Position>()
         val playerBehaviour = game.player.one<PlayerBehaviour>()
         val level = playerPos.level
-        if (followPlayer) {
+
+        camera = if (followPlayer) {
             moveCamera(playerPos)
         } else {
             moveCamera(focus)

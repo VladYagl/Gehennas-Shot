@@ -8,8 +8,9 @@ import java.awt.Color
 open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel(width, height, settings, true), InputListener {
     override val keyHandler: InputConverter = MenuInput(this)
 
-    var focusedItem: MenuItem? = null
-    private val items = ArrayList<MenuItem>()
+    val items = ArrayList<MenuItem>()
+    private var scroll: Int = 0
+    private var focusedItem: MenuItem? = null
     private var onCancel = {}
     private var onAccept = {
         focusedItem?.let { it.select() }
@@ -47,8 +48,33 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
     }
 
     fun update() {
-        @Suppress("UNNECESSARY_SAFE_CALL") // todo because it's repaints before creating
-        items?.forEachIndexed { index, item -> if (index < size.height - 1) item.draw(index, this) }
+        @Suppress("SENSELESS_COMPARISON") // because repaint is called before constructor for some reason
+        if (items != null) {
+            for (i in scroll until (scroll + size.height - 1)) {
+                items.getOrNull(i)?.draw(i - scroll, this)
+            }
+        }
+    }
+
+    private fun moveFocus(fullDir: Dir) {
+        val dir = if (fullDir == Dir.north) -1 else +1
+        focusedItem = if (focusedItem == null) {
+            items.first()
+        } else {
+            focusedItem?.unfocus()
+            val id = items.indexOf(focusedItem!!)
+            val newId = (items.size + id + dir) % items.size
+
+            while (newId > scroll + size.height - 1) {
+                scroll++
+            }
+
+            while (newId < scroll) {
+                scroll--
+            }
+
+            items.getOrNull(newId)
+        }
     }
 
     override fun onInput(input: Input) = when (input) {
@@ -64,21 +90,10 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
         is Input.Direction -> {
             if (input.dir == Dir.north || input.dir == Dir.south) {
                 //todo: i dont like how it looks but whatever
-                val dir = if (input.dir == Dir.north) -1 else +1
-                focusedItem = if (focusedItem == null) {
-                    items.first()
-                } else {
-                    focusedItem?.unfocus()
-                    val id = items.indexOf(focusedItem!!)
-                    val newId = (items.size + id + dir) % items.size
-                    items.getOrNull(newId)
-                }
+                moveFocus(input.dir)
                 var cnt = 0
                 while (focusedItem?.focus() != true && cnt++ < items.size) {
-                    focusedItem?.unfocus()
-                    val id = items.indexOf(focusedItem!!)
-                    val newId = (items.size + id + dir) % items.size
-                    focusedItem = items.getOrNull(newId)
+                    moveFocus(input.dir)
                 }
                 true
             } else if (input.dir == Dir.west || input.dir == Dir.east) {
@@ -94,6 +109,14 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
         }
         Input.Accept -> {
             onAccept()
+            true
+        }
+        Input.ScrollDown -> {
+            scroll = kotlin.math.min(scroll + 1, items.size - size.height)
+            true
+        }
+        Input.ScrollUp -> {
+            scroll = kotlin.math.max(scroll - 1, 0)
             true
         }
         else -> false

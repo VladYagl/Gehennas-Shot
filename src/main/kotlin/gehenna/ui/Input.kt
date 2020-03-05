@@ -32,4 +32,7 @@ sealed class Input {
 
     object Cancel : Input()
     object Accept : Input()
+
+    object ScrollDown: Input()
+    object ScrollUp: Input()
 }

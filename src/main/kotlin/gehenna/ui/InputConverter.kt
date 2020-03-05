@@ -55,6 +55,9 @@ abstract class InputConverter(private val listener: InputListener) : KeyEventDis
             VK_BACK_SPACE -> "BACK_SPACE"
             VK_ENTER -> "ENTER"
             VK_SPACE -> "SPACE"
+
+            VK_PAGE_DOWN -> "PAGE_DOWN"
+            VK_PAGE_UP -> "PAGE_UP"
             else -> null
         }
     }
@@ -134,7 +137,9 @@ class MenuInput(listener: InputListener) : InputConverter(listener) {
     override val keyMap: HashMap<String, Input> = hashMapOf(
             "ESC" to Input.Cancel,
             "ENTER" to Input.Accept,
-            "SPACE" to Input.Accept
+            "SPACE" to Input.Accept,
+            "PAGE_UP" to Input.ScrollUp,
+            "PAGE_DOWN" to Input.ScrollDown
     )
 
     override fun consumeKey(e: KeyEvent): Input? {

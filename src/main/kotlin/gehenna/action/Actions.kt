@@ -158,8 +158,9 @@ data class ClimbStairs(private val entity: Entity, private val stairs: Stairs) :
 data class Pickup(private val entity: Entity, private val items: List<Item>) : Action(45) {
     override fun perform(context: UIContext): ActionResult {
         items.forEach { item ->
-            item.entity.remove<Position>()
-            entity.one<Inventory>().add(item)
+            if (entity.one<Inventory>().add(item)) {
+                item.entity.remove<Position>()
+            }
         }
         logFor(entity, "$_Actor picked up: " + items.packStacks().joinToString { it.entity.name })
         return end()

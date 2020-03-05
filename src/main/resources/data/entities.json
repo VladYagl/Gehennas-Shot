@@ -126,6 +126,9 @@
         "teeth": {
             "damage": "3d4"
         },
+        "inventory": {
+            "maxVolume": 30
+        },
         "glyph": {
             "char": 101,
             "priority": 100,
@@ -133,6 +136,9 @@
         },
         "sight": {
             "range": 20
+        },
+        "smell": {
+            "range": 5
         },
         "health": {
             "max": 10

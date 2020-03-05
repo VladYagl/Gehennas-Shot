@@ -112,11 +112,15 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
             true
         }
         Input.ScrollDown -> {
-            scroll = kotlin.math.min(scroll + 1, items.size - size.height)
+            if (items.size > size.height) {
+                scroll = kotlin.math.min(scroll + 1, items.size - size.height)
+            }
             true
         }
         Input.ScrollUp -> {
-            scroll = kotlin.math.max(scroll - 1, 0)
+            if (items.size > size.height) {
+                scroll = kotlin.math.max(scroll - 1, 0)
+            }
             true
         }
         else -> false

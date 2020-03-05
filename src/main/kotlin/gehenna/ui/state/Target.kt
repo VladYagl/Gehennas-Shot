@@ -123,7 +123,7 @@ abstract class Target(
             context.player<PlayerBehaviour>()?.let { player ->
                 context.player.all<Senses>().forEach { sense ->
                     sense.visitFov { entity, point ->
-                        if (entity.any<CharacterBehaviour>()?.faction?.isEnemy(player.faction) == true) {
+                        if (entity.any<CharacterBehaviour>()?.faction?.isEnemy(player.faction) == true && entity != context.player) {
                             if ((target equals playerPos) || (target - playerPos).max > (point - playerPos).max) {
                                 target = point
                             }

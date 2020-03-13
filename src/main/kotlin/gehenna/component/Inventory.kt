@@ -54,21 +54,25 @@ data class ItemStack(val items: Collection<Item>) : Component() {
 }
 
 fun Collection<Item>.packStacks(): List<Item> {
-    return this.filter { !it.stackable } + this.filter { it.stackable }.groupBy { it.entity.name }.map {
+    val list = this.toList()
+    return list.filter { !it.stackable } + list.filter { it.stackable }.groupBy { it.entity.name }.map {
         ItemStack(it.value).also { stack -> stack.attach() }.item
     }
 }
 
 fun Collection<Item>.unpackStacks(): List<Item> {
-    return this.filter { !it.entity.has<ItemStack>() } + this.mapNotNull { it.entity<ItemStack>()?.items }.flatten()
+    val list = this.toList()
+    return list.filter { !it.entity.has<ItemStack>() } + list.mapNotNull { it.entity<ItemStack>()?.items }.flatten()
 }
 
 fun Collection<Entity>.packEntities(): List<Entity> {
-    return this.filter { !it.has<Item>() } + this.mapNotNull { it<Item>() }.packStacks().map { it.entity }
+    val list = this.toList()
+    return list.filter { !it.has<Item>() } + list.mapNotNull { it<Item>() }.packStacks().map { it.entity }
 }
 
 fun Collection<Entity>.unpackEntities(): List<Entity> {
-    return this.filter { !it.has<ItemStack>() } + this.mapNotNull { it<ItemStack>()?.items }.flatten().map { it.entity }
+    val list = this.toList()
+    return list.filter { !it.has<ItemStack>() } + list.mapNotNull { it<ItemStack>()?.items }.flatten().map { it.entity }
 }
 
 data class Inventory(

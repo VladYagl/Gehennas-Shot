@@ -2,6 +2,15 @@ package gehenna.ui.panel
 
 import gehenna.ui.*
 
+private fun calcChar(index: Int): Char? {
+    val letters = 'z' - 'a'
+    return when {
+        index < letters -> 'a' + index
+        index - letters < letters -> 'A' + index - letters
+        else -> null
+    }
+}
+
 class SelectPanel<T>(
         context: UIContext,
         items: Iterable<T>,
@@ -16,7 +25,7 @@ class SelectPanel<T>(
             addItem(ButtonItem(toString(item), {
                 onSelect(item)
                 context.removeWindow(this)
-            }, 'a' + index))
+            }, calcChar(index)))
         }
         setOnCancel {
             context.log.addTemp("Never mind")
@@ -34,7 +43,7 @@ class MultiSelectPanel<T>(
 ) : MenuPanel(100, 30, context.settings) {
 
     private val checkBoxes: List<Pair<CheckItem, T>> = items.mapIndexed { index, item ->
-        CheckItem(toString(item), 'a' + index) to item
+        CheckItem(toString(item), calcChar(index)) to item
     }
 
     init {

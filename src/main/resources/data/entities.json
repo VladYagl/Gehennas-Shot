@@ -12,7 +12,7 @@
             "max": 10
         },
         "inventory": {
-            "maxVolume": 200
+            "maxVolume": 2000
         },
         "mainHandSlot": {},
         "passiveHeal": {

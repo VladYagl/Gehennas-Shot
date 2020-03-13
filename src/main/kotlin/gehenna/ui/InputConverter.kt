@@ -93,6 +93,7 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
             "+<" to Input.ClimbStairs,
             "o" to Input.Open,
             "/" to Input.Wait,
+            "+?" to Input.Help,
             "c" to Input.Close,
             "`" to Input.Console,
             "§" to Input.Console,

@@ -5,10 +5,7 @@ import gehenna.action.*
 import gehenna.component.*
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
-import gehenna.ui.ButtonItem
-import gehenna.ui.Input
-import gehenna.ui.TextItem
-import gehenna.ui.UIContext
+import gehenna.ui.*
 import gehenna.ui.panel.ConsolePanel
 import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
@@ -108,6 +105,25 @@ class Normal(private val context: UIContext) : State() {
                 })
                 this to true
             }
+        }
+        is Input.Help -> {
+            context.addWindow(MenuPanel(100, 30, context.settings).apply {
+                setOnCancel { context.removeWindow(this) }
+                addItem(TextItem("CONTROLS", alignment = Alignment.center))
+                addItem(TextItem("Use Numpad / vim-keys / arrow-keys for movement", alignment = Alignment.center))
+                addItem(TextItem("Use Shift + (Numpad / vim-keys / arrow-keys) for walking in direction", alignment = Alignment.center))
+                GameInput(object : InputListener {
+                    override fun onInput(input: Input): Boolean = false
+                }).keyMap.forEach { (key, command) ->
+                    val k = if (key.first() == '+') "Shift + " + key.drop(1) else key
+                    println("$k --- ${command::class.simpleName}")
+                    addItem(TextItem(
+                            "    ${k.padEnd(10)} -- ${command::class.simpleName!!.toString().padStart(15)}",
+                            alignment = Alignment.center
+                    ))
+                }
+            })
+            this to true
         }
         Input.Drop -> {
             context.addWindow(MultiSelectPanel(

@@ -90,7 +90,7 @@ open class GehennaPanel(
                 } else {
                     false
                 }
-                assert(line[i + 1] == '{')
+                assert(line[i + 1] == '{') { "Wrong color command in text" }
                 i += 2
                 while (line[i] != '}') {
                     color += line[i]

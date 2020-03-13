@@ -87,7 +87,7 @@
     },
     "strongBandit": {
         "super": "human",
-        "name": "bandit",
+        "name": "elite bandit",
         "glyph": {
             "char": 0,
             "priority": 100,
@@ -110,6 +110,32 @@
             "faction": "bandits"
         }
     },
+    "shotgunBandit": {
+        "super": "human",
+        "name": "scout bandit",
+        "glyph": {
+            "char": 0,
+            "priority": 100,
+            "memorable": false
+        },
+        "mutators": {
+            "equipItem": {
+                "item": "shotgun",
+                "slot": "mainHandSlot"
+            },
+            "giveItem": {
+                "item": "shell",
+                "amount": 20
+            }
+        },
+        "health": {
+            "max": 15
+        },
+        "MonsterBehaviour": {
+            "faction": "bandits",
+            "speed": 110
+        }
+    },
     "soloBandit": {
         "name": "prisoner",
         "super": "bandit",
@@ -124,7 +150,8 @@
             "blockPath": false
         },
         "teeth": {
-            "damage": "3d4"
+            "damage": "3d4",
+            "time": 40
         },
         "inventory": {
             "maxVolume": 30

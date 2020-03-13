@@ -141,7 +141,7 @@ class Normal(private val context: UIContext) : State() {
                     "Use what?",
                     toString = { it.entity.toString() }
             ) {
-                context.action = it.entity.any<Consumable>()?.apply(context.player)
+                context.action = it.unstack().entity.any<Consumable>()?.apply(context.player)
             })
             this to true
         }
@@ -156,9 +156,7 @@ class Normal(private val context: UIContext) : State() {
                     setOnCancel { context.removeWindow(this) }
                     addItem(TextItem("${selectedItem.entity} -- vol.: ${selectedItem.volume}"))
 
-                    val stack = selectedItem.entity<ItemStack>()
-                    val trueItem = stack?.items?.first() ?: selectedItem
-                    trueItem.entity.any<Consumable>()?.let { usableItem ->
+                    selectedItem.unstack().entity.any<Consumable>()?.let { usableItem ->
                         addItem(ButtonItem("Use", {
                             context.action = usableItem.apply(context.player)
                             context.removeWindow(this)

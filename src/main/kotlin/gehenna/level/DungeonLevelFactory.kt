@@ -25,12 +25,12 @@ class CaveLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
 
                 rect(startPosition - (2 at 2), Size(4, 4))
 
-                listOf("dog_cave").random().let { room ->
-//                listOf(
-//                        "dog_cave" to 0.2,
-//                        "hall" to 0.1,
-//                        (null as String?) to 0.7
-//                ).random()?.let { room ->
+//                listOf("dog_cave").random().let { room ->
+                listOf(
+                        "dog_cave" to 0.2,
+                        "hall" to 0.1,
+                        (null as String?) to 0.7
+                ).random()?.let { room ->
                     val part = partFactory.new(room)
                     part.spawnTo(random.nextPoint((size - part.size).size), this)
                 }

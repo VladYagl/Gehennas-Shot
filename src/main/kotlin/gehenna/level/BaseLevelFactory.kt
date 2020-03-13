@@ -197,15 +197,18 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         return Pair(color, colors)
     }
 
-    protected fun Level.placeStairs(previous: Level?, startPosition: Point, backPoint: Point?) {
-        //TODO: change it -> level factory can manage stairs down
+    private fun Level.getRandomPointAway(from: Point, dist: Int): Point {
         while (true) {
             val point = random.nextPoint(size)
-            if (isWalkable(point) && findPath(startPosition, point)?.size ?: 0 > 25) {
-                spawn(factory.new("stairsDown"), point)
-                break
+            if (isWalkable(point) && findPath(from, point)?.size ?: 0 > dist) {
+                return point
             }
         }
+    }
+
+    protected fun Level.placeStairs(previous: Level?, startPosition: Point, backPoint: Point?) {
+        //TODO: change it -> level factory can manage stairs down
+        spawn(factory.new("stairsDown"), getRandomPointAway(startPosition, 25))
 
         previous?.let {
             backPoint?.let {
@@ -216,25 +219,28 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         }
     }
 
-    private fun Level.spawnEnemies() {
-        //Place bandits depending on level
-        if (depth == 0) repeat(random.nextInt(6) + 4) {
-            while (true) {
-                val point = random.nextPoint(size)
-                if (isWalkable(point)) {
-                    spawn(factory.new("bandit"), point)
-                    break
-                }
-            }
+    private fun Level.createEnemy(): Entity {
+        return if (depth == 0)
+            listOf(
+                    "bandit" to 0.95,
+                    "soloBandit" to 0.05
+            ).random().let { factory.new(it) }
+        else {
+            val hard = ((depth.toDouble() + 1) / 4) * 0.65
+            val easy = 0.65 - hard
+            listOf(
+                    "bandit" to easy,
+                    "strongBandit" to hard,
+                    "shotgunBandit" to 0.3,
+                    "soloBandit" to 0.05
+            ).random().let { factory.new(it) }
         }
-        else repeat(random.nextInt(6) + 4) {
-            while (true) {
-                val point = random.nextPoint(size)
-                if (isWalkable(point)) {
-                    spawn(factory.new("strongBandit"), point)
-                    break
-                }
-            }
+    }
+
+    private fun Level.spawnEnemies(startPosition: Point) {
+        //Place bandits depending on level
+        repeat(random.nextInt(6 + depth) + 4) {
+            spawn(createEnemy(), getRandomPointAway(startPosition, 15))
         }
     }
 
@@ -254,6 +260,6 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         box(zero, size)
         allWalls()
 
-        spawnEnemies()
+        spawnEnemies(startPosition)
     }
 }

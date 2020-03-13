@@ -99,7 +99,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                     uiJob.join()
                     false
                 }
-                game.player<Position>()?.level?.depth == 5 -> {
+                game.player<Position>()?.level?.depth == 4 -> {
                     ui.addWindow(GehennaPanel(19, 4, context.settings, keyHandler = MenuInput(object : InputListener {
                         override fun onInput(input: Input) = when (input) {
                             Input.Accept, Input.Cancel -> exitProcess(0)

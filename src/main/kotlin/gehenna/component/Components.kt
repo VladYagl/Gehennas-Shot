@@ -72,7 +72,7 @@ data class Reflecting(override val entity: Entity) : Component()
 
 data class Flying(override val entity: Entity) : Component()
 
-data class MeleeWeapon(override val entity: Entity, val damage: Dice) : Component()
+data class MeleeWeapon(override val entity: Entity, val damage: Dice, val time: Long) : Component()
 
 data class Door(
         override val entity: Entity,

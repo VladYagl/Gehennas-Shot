@@ -1,5 +1,6 @@
 package gehenna.component
 
+import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.utils.Dice
@@ -75,6 +76,16 @@ fun Collection<Entity>.unpackEntities(): List<Entity> {
     return list.filter { !it.has<ItemStack>() } + list.mapNotNull { it<ItemStack>()?.items }.flatten().map { it.entity }
 }
 
+fun Entity.unstack(): Entity {
+    val stack = this<ItemStack>()
+    return stack?.items?.first()?.entity ?: this
+}
+
+fun Item.unstack(): Item {
+    val stack = this.entity<ItemStack>()
+    return stack?.items?.first() ?: this
+}
+
 data class Inventory(
         override val entity: Entity,
         val maxVolume: Int,
@@ -120,10 +131,11 @@ data class Inventory(
 
 interface MeleeAttacker {
     val damage: Dice
+    val time: Long
     val name: String
 }
 
-data class Teeth(override val entity: Entity, override val damage: Dice) : Component(), MeleeAttacker {
+data class Teeth(override val entity: Entity, override val damage: Dice, override val time: Long) : Component(), MeleeAttacker {
     override val name: String = "sharp teeth"
 }
 
@@ -140,6 +152,16 @@ data class MainHandSlot(override val entity: Entity, override var item: Item? = 
                 "d3".toDice() // TODO: Fist damage
             } else {
                 item.entity<MeleeWeapon>()?.damage ?: Dice.SingleDice(item.volume / 5)
+            }
+        }
+
+    override val time: Long
+        get() {
+            val item = item
+            return if (item == null) {
+                33 // TODO: Fist damage
+            } else {
+                item.entity<MeleeWeapon>()?.time ?: oneTurn
             }
         }
 }

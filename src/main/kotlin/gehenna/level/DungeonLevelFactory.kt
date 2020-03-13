@@ -95,7 +95,7 @@ class CorridorLevelFactory(context: Context) : BaseLevelFactory<Level>(context) 
 
 class DungeonLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
     private val factories = listOf(
-//            CaveLevelFactory(context)
+            CaveLevelFactory(context),
             CorridorLevelFactory(context)
     )
 

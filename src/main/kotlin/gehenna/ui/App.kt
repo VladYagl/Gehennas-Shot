@@ -199,7 +199,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
             val dice = gun.fullDamage
             ammoText.line = "${195.toChar()}--Ammo: ${gun.magazine.size} / ${gun.magazine.capacity}"
             dmgText.line = "${195.toChar()}--${dice.mean.format(1)}${241.toChar()}${dice.std.format(1)} | $dice"
-            spreadText.line = "${195.toChar()}--Spread: ${(gun.spread / PI * 180).format(0)}${248.toChar()}"
+            spreadText.line = "${195.toChar()}--Spread: ${(gun.spread / PI * 180 * 2).format(0)}${248.toChar()}"
         } else {
             dmgText.line = ""
             spreadText.line = ""

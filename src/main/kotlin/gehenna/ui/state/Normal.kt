@@ -28,10 +28,19 @@ class Normal(private val context: UIContext) : State() {
         )
     }
 
+    private fun useStairs(): Pair<Normal, Boolean> {
+        val pos = context.player.one<Position>()
+        pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
+            context.action = ClimbStairs(context.player, stairs)
+        } ?: context.log.addTemp("There is no stairs here")
+        return this to true
+    }
+
     override fun handleInput(input: Input) = when (input) {
         is Input.Direction -> {
             if (input.dir == Dir.zero) {
-                context.action = Wait
+//                context.action = Wait
+                context.action = Move(context.player, input.dir)
                 this to true
             } else {
                 val playerPos = context.player.one<Position>()
@@ -60,10 +69,15 @@ class Normal(private val context: UIContext) : State() {
         }
         is Input.Run -> {
             if (input.dir == Dir.zero) {
-                context.action = Move(context.player, input.dir)
+//                context.action = Move(context.player, input.dir)
+                useStairs()
             } else {
                 context.player<PlayerBehaviour>()?.walk(input.dir)
             }
+            this to true
+        }
+        Input.Wait -> {
+            context.action = Wait
             this to true
         }
         Input.Cancel -> {
@@ -189,11 +203,7 @@ class Normal(private val context: UIContext) : State() {
             this to true
         }
         Input.ClimbStairs -> {
-            val pos = context.player.one<Position>()
-            pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
-                context.action = ClimbStairs(context.player, stairs)
-            } ?: context.log.addTemp("There is no stairs here")
-            this to true
+            useStairs()
         }
         Input.Open -> UseDoor(context, false) to true
         Input.Close -> UseDoor(context, true) to true

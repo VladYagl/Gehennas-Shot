@@ -8,6 +8,7 @@ sealed class Input {
     data class Direction(val dir: Dir) : Input()
     data class Run(val dir: Dir) : Input()
 
+    object Wait : Input()
     object Pickup : Input()
     object Drop : Input()
     object Use : Input()

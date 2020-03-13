@@ -150,15 +150,15 @@
             "speed": 900,
 
             "delay": 10,
-            "burstCount": 3,
+            "burstCount": 6,
             "time": 33,
             "volume": 50,
 
             "minSpread": 0.08,
-            "maxSpread": 0.5,
-            "shootSpread": 0.15,
-            "walkSpread": 0.325,
-            "spreadReduce": 0.015,
+            "maxSpread": 0.42,
+            "shootSpread": 0.1,
+            "walkSpread": 0.3,
+            "spreadReduce": 0.02,
             "spreadReduceTick": 10
         },
         "glyph": {

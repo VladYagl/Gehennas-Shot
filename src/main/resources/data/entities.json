@@ -148,6 +148,7 @@
         },
         "MonsterBehaviour": {
             "speed": 190,
+            "canOpenDoors": false,
             "faction": "dogs"
         }
     },

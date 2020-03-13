@@ -82,7 +82,7 @@ abstract class Target(
             val rand = Random(1488) // create new seeded random -> so results are always the same
             var successCount = 0
             if (dir.max > 0) {
-                for (i in (1..100)) { // TODO: this might be too much
+                for (i in (1..100)) {
                     val randDir = rand.nextLineDir(dir, gun.spread)
                     randDir.walkLine(playerPos, dir.max, playerPos.level) {
                         if (it equals (playerPos + dir.point)) {

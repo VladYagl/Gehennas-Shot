@@ -36,7 +36,7 @@ class Normal(private val context: UIContext) : State() {
             } else {
                 val playerPos = context.player.one<Position>()
 
-                // check for closed do
+                // check for closed door
                 playerPos.level[playerPos + input.dir].firstNotNullResult {
                     if (it<Door>()?.closed == true) it<Door>() else null
                 }?.let { door ->

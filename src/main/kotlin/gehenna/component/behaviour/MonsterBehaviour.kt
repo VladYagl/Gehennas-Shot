@@ -1,17 +1,16 @@
 package gehenna.component.behaviour
 
+import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.*
 import gehenna.component.*
-import gehenna.core.Action
+import gehenna.core.*
 import gehenna.core.Action.Companion.oneTurn
-import gehenna.core.Entity
-import gehenna.core.Faction
-import gehenna.core.PredictableBehaviour
 import gehenna.utils.*
 
 data class MonsterBehaviour(
         override val entity: Entity,
-        override val faction: Faction,
+        override val faction: Faction = SoloFaction,
+        private val canOpenDoors: Boolean = true,
         override var waitTime: Long = random.nextLong(100),
         override val speed: Int = 100) : CharacterBehaviour() {
     var target: Position? = null
@@ -24,7 +23,7 @@ data class MonsterBehaviour(
         var newTarget: Position? = null
         entity.all<Senses>().forEach { sense ->
             sense.visitFov { obj, point ->
-                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(point)
+//                if (obj != entity && obj<Obstacle>()?.blockMove == true) dangerZone.add(point)
                 obj.any<PredictableBehaviour<Any>>()?.let { bullets.add(it) }
                 obj.any<CharacterBehaviour>()?.let { behaviour ->
                     if (faction.isEnemy(behaviour.faction)
@@ -85,7 +84,20 @@ data class MonsterBehaviour(
     private fun goto(target: Position): Action? {
         return pos.findPath(target)?.firstOrNull()?.let { next ->
             val dir = next.x - pos.x on next.y - pos.y
-            if (next !in dangerZone) Move(entity, dir)
+
+            // Check if next is dangerous (in path of bullets)
+            if (next !in dangerZone) {
+
+                // Check for closed doors
+                pos.level[pos + dir].firstNotNullResult {
+                    if (it<Door>()?.closed == true) it<Door>() else null
+                }?.let {door ->
+                    return UseDoor(door, close = false)
+                }
+
+                // Otherwise move to target
+                Move(entity, dir)
+            }
             else {
                 val left = dir.turnLeft
                 val right = dir.turnRight

@@ -137,10 +137,25 @@
         }
     },
     "soloBandit": {
+        "super": "human",
         "name": "prisoner",
-        "super": "bandit",
+        "glyph": {
+            "char": 234,
+            "priority": 100,
+            "memorable": false
+        },
+        "mutators": {
+            "equipItem": {
+                "item": "knife",
+                "slot": "mainHandSlot"
+            }
+        },
+        "health": {
+            "max": 15
+        },
         "MonsterBehaviour": {
-            "faction": "solo"
+            "faction": "solo",
+            "speed": 100
         }
     },
     "dog": {

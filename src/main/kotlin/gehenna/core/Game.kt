@@ -71,15 +71,20 @@ class Game(override val factory: Factory<Entity>, override val partFactory: Fact
                 if (result.addToQueue) actionQueue.add(first)
 
                 val sight = player<Senses.Sight>()
-//            sight?.visitFov { _, _ -> } // I needed this to show player that he saw enemy
-                result.logEntries.asSequence().filter { entry: LogEntry ->
+                if (first.entity == player) {
+                    sight?.visitFov { _, _ -> } // update fov for player
+                }
+                result.entries.asSequence().filter { entry: ResultEntry ->
                     player.all<Senses>().any { entry.sense == it::class }
                 }.forEach { entry ->
                     when (entry.sense) {
                         Senses.Sight::class -> {
                             val pos = entry.position
                             if (pos == null || sight?.isVisible(pos) == true) {
-                                player<Logger>()?.add(entry.text)
+                                when (entry) {
+                                    is LogEntry -> player<Logger>()?.add(entry.text)
+                                    is AnimationEntry -> entry.animation()
+                                }
                             }
                         }
                     }

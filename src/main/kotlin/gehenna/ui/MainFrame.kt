@@ -197,8 +197,17 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         mainPane.repaint()
     }
 
-    override fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color?, bg: Color?) {
-        app.putCharOnHUD(char, x, y, fg ?: hud.fgColor, bg ?: hud.bgColor)
+    override fun putCharOnHUD(char: Char, point: gehenna.utils.Point, fg: Color?, bg: Color?) {
+        app.putCharOnHUD(char, point, fg ?: hud.fgColor, bg ?: hud.bgColor)
+    }
+
+    override fun animateChar(char: Char, point: gehenna.utils.Point, time: Long, fg: Color?, bg: Color?) {
+        putCharOnHUD(char, point)
+
+        GlobalScope.launch {
+            delay(time)
+            putCharOnHUD(EMPTY_CHAR, point)
+        }
     }
 
     override fun moveFocus(playerPos: gehenna.utils.Point) {

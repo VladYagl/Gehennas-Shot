@@ -15,6 +15,7 @@ import gehenna.utils.Dir.Companion.southwest
 import gehenna.utils.Dir.Companion.west
 import gehenna.utils.nextPoint
 import gehenna.utils.random
+import kotlin.random.Random
 
 class CaveLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
 
@@ -71,6 +72,7 @@ class CorridorLevelFactory(context: Context) : BaseLevelFactory<Level>(context) 
         val startPosition = backPoint ?: random.nextPoint(3, 3, 5, 5)
         return Pair(Level(size, (previous?.depth ?: -1) + 1).apply {
             buildLoop(startPosition) {
+
                 rect(startPosition - (2 at 2), Size(4, 4))
 
                 listOf(

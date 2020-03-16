@@ -15,9 +15,9 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
 
     abstract fun perform(context: UIContext): ActionResult
 
-    protected val log = ArrayList<LogEntry>()
+    protected val results = ArrayList<ResultEntry>()
     private fun log(text: String, position: Position?, sense: Sense = Senses.Sight::class) {
-        log.add(LogEntry(text, position, sense))
+        results.add(LogEntry(text, position, sense))
     }
 
     fun logFor(actor: Entity, message: String, args: Map<String, String> = emptyMap()) {
@@ -25,8 +25,13 @@ abstract class Action(open var time: Long = oneTurn, open val addToQueue: Boolea
                 ?: log(message.prepareMessage(false, actor, args), actor())
     }
 
-    protected fun end(): ActionResult = ActionResult(time, true, log, addToQueue)
-    protected fun fail(): ActionResult = ActionResult(0, false, log, addToQueue)
+    fun animate(pos: Position, sense: Sense = Senses.Sight::class, animation: Animation) {
+        results.add(AnimationEntry(animation, pos, sense))
+    }
+
+    protected fun end(): ActionResult = ActionResult(time, true, results, addToQueue)
+
+    protected fun fail(): ActionResult = ActionResult(0, false, results, addToQueue)
 }
 
 class SimpleAction(time: Long = oneTurn, addToQueue: Boolean = true, val func: (context: UIContext) -> Unit) : Action(time, addToQueue) {

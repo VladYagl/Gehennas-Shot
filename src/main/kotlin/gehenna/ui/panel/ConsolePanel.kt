@@ -19,6 +19,7 @@ class ConsolePanel(private val context: UIContext) : GehennaPanel(100, 2, contex
                 val words = command.split(' ')
                 when (words[0]) {
                     "spawn" -> context.player.one<Position>().spawnHere(context.factory.new(words[1]))
+                    "ss" -> context.player.one<Position>().spawnHere(context.factory.new("stairsDown"))
                     "give" -> {
                         repeat(words.getOrNull(2)?.toInt() ?: 1) {
                             context.player.one<Inventory>().add(context.factory.new(words[1])()!!)

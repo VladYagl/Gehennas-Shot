@@ -293,8 +293,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
-    fun putCharOnHUD(char: Char, x: Int, y: Int, fg: Color, bg: Color) {
-        val point = x at y
+    fun putCharOnHUD(char: Char, point: Point, fg: Color, bg: Color) {
         if (inView(point)) {
             val viewPoint = viewPoint(point, moveCamera(focus))
             ui.hud.putChar(char, viewPoint.x, viewPoint.y, fg, bg)

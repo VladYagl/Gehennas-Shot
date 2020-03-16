@@ -94,7 +94,7 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
         val trueScale = scale + offset * 2
         for ((i, j) in size.range) real.cells[i, j] = true
         val cellular = CellularPart(Size(size.width / trueScale, size.height / trueScale), {
-            ignore(it.x / trueScale at it.y / trueScale)
+            ignore(it.x * trueScale at it.y * trueScale)
         }) {
             for ((i, j) in Size(scale, scale).range) {
                 real.cells[trueScale * it.x + i + offset, trueScale * it.y + j + offset] = false

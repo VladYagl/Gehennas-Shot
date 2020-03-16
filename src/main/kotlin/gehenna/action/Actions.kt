@@ -4,10 +4,12 @@ import gehenna.component.*
 import gehenna.core.PredictableBehaviour
 import gehenna.core.*
 import gehenna.exception.GehennaException
+import gehenna.ui.EMPTY_CHAR
 import gehenna.ui.UIContext
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -45,7 +47,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
 
 object Wait : Action() {
     override fun perform(context: UIContext): ActionResult {
-        return ActionResult(context.actionQueue.minOf { it.waitTime }?.plus(1) ?: 0, true, log)
+        return ActionResult(context.actionQueue.minOf { it.waitTime }?.plus(1) ?: 0, true, results)
     }
 }
 
@@ -82,12 +84,15 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
     }
 
     override fun perform(context: UIContext): ActionResult {
+        victim<Position>()?.let { animate(it) { context.animateChar('X', it) } }
+
         val damageRoll = damage.roll()
         victim<Health>()?.let {
             logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
             it.dealDamage(damageRoll, this)
         }
         entity.clean()
+
         return end()
     }
 }
@@ -95,8 +100,12 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
 data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
     override fun perform(context: UIContext): ActionResult {
         val pos = entity.one<Position>()
-        entity.all<MeleeAttacker>().forEach { attacker ->
+        entity.all<MeleeAttacker>().also {
+            if (it.isEmpty()) return fail().also { logFor(entity, "$_Actor don't have a hand to attack") }
+        }.forEach { attacker ->
             pos.level.obstacle(pos + dir)?.let { victim ->
+                victim<Position>()?.let { it: Position -> animate(it) { context.animateChar('%', it) } }
+
                 victim<Health>()?.let {
                     val damageRoll = attacker.damage.roll()
                     logFor(victim, "$_Actor were hit by $entity with a ${attacker.name} " +
@@ -106,7 +115,7 @@ data class Attack(val entity: Entity, val dir: Dir) : Action(oneTurn) {
             } ?: return fail().also {
                 logFor(entity, "$_Actor swings your ${attacker.name} in open space")
             }
-        } ?: return fail().also { logFor(entity, "$_Actor don't have a hand to attack") }
+        }
         return end()
     }
 }

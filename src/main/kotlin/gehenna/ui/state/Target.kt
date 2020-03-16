@@ -53,7 +53,7 @@ abstract class Target(
             if (level != null && !isVisible(point) && level.memory(point) == null) {
                 false
             } else {
-                context.putCharOnHUD(EMPTY_CHAR, point.x, point.y, fg = fgColor, bg = max(color, context.hud.bgColor))
+                context.putCharOnHUD(EMPTY_CHAR, point, fg = fgColor, bg = max(color, context.hud.bgColor))
                 color *= colorDegrade
                 true
             }
@@ -111,7 +111,7 @@ abstract class Target(
                 println("Line Dir : $dir, errorSift: ${dir.errorShift}, angle: ${dir.angle}")
             }
         }
-        context.putCharOnHUD(EMPTY_CHAR, cursor.x, cursor.y, fg = Color.gray, bg = Color(96, 32, 32))
+        context.putCharOnHUD(EMPTY_CHAR, cursor, fg = Color.gray, bg = Color(96, 32, 32))
     }
 
     init {

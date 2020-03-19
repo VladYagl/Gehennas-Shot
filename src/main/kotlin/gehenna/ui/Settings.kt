@@ -24,6 +24,8 @@ class Settings {
     fun toJson(): String {
         return klaxon.toJsonString(this)
     }
+
+    val animationDelay: Long = 150
 }
 
 private object ColorConverter : Converter {

@@ -25,5 +25,7 @@
     "height": 1000,
 
     "infoWidth": 25,
-    "logHeight": 5
+    "logHeight": 5,
+
+    "animationDelay": 150
 }

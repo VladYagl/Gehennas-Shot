@@ -51,7 +51,7 @@ interface UI {
     fun focusPlayer()
 
     fun putCharOnHUD(char: Char, point: Point, fg: Color? = null, bg: Color? = null)
-    fun animateChar(char: Char, point: Point, time: Long = 150, fg: Color? = null, bg: Color? = null)
+    fun animateChar(char: Char, point: Point, time: Long = settings.animationDelay, fg: Color? = null, bg: Color? = null)
 }
 
 interface InputListener {

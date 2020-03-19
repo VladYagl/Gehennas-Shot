@@ -151,7 +151,7 @@ data class MainHandSlot(override val entity: Entity, override var item: Item? = 
             return if (item == null) {
                 "d3".toDice() // TODO: Fist damage
             } else {
-                item.entity<MeleeWeapon>()?.damage ?: Dice.SingleDice(item.volume / 5)
+                item.entity<MeleeWeapon>()?.damage ?: Dice.SingleDice((item.volume + 5) / 5)
             }
         }
 

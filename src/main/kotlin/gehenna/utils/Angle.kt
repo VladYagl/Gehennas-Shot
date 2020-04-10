@@ -7,11 +7,11 @@ import kotlin.math.*
 import kotlin.random.Random
 
 /**
- * Converts angle in radians to a LineDir
+ * Converts angle in radians to an Angle
  *
  * @param errorShift Relative error: how much line is shifted from center of a cell
  */
-fun Double.toLineDir(errorShift: Double = 0.0): LineDir {
+fun Double.toAngle(errorShift: Double = 0.0): Angle {
     val angle = this.normalizeAngle()
 
     val x: Int
@@ -30,24 +30,24 @@ fun Double.toLineDir(errorShift: Double = 0.0): LineDir {
     val dist = max(abs(x), abs(y))
     val error = abs(x) - abs(y) + errorShift * dist
     return if (angle < PI / 2 && angle > -PI / 2) {
-        LineDir(x, y, error.roundToInt())
+        Angle(x, y, error.roundToInt())
     } else {
-        LineDir(-x, -y, error.roundToInt())
+        Angle(-x, -y, error.roundToInt())
     }
 }
 
-fun Random.nextLineDir(dir: LineDir, spread: Double): LineDir {
+fun Random.nextAngle(angle: Angle, spread: Double): Angle {
     return if (spread > 0) {
-        (dir.angle + this.nextDouble(spread) - this.nextDouble(spread)).toLineDir(dir.errorShift)
-    } else dir
+        (angle.value + this.nextDouble(spread) - this.nextDouble(spread)).toAngle(angle.errorShift)
+    } else angle
 }
 
 /**
- * Line from (0, 0) to (x, y) which represents a direction for projectiles/line drawing using Bresneham's algorithm
+ * Line from (0, 0) to (x, y) which represents an angle for projectiles/line drawing using Bresneham's algorithm
  *
  * @param error - shifts line up/down keeping directions,
  */
-data class LineDir(override val x: Int, override val y: Int, val error: Int = abs(x) - abs(y)) : Point {
+data class Angle(override val x: Int, override val y: Int, val error: Int = abs(x) - abs(y)) : Point {
 
     /**
      * Relative error, represents how much lines is shifted from center of a cell,
@@ -55,7 +55,7 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
      */
     val errorShift: Double get() = (error - (abs(x) - abs(y))).toDouble() / this.max
 
-    val angle: Double = atan2(y.toDouble(), x.toDouble())
+    val value: Double = atan2(y.toDouble(), x.toDouble())
     val defaultError: Int get() = abs(x) - abs(y)
 
     // if minError <= error <= maxError then line still passes through (x, y)
@@ -92,18 +92,18 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
      */
     fun walkLine(start: Point, nSteps: Int, levelBounce: Level? = null, visit: (Point) -> Boolean) {
         var point = start
-        var dir = this
+        var angle = this
         var curError = this.error
         repeat(nSteps) {
-            val (newError, nextPoint) = dir.next(point, curError)
+            val (newError, nextPoint) = angle.next(point, curError)
             curError = newError
 
             if (levelBounce != null) {
                 val obstacle = levelBounce.obstacle(nextPoint)
 
                 if (obstacle?.has<Reflecting>() == true) {
-                    val (dx, dy) = (nextPoint - point).dir.bounce(point, levelBounce, dir)
-                    dir = LineDir(dx, dy, curError)
+                    val (dx, dy) = (nextPoint - point).dir.bounce(point, levelBounce, angle)
+                    angle = Angle(dx, dy, curError)
                 } else {
                     point = nextPoint
                 }
@@ -156,7 +156,7 @@ data class LineDir(override val x: Int, override val y: Int, val error: Int = ab
         } else {
             val goods = (this.minError..this.maxError).mapNotNull {error ->
                 var good = false
-                LineDir(this.x, this.y, error).walkLine(from, (target - from).max, from.level) {
+                Angle(this.x, this.y, error).walkLine(from, (target - from).max, from.level) {
                     if (it equals target) {
                         good = true
                     }

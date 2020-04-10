@@ -3,6 +3,7 @@ package gehenna.utils
 import gehenna.exception.GehennaException
 import java.awt.Color
 import java.io.PrintWriter
+import java.io.Serializable
 import java.io.StringWriter
 import java.util.*
 import javax.swing.JOptionPane.PLAIN_MESSAGE
@@ -117,13 +118,16 @@ infix fun <A, B, C> A.to(that: Pair<B, C>): Triple<A, B, C> {
     return Triple(this, that.first, that.second)
 }
 
-class FixedQueue<T>(val capacity: Int) : Queue<T> by FixedQueueImpl<T>(capacity) {
+class FixedQueue<T>(val capacity: Int) : Queue<T> by FixedQueueImpl<T>(capacity), Serializable {
     fun isFull(): Boolean {
         return size == capacity
     }
 }
 
-private open class FixedQueueImpl<T>(private val maxCapacity: Int, private val deq: ArrayDeque<T> = ArrayDeque(maxCapacity)) : Queue<T> by deq {
+private open class FixedQueueImpl<T>(
+        private val maxCapacity: Int,
+        private val deq: ArrayDeque<T> = ArrayDeque(maxCapacity)
+) : Queue<T> by deq, Serializable {
     override fun offer(a: T): Boolean {
         assert(size < maxCapacity)
         return deq.offer(a)

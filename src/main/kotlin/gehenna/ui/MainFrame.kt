@@ -3,6 +3,7 @@ package gehenna.ui
 import gehenna.exception.GehennaException
 import gehenna.ui.panel.GehennaPanel
 import gehenna.ui.panel.MenuPanel
+import gehenna.utils.SaveManager
 import gehenna.utils.Size
 import gehenna.utils.showError
 import kotlinx.coroutines.*
@@ -19,7 +20,6 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
     private val mainPane = JLayeredPane()
     override lateinit var world: GehennaPanel
     override lateinit var info: MenuPanel
-    override lateinit var hud: GehennaPanel
 
     private lateinit var log: GehennaPanel
     private val logHeight = settings.logHeight
@@ -51,14 +51,6 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
                 settings.foregroundColor,
                 settings.backgroundColor
         )
-        hud = GehennaPanel(
-                logWidth / worldFont.width,
-                worldHeight / worldFont.height,
-                settings.worldFont,
-                settings.foregroundColor,
-                settings.backgroundColor
-        )
-        hud.clear(EMPTY_CHAR)
 
         add(mainPane)
         mainPane.layout = null
@@ -95,15 +87,21 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         log.clear()
 
         println("Creating App...")
-        app = App(this, settings)
+        val saver = SaveManager("save.dat")
+        app = App(this, settings, saver)
 
         val menuWindow = MenuPanel(20, 5, settings)
         addWindow(menuWindow)
-        menuWindow.addItem(ButtonItem("Continue", {
-            // todo: add this only if save file is present
-            startGame(true, 0)
-            removeWindow(menuWindow)
-        }, 'c'))
+
+        if (saver.saveExists()) {
+            menuWindow.addItem(ButtonItem("Continue", {
+                startGame(true, 0)
+                removeWindow(menuWindow)
+            }, 'c'))
+        } else {
+            menuWindow.addItem(TextItem("c: Continue", Color.darkGray)) // TODO "c:" is a stupid hack
+        }
+
         menuWindow.addItem(ButtonItem("New Game", {
             startGame(false, 0)
             removeWindow(menuWindow)
@@ -197,16 +195,20 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
         mainPane.repaint()
     }
 
-    override fun putCharOnHUD(char: Char, point: gehenna.utils.Point, fg: Color?, bg: Color?) {
-        app.putCharOnHUD(char, point, fg ?: hud.fgColor, bg ?: hud.bgColor)
+    override fun addOverlay(): Overlay {
+        return app.addOverlay()
+    }
+
+    override fun removeOverlay(overlay: Overlay) {
+        app.removeOverlay(overlay)
     }
 
     override fun animateChar(char: Char, point: gehenna.utils.Point, time: Long, fg: Color?, bg: Color?) {
-        putCharOnHUD(char, point)
+        val overlay = addOverlay().put(char, point)
 
         GlobalScope.launch {
             delay(time)
-            putCharOnHUD(EMPTY_CHAR, point)
+            removeOverlay(overlay)
         }
     }
 
@@ -216,5 +218,16 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
 
     override fun focusPlayer() {
         app.focusPlayer()
+    }
+
+    private var restarted = false
+
+    override fun restart() {
+        if (!restarted) {
+            restarted = true
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this)
+            dispose()
+            gehenna.main()
+        }
     }
 }

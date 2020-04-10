@@ -10,7 +10,7 @@ import gehenna.ui.UIContext
 import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
-import gehenna.utils.LineDir
+import gehenna.utils.Angle
 
 abstract class State {
     open fun handleInput(input: Input): Pair<State, Boolean> = this to false
@@ -52,7 +52,7 @@ class UseDoor(context: UIContext, private val close: Boolean) : Direction(contex
 class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false, autoAim = true, drawLine = true) {
     override fun select(): State {
         val diff = cursor - context.player.one<Position>()
-        context.action = gun.fire(context.player, LineDir(diff.x, diff.y, error))
+        context.action = gun.fire(context.player, Angle(diff.x, diff.y, error))
         return Normal(context)
     }
 }

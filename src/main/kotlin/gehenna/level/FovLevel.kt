@@ -119,7 +119,7 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
 
         //TODO: copy pasta of default values -- this is not good pls fix
         this.setVal("fovAlgorithm", PrecisePermissive())
-        this.setVal("navGrid", NavigationGrid(Array(size) { GridCell() }, true))
+        this.setVal("navGrid", NavGrid(Array(size) { GridCell() }, true))
         this.setVal("pathFinderOptions", GridFinderOptions(
                 true,
                 false,

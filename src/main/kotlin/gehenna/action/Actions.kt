@@ -1,16 +1,13 @@
 package gehenna.action
 
 import gehenna.component.*
+import gehenna.component.behaviour.ProjectileBehaviour
 import gehenna.core.PredictableBehaviour
 import gehenna.core.*
 import gehenna.exception.GehennaException
-import gehenna.ui.EMPTY_CHAR
 import gehenna.ui.UIContext
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.zero
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 data class Think(override var time: Long) : Action(time) {
@@ -53,7 +50,7 @@ object Wait : Action() {
 
 data class Shoot(
         private val pos: Position,
-        private val dir: LineDir,
+        private val angle: Angle,
         private val gun: Gun,
         override var time: Long = oneTurn
 ) : Action() {
@@ -63,7 +60,7 @@ data class Shoot(
             return fail()
         } else {
             val ammo = gun.magazine.remove()
-            ammo.entity.any<ShootFunc>()?.invoke(pos, dir, gun, ammo, context)
+            ammo.entity.any<ShootFunc>()?.invoke(pos, angle, gun, ammo, context)
                     ?: throw GehennaException("Ammo doesn't have ShootFunc!")
             gun.applyShootSpread()
             return end()
@@ -211,6 +208,29 @@ data class UseDoor(private val door: Door, private val close: Boolean) : Action(
     override fun perform(context: UIContext): ActionResult {
         if (door.closed == close) return fail()
         door.change(close)
+        return end()
+    }
+}
+
+data class Throw(
+        private val pos: Position,
+        private val angle: Angle,
+        private val entity: Entity
+) : Action(oneTurn) {
+    override fun perform(context: UIContext): ActionResult {
+        assert(!entity.has<Position>())
+        pos.spawnHere(entity)
+
+        // 0.25 ~ 15 degrees, maybe later add something like throw skill to make it more accurate + faster
+        ProjectileBehaviour(
+                entity,
+                random.nextAngle(angle, 0.25),
+                Dice.Const(0),
+                500,
+                false,
+                oneTurn / 2
+        ).attach()
+
         return end()
     }
 }

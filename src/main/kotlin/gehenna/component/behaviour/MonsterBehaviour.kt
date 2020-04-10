@@ -60,10 +60,10 @@ data class MonsterBehaviour(
 
             if (target == target.entity<Position>()) {
                 val diff = target - pos
-                val tempDir = LineDir(diff.x, diff.y)
+                val tempDir = Angle(diff.x, diff.y)
 
                 tempDir.findBestError(pos)?.let { error ->
-                    return gun.fire(entity, LineDir(diff.x, diff.y, error))
+                    return gun.fire(entity, Angle(diff.x, diff.y, error))
                 }
 
                 return null

@@ -176,7 +176,7 @@
 
             "delay": 1,
             "time": 1,
-            "shootTime": 50,
+            "applyTime": 50,
             "volume": 50,
 
             "minSpread": 0.25,

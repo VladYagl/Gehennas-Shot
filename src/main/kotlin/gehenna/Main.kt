@@ -14,4 +14,6 @@ fun main() {
     } catch (e: Throwable) {
         showError(e)
     }
+
+    System.gc()
 }

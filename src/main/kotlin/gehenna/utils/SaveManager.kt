@@ -28,4 +28,12 @@ class SaveManager(saveFileName: String) {
             return stream.readObject() as SaveData
         }
     }
+
+    fun clean() {
+        saveFile.delete()
+    }
+
+    fun saveExists(): Boolean {
+        return saveFile.exists()
+    }
 }

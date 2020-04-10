@@ -11,7 +11,7 @@ import gehenna.exception.GehennaException
 import gehenna.ui.UIContext
 import gehenna.utils.*
 
-//TODO: try some player seeking behaviour
+@Deprecated("Old behaviour without directions", ReplaceWith("ProjectileBehaviour"))
 data class BulletBehaviour(
         override val entity: Entity,
         var dir: Dir,

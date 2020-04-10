@@ -45,13 +45,15 @@ interface UI {
 
     val info: MenuPanel
     val world: Window
-    val hud: Window
 
     fun moveFocus(playerPos: Point)
     fun focusPlayer()
 
-    fun putCharOnHUD(char: Char, point: Point, fg: Color? = null, bg: Color? = null)
+    fun addOverlay(): Overlay
+    fun removeOverlay(overlay: Overlay)
     fun animateChar(char: Char, point: Point, time: Long = settings.animationDelay, fg: Color? = null, bg: Color? = null)
+
+    fun restart()
 }
 
 interface InputListener {

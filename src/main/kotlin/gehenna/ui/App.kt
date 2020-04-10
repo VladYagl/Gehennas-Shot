@@ -19,15 +19,16 @@ import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
 import kotlinx.coroutines.*
 import java.awt.Color
+import java.util.*
 import java.util.concurrent.Executors
+import kotlin.collections.ArrayList
 import kotlin.math.PI
 import kotlin.system.exitProcess
 import kotlin.system.measureNanoTime
 
-class App(private val ui: UI, private val settings: Settings) : InputListener {
+class App(private val ui: UI, private val settings: Settings, private val saver: SaveManager) : InputListener {
     private val minPriority = Int.MIN_VALUE
 
-    private val saver = SaveManager("save.dat")
     private val factory = EntityFactory()
     private val levelPartFactory = LevelPartFactory(factory)
     private val game = Game(factory, levelPartFactory)
@@ -56,6 +57,7 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                 } else {
                     println("Creating game levels...")
                     game.init(levelFactory)
+                    saver.clean()
                 }
 
                 println("Running main loop...")
@@ -86,30 +88,39 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
 
             when {
                 !game.player.has<Position>() -> {
+                    uiJob.cancel()
+                    uiJob.join()
                     ui.addWindow(GehennaPanel(17, 6, context.settings, keyHandler = MenuInput(object : InputListener {
                         override fun onInput(input: Input) = when (input) {
-                            Input.Accept, Input.Cancel -> exitProcess(0)
+//                            Input.Accept, Input.Cancel -> exitProcess(0)
+                            Input.Accept, Input.Cancel -> {
+                                ui.restart()
+                                true
+                            }
                             else -> false
                         }
                     })).apply {
                         writeLine("RIP ", 1, Alignment.center)
                         writeLine("YOU ARE DEAD", 3, Alignment.center)
                     })
-                    uiJob.cancel()
-                    uiJob.join()
+                    saver.clean()
                     false
                 }
                 game.player<Position>()?.level?.depth == 4 -> {
+                    uiJob.cancel()
+                    uiJob.join()
                     ui.addWindow(GehennaPanel(19, 4, context.settings, keyHandler = MenuInput(object : InputListener {
                         override fun onInput(input: Input) = when (input) {
-                            Input.Accept, Input.Cancel -> exitProcess(0)
+                            Input.Accept, Input.Cancel -> {
+                                ui.restart()
+                                true
+                            }
                             else -> false
                         }
                     })).apply {
                         writeLine("WE WON ZULUL", 1, Alignment.center)
                     })
-                    uiJob.cancel()
-                    uiJob.join()
+                    saver.clean()
                     false
                 }
                 else -> true
@@ -293,11 +304,13 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
         }
     }
 
-    fun putCharOnHUD(char: Char, point: Point, fg: Color, bg: Color) {
-        if (inView(point)) {
-            val viewPoint = viewPoint(point, moveCamera(focus))
-            ui.hud.putChar(char, viewPoint.x, viewPoint.y, fg, bg)
-        }
+    private val overlays = HashSet<Overlay>()
+    fun addOverlay(): Overlay {
+        return Overlay(ui.world.fgColor, ui.world.bgColor).also { overlays.add(it) }
+    }
+
+    fun removeOverlay(overlay: Overlay) {
+        overlays.remove(overlay)
     }
 
     private fun drawWorld() {
@@ -348,11 +361,18 @@ class App(private val ui: UI, private val settings: Settings) : InputListener {
                     }
         }
 
-        ui.hud.forEachTile { x, y, data ->
-            if (data.character != EMPTY_CHAR) {
-                ui.world.putChar(data.character, x, y, fg = data.fgColor, bg = data.bgColor)
-            } else if (data.bgColor != ui.hud.bgColor) {
-                ui.world.changeColors(x, y, data.fgColor, data.bgColor)
+        overlays.forEach {
+            it.apply { point, data ->
+                //TODO: this is partially copy past from putGlyph??
+                if (inView(point)) {
+                    with(viewPoint(point)) {
+                        if (data.character != EMPTY_CHAR) {
+                            ui.world.putChar(data.character, x, y, fg = data.fgColor, bg = data.bgColor)
+                        } else {
+                            ui.world.changeColors(x, y, data.fgColor, data.bgColor)
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,13 +1,13 @@
 package gehenna.component
 
-import gehenna.component.behaviour.LineBulletBehaviour
+import gehenna.component.behaviour.ProjectileBehaviour
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.ui.UIContext
 import gehenna.utils.Dice
-import gehenna.utils.LineDir
-import gehenna.utils.nextLineDir
+import gehenna.utils.Angle
+import gehenna.utils.nextAngle
 import gehenna.utils.random
 
 @Suppress("EnumEntryName")
@@ -33,7 +33,7 @@ data class Ammo(
 }
 
 abstract class ShootFunc : Component() {
-    abstract operator fun invoke(pos: Position, dir: LineDir, gun: Gun, ammo: Ammo, context: UIContext)
+    abstract operator fun invoke(pos: Position, angle: Angle, gun: Gun, ammo: Ammo, context: UIContext)
 }
 
 data class ProjectileSpawner(
@@ -41,13 +41,13 @@ data class ProjectileSpawner(
         private val projectileName: String,
         private val amount: Int = 1
 ) : ShootFunc() {
-    override fun invoke(pos: Position, dir: LineDir, gun: Gun, ammo: Ammo, context: UIContext) {
+    override fun invoke(pos: Position, angle: Angle, gun: Gun, ammo: Ammo, context: UIContext) {
         repeat(amount) {
             val bullet = context.factory.new(projectileName)
             pos.spawnHere(bullet)
-            LineBulletBehaviour(
+            ProjectileBehaviour(
                     bullet,
-                    random.nextLineDir(dir, gun.spread),
+                    random.nextAngle(angle, gun.spread),
                     gun.damage + ammo.damage,
                     gun.speed + ammo.speed,
                     ammo.bounce,

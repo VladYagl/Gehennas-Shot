@@ -90,6 +90,7 @@ class GameInput(listener: InputListener) : InputConverter(listener) {
     override val keyMap = hashMapOf(
             "+q" to Input.Quit,
             "f" to Input.Fire,
+            "t" to Input.Throw,
             "+<" to Input.ClimbStairs,
             "o" to Input.Open,
             "/" to Input.Wait,

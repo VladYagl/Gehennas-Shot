@@ -28,6 +28,6 @@ class Overlay(val fg: Color, val bg: Color) {
     }
 
     fun apply(func: (Point, TileData) -> Unit) {
-        chars.forEach { (point, data) -> func(point, data) }
+        chars.toList().forEach { (point, data) -> func(point, data) }
     }
 }

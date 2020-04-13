@@ -13,7 +13,7 @@ import gehenna.utils.Dir
 import gehenna.utils.Angle
 
 abstract class State {
-    open fun handleInput(input: Input): Pair<State, Boolean> = this to false
+    open fun handleInput(input: Input): Boolean = false
 
     companion object {
         fun create(context: UIContext): State = Normal(context)
@@ -33,9 +33,15 @@ abstract class Direction(protected val context: UIContext) : State() {
     }
 
     final override fun handleInput(input: Input) = when (input) {
-        is Input.Direction -> onDir(input.dir) to true
-        Input.Cancel -> onCancel() to true
-        else -> this to false
+        is Input.Direction -> {
+            context.changeState(onDir(input.dir))
+            true
+        }
+        Input.Cancel -> {
+            context.changeState(onCancel())
+            true
+        }
+        else -> false
     }
 }
 
@@ -49,10 +55,11 @@ class UseDoor(context: UIContext, private val close: Boolean) : Direction(contex
     }
 }
 
-class Aim(context: UIContext, private val gun: Gun) : Target(context, onlyVisible = false, autoAim = true, drawLine = true) {
+class Aim(context: UIContext, private val callback: (Angle) -> Unit) : Target(context, onlyVisible = false, autoAim = true, drawLine = true) {
     override fun select(): State {
         val diff = cursor - context.player.one<Position>()
-        context.action = gun.fire(context.player, Angle(diff.x, diff.y, error))
+//        context.action = gun.fire(context.player, Angle(diff.x, diff.y, error))
+        callback(Angle(diff.x, diff.y, error))
         return Normal(context)
     }
 }

@@ -3,6 +3,7 @@ package gehenna.ui
 import gehenna.exception.GehennaException
 import gehenna.ui.panel.GehennaPanel
 import gehenna.ui.panel.MenuPanel
+import gehenna.ui.state.State
 import gehenna.utils.SaveManager
 import gehenna.utils.Size
 import gehenna.utils.showError
@@ -229,5 +230,9 @@ class MainFrame : JFrame(), UI, KeyEventDispatcher {
             dispose()
             gehenna.main()
         }
+    }
+
+    override fun changeState(newState: State) {
+        app.changeState(newState)
     }
 }

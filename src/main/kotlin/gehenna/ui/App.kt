@@ -363,7 +363,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
 
         overlays.forEach {
             it.apply { point, data ->
-                //TODO: this is partially copy past from putGlyph??
+                //TODO: this is partially copypasta from putGlyph??
                 if (inView(point)) {
                     with(viewPoint(point)) {
                         if (data.character != EMPTY_CHAR) {
@@ -377,6 +377,10 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
         }
     }
 
+    fun changeState(newState: State) {
+        state = newState
+    }
+
     override fun onInput(input: Input): Boolean {
         if (input == Input.Quit) {
             GlobalScope.launch(exceptionHandler) {
@@ -386,8 +390,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
                 exitProcess(0)
             }
         }
-        val (newState, consumed) = state.handleInput(input)
-        state = newState
-        return consumed
+
+        return state.handleInput(input)
     }
 }

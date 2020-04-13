@@ -11,6 +11,7 @@ import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
+import kotlinx.coroutines.channels.Channel
 
 class Normal(private val context: UIContext) : State() {
 
@@ -25,20 +26,20 @@ class Normal(private val context: UIContext) : State() {
         )
     }
 
-    private fun useStairs(): Pair<Normal, Boolean> {
+    private fun useStairs(): Boolean {
         val pos = context.player.one<Position>()
         pos.neighbors.firstNotNullResult { it<Stairs>() }?.let { stairs ->
             context.action = ClimbStairs(context.player, stairs)
         } ?: context.log.addTemp("There is no stairs here")
-        return this to true
+        return true
     }
 
-    override fun handleInput(input: Input) = when (input) {
+    override fun handleInput(input: Input): Boolean = when (input) {
         is Input.Direction -> {
             if (input.dir == Dir.zero) {
 //                context.action = Wait
                 context.action = Move(context.player, input.dir)
-                this to true
+                true
             } else {
                 val playerPos = context.player.one<Position>()
 
@@ -47,7 +48,7 @@ class Normal(private val context: UIContext) : State() {
                     if (it<Door>()?.closed == true) it<Door>() else null
                 }?.let { door ->
                     context.action = UseDoor(door, close = false)
-                    return this to true
+                    return true
                 }
 
                 // check for melee attack
@@ -57,11 +58,11 @@ class Normal(private val context: UIContext) : State() {
                     }
                 }?.let { _ ->
                     context.action = Attack(context.player, input.dir)
-                    return this to true
+                    return true
                 }
 
                 context.action = Move(context.player, input.dir)
-                this to true
+                true
             }
         }
         is Input.Run -> {
@@ -71,29 +72,44 @@ class Normal(private val context: UIContext) : State() {
             } else {
                 context.player<PlayerBehaviour>()?.walk(input.dir)
             }
-            this to true
+            true
         }
         Input.Wait -> {
             context.action = Wait
-            this to true
+            true
         }
         Input.Cancel -> {
             context.player<PlayerBehaviour>()?.cancel()
-            this to true
+            true
         }
         Input.Fire -> {
             val gun = context.player.one<MainHandSlot>().gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun equipped")
-                this to true
-            } else Aim(context, gun) to true
+            } else context.changeState(Aim(context) { angle ->
+                context.action = gun.fire(context.player, angle)
+            })
+            true
+        }
+        Input.Throw -> {
+            context.addWindow(SelectPanel(
+                    context,
+                    context.player.one<Inventory>().stacks,
+                    "Throw what?",
+                    toString = { it.entity.toString() }
+            ) { item ->
+                //TODO: target takes gun values for drawing lines
+                context.changeState(Aim(context) { angle ->
+                    context.action = Throw(context.player.one(), angle, item.entity)
+                })
+            })
+            true
         }
         Input.Pickup -> {
             val pos = context.player.one<Position>()
             val neighbors = pos.neighbors.mapNotNull { it<Item>() }
             if (neighbors.isEmpty()) {
                 context.log.addTemp("There is no items to pickup(((")
-                this to true
             } else {
                 context.addWindow(MultiSelectPanel(
                         context,
@@ -103,8 +119,8 @@ class Normal(private val context: UIContext) : State() {
                 ) { items ->
                     context.action = Pickup(context.player, items.unpackStacks())
                 })
-                this to true
             }
+            true
         }
         is Input.Help -> {
             context.addWindow(MenuPanel(100, 30, context.settings).apply {
@@ -123,7 +139,7 @@ class Normal(private val context: UIContext) : State() {
                     ))
                 }
             })
-            this to true
+            true
         }
         Input.Drop -> {
             context.addWindow(MultiSelectPanel(
@@ -132,7 +148,7 @@ class Normal(private val context: UIContext) : State() {
                     "Drop what?",
                     toString = { it.entity.toString() }
             ) { items -> context.action = Drop(context.player, items.unpackStacks()) })
-            this to true
+            true
         }
         Input.Use -> {
             context.addWindow(SelectPanel(
@@ -143,7 +159,7 @@ class Normal(private val context: UIContext) : State() {
             ) {
                 context.action = it.unstack().entity.any<Consumable>()?.apply(context.player)
             })
-            this to true
+            true
         }
         Input.Inventory -> {
             context.addWindow(SelectPanel(
@@ -194,7 +210,7 @@ class Normal(private val context: UIContext) : State() {
                     }
                 })
             })
-            this to true
+            true
         }
         Input.Equip -> {
             val select = SelectPanel(
@@ -205,7 +221,7 @@ class Normal(private val context: UIContext) : State() {
                 context.action = Equip(context.player, context.player.one<MainHandSlot>(), it)
             }
             context.addWindow(select)
-            this to true
+            true
         }
         Input.Reload -> {
             val gun = context.player.one<MainHandSlot>().gun
@@ -214,18 +230,27 @@ class Normal(private val context: UIContext) : State() {
             } else {
                 askForAmmo(gun.ammoType) { context.action = gun.load(context.player, it) }
             }
-            this to true
+            true
         }
         Input.ClimbStairs -> {
             useStairs()
         }
-        Input.Open -> UseDoor(context, false) to true
-        Input.Close -> UseDoor(context, true) to true
+        Input.Open -> {
+            context.changeState(UseDoor(context, false))
+            true
+        }
+        Input.Close -> {
+            context.changeState(UseDoor(context, true))
+            true
+        }
         Input.Console -> {
             context.addWindow(ConsolePanel(context))
-            this to true
+            true
         }
-        Input.Examine -> Examine(context) to true
-        else -> this to false
+        Input.Examine -> {
+            context.changeState(Examine(context))
+            true
+        }
+        else -> false
     }
 }

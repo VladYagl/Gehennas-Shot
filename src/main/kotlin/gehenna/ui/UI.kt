@@ -2,6 +2,7 @@ package gehenna.ui
 
 import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.AsciiPanel
+import gehenna.ui.state.State
 import gehenna.utils.Point
 import gehenna.utils.Size
 import java.awt.Color
@@ -33,6 +34,8 @@ interface Window {
 }
 
 interface UI {
+    fun changeState(newState: State)
+
     fun printException(e: Throwable)
     fun update()
     fun updateLog(messages: List<String>)

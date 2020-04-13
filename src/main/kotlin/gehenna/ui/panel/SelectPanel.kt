@@ -23,8 +23,8 @@ class SelectPanel<T>(
         title?.let { addItem(TextItem(it)) }
         items.forEachIndexed { index, item ->
             addItem(ButtonItem(toString(item), {
-                onSelect(item)
                 context.removeWindow(this)
+                onSelect(item)
             }, calcChar(index)))
         }
         setOnCancel {
@@ -50,8 +50,8 @@ class MultiSelectPanel<T>(
         title?.let { addItem(TextItem(it)) }
         checkBoxes.forEach { addItem(it.first) }
         setOnAccept {
-            onSelect(checkBoxes.filter { it.first.selected }.map { it.second })
             context.removeWindow(this)
+            onSelect(checkBoxes.filter { it.first.selected }.map { it.second })
         }
         setOnCancel {
             context.log.addTemp("Never mind")

@@ -145,7 +145,7 @@ abstract class Target(
             cursor += input.dir
             error = angle.findBestError(context.player.one()) ?: angle.defaultError
             print()
-            this to true
+            true
         }
         is Input.Increase -> {
             if (error < angle.maxError) {
@@ -154,7 +154,7 @@ abstract class Target(
             } else {
                 context.log.addTemp("Can't move your hand any further")
             }
-            this to true
+            true
         }
         is Input.Decrease -> {
             if (error > angle.minError) {
@@ -163,29 +163,29 @@ abstract class Target(
             } else {
                 context.log.addTemp("Can't move your hand further")
             }
-            this to true
+            true
         }
         is Input.Run -> {
             cursor += input.dir * 5
             print()
-            this to true
+            true
         }
         Input.Cancel -> {
             clean()
-            Normal(context) to true
+            context.changeState(Normal(context))
+            true
         }
         Input.Accept, Input.Fire -> {
             if (level.inBounds(cursor) && (isVisible(cursor) || !onlyVisible)) {
                 val state = select()
                 if (state != this) clean()
-                state to true
+                context.changeState(state)
+                true
             } else {
                 context.log.addTemp("Can't examine what you can't see")
-                this to true
+                true
             }
         }
-        else -> {
-            this to false
-        }
+        else -> false
     }
 }

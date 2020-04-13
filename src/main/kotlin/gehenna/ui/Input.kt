@@ -17,6 +17,7 @@ sealed class Input {
     object Equip : Input()
     object Inventory : Input()
     object Fire : Input()
+    object Throw : Input()
     object ClimbStairs : Input()
     object Open : Input()
     object Close : Input()

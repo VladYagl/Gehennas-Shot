@@ -25,7 +25,7 @@ open class Level(size: Size, val depth: Int = 0, val id: String = UUID.randomUUI
         while (time < duration) {
             val action = behaviour.predict(fakePos, fakeState)
             time += action.time
-            val (point, state, glyph) = action.predict(fakePos, fakeState, fakeGlyph)
+            val (point, state, glyph) = action.predict(fakePos, fakeState, fakeGlyph) ?: break
             fakeState = state ?: fakeState
             fakeGlyph = glyph
             prediction.add(point to glyph)

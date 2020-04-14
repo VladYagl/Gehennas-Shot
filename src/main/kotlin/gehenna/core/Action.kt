@@ -52,5 +52,5 @@ class SimpleReturnAction(
 }
 
 abstract class PredictableAction<T>(time: Long = oneTurn, addToQueue: Boolean = true) : Action(time, addToQueue) {
-    open fun predict(pos: Position, state: T, glyph: Glyph): Triple<Point, T, Glyph> = pos to state to glyph
+    open fun predict(pos: Position, state: T, glyph: Glyph): Triple<Point, T, Glyph>? = pos to state to glyph
 }

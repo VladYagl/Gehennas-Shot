@@ -69,7 +69,7 @@ class AimGun(override val context: UIContext, private val gun: Gun) : TargetLine
     private val ammo: Ammo? = gun.magazine.firstOrNull()
     override val bounce: Boolean = ammo?.bounce ?: false
     override val speed = gun.speed + (ammo?.speed ?: 0)
-    override val range = ((ammo?.lifeTime ?: Action.oneTurn) * (speed / Behaviour.normalSpeed) / 100).toInt() + 1
+    override val range = ammo?.range ?: 0
     override val projectileName: String = "bullet"
 
     override fun select(): State {
@@ -83,7 +83,7 @@ class AimThrow(override val context: UIContext, private val entity: Entity) : Ta
     override val autoAim: Boolean = true
 
     override val speed = 500
-    override val range = 100
+    override val range = 10
     override val projectileName: String = entity.name
 
     override fun select(): State {

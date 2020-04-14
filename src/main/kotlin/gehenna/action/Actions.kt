@@ -227,6 +227,7 @@ data class Throw(
                 random.nextAngle(angle, 0.25),
                 Dice.Const(0),
                 500,
+                10,
                 false,
                 oneTurn / 2
         ).attach()

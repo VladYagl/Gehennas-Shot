@@ -78,7 +78,7 @@
             "type": "shell",
             "damage": "1d3",
             "speed": 400,
-            "lifeTime": 150
+            "range": 10
         },
         "projectileSpawner" : {
             "projectileName": "bullet",
@@ -96,7 +96,7 @@
             "damage": "1d4",
             "speed": 400,
             "bounce": true,
-            "lifeTime": 100
+            "range": 8
         },
         "projectileSpawner" : {
             "projectileName": "bullet",

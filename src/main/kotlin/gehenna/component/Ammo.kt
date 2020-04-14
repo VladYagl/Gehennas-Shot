@@ -23,7 +23,7 @@ data class Ammo(
 
         val damage: Dice,
         val speed: Int,
-        val lifeTime: Long = 2 * oneTurn,
+        val range: Int = 20,
         val bounce: Boolean = false,
 
         private val volume: Int = 0
@@ -50,10 +50,10 @@ data class ProjectileSpawner(
                     random.nextAngle(angle, gun.spread),
                     gun.damage + ammo.damage,
                     gun.speed + ammo.speed,
+                    ammo.range,
                     ammo.bounce,
                     gun.delay
             ).attach()
-            DestroyTimer(bullet, ammo.lifeTime).attach()
         }
     }
 }

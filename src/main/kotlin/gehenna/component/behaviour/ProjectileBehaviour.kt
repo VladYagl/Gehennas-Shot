@@ -1,6 +1,7 @@
 package gehenna.component.behaviour
 
 import gehenna.action.Collide
+import gehenna.action.Destroy
 import gehenna.action.Move
 import gehenna.component.DirectionalGlyph
 import gehenna.component.Glyph
@@ -17,45 +18,49 @@ data class ProjectileBehaviour(
         var angle: Angle,
         private val damage: Dice,
         override val speed: Int,
+        var distance: Int,
         private val bounce: Boolean = true,
         override var waitTime: Long = 0
-) : PredictableBehaviour<Angle>() {
-    override val state: Angle get() = angle
+) : PredictableBehaviour<Pair<Angle, Int>>() {
+    override val state: Pair<Angle, Int> get() = angle to distance
 
     private data class FollowLine(
             private val entity: Entity,
             private val angle: Angle,
             private val damage: Dice,
+            private val distance: Int,
             private val bounce: Boolean
-    ) : PredictableAction<Angle>(100) {
+    ) : PredictableAction<Pair<Angle, Int>>(100) {
 
-        override fun predict(pos: Position, state: Angle, glyph: Glyph): Triple<Point, Angle, Glyph> {
+        override fun predict(pos: Position, state: Pair<Angle, Int>, glyph: Glyph): Triple<Point, Pair<Angle, Int>, Glyph>? {
             val (error, next) = angle.next(pos)
-            if (!pos.level.inBounds(next)) { // TODO : looks suspicious
-                return pos to state to glyph
+            if (!pos.level.inBounds(next) || state.second <= 0) { // TODO : looks suspicious
+                return null
             }
             val obstacle = pos.level.obstacle(next)
             return if (obstacle?.has<Reflecting>() == true && bounce) {
                 val (dx, dy) = (next - pos).dir.bounce(pos, angle)
-                pos to Angle(dx, dy, error) to (entity<DirectionalGlyph>()?.let {
+                Triple(pos, Angle(dx, dy, error) to (state.second - 1), (entity<DirectionalGlyph>()?.let {
                     glyph.copy(entity = glyph.entity, char = (it.glyphs[(dx at dy).dir]
                             ?: throw GehennaException("unknown direction for glyph")))
-                } ?: glyph)
+                } ?: glyph))
             } else {
-                next to Angle(angle.x, angle.y, error) to (entity<DirectionalGlyph>()?.let {
+                Triple(next, Angle(angle.x, angle.y, error) to (state.second - 1), (entity<DirectionalGlyph>()?.let {
                     val char = it.glyphs[angle.dir]
                             ?: throw GehennaException("unknown direction for glyph")
                     if (glyph.char != char)
                         glyph.copy(entity = glyph.entity, char = char)
                     else
                         glyph
-                } ?: glyph)
+                } ?: glyph))
             }
         }
 
         override fun perform(context: UIContext): ActionResult {
             val pos = entity.one<Position>()
-            val (next, dir) = predict(pos, angle, Glyph(Entity.world, '?'))
+            val (next, state) = predict(pos, angle to distance, Glyph(Entity.world, '?'))
+                    ?: return Destroy(entity).perform(context)
+            val angle = state.first
             val obstacle = pos.level.obstacle(next)
             return if (obstacle?.has<Reflecting>() == false || (obstacle != null && !bounce)) {
                 Collide(entity, obstacle, damage).also { it.time = time }.perform(context)
@@ -63,16 +68,19 @@ data class ProjectileBehaviour(
                 val behaviour = entity<ProjectileBehaviour>()
                 Move(entity, (next - pos).dir).also { it.time = time }.perform(context).also {
                     if (it.succeeded) {
-                        behaviour?.angle = dir
-                        entity<DirectionalGlyph>()?.update(dir.dir)
+                        behaviour?.apply {
+                            this.angle = angle
+                            distance -= 1
+                        }
+                        entity<DirectionalGlyph>()?.update(angle.dir)
                     }
                 }
             }
         }
     }
 
-    override fun predictImpl(pos: Position, state: Angle): PredictableAction<in Angle> {
-        return FollowLine(entity, state, damage, bounce)
+    override fun predictImpl(pos: Position, state: Pair<Angle, Int>): PredictableAction<in Pair<Angle, Int>> {
+        return FollowLine(entity, state.first, damage, state.second, bounce)
     }
 
 }

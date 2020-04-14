@@ -19,13 +19,13 @@ data class PassiveHeal(
     }
 }
 
-data class DestroyTimer(override val entity: Entity, override var waitTime: Long = Action.oneTurn * 10) : Effect() {
-    override var duration
-        get() = 1L
-        set(value) {}
-
-    override suspend fun action(): Action = Destroy(entity)
-}
+//data class DestroyTimer(override val entity: Entity, override var waitTime: Long = Action.oneTurn * 10) : Effect() {
+//    override var duration
+//        get() = 1L
+//        set(value) {}
+//
+//    override suspend fun action(): Action = Destroy(entity)
+//}
 
 open class RepeatAction<T : Action>(
         override val entity: Entity,

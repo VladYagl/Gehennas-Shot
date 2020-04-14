@@ -379,6 +379,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
 
     fun changeState(newState: State) {
         state = newState
+        state.onChange()
     }
 
     override fun onInput(input: Input): Boolean {

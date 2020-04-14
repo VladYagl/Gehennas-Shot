@@ -86,9 +86,7 @@ class Normal(private val context: UIContext) : State() {
             val gun = context.player.one<MainHandSlot>().gun
             if (gun == null) {
                 context.log.addTemp("You don't have a gun equipped")
-            } else context.changeState(Aim(context) { angle ->
-                context.action = gun.fire(context.player, angle)
-            })
+            } else context.changeState(AimGun(context, gun))
             true
         }
         Input.Throw -> {
@@ -97,12 +95,7 @@ class Normal(private val context: UIContext) : State() {
                     context.player.one<Inventory>().stacks,
                     "Throw what?",
                     toString = { it.entity.toString() }
-            ) { item ->
-                //TODO: target takes gun values for drawing lines
-                context.changeState(Aim(context) { angle ->
-                    context.action = Throw(context.player.one(), angle, item.entity)
-                })
-            })
+            ) { context.changeState(AimThrow(context, it.entity)) })
             true
         }
         Input.Pickup -> {

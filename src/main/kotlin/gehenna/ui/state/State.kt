@@ -1,8 +1,11 @@
 package gehenna.ui.state
 
 import com.beust.klaxon.internal.firstNotNullResult
+import gehenna.action.Throw
 import gehenna.action.UseDoor
 import gehenna.component.*
+import gehenna.core.Action
+import gehenna.core.Behaviour
 import gehenna.core.Entity
 import gehenna.ui.Input
 import gehenna.ui.TextItem
@@ -14,6 +17,8 @@ import gehenna.utils.Angle
 
 abstract class State {
     open fun handleInput(input: Input): Boolean = false
+
+    open fun onChange() {}
 
     companion object {
         fun create(context: UIContext): State = Normal(context)
@@ -55,16 +60,39 @@ class UseDoor(context: UIContext, private val close: Boolean) : Direction(contex
     }
 }
 
-class Aim(context: UIContext, private val callback: (Angle) -> Unit) : Target(context, onlyVisible = false, autoAim = true, drawLine = true) {
+class AimGun(override val context: UIContext, private val gun: Gun) : TargetLine() {
+
+    override val onlyVisible: Boolean = false
+    override val autoAim: Boolean = true
+
+    override val spread: Double = gun.spread
+    private val ammo: Ammo? = gun.magazine.firstOrNull()
+    override val bounce: Boolean = ammo?.bounce ?: false
+    override val speed = gun.speed + (ammo?.speed ?: 0)
+    override val range = ((ammo?.lifeTime ?: Action.oneTurn) * (speed / Behaviour.normalSpeed) / 100).toInt() + 1
+    override val projectileName: String = "bullet"
+
     override fun select(): State {
-        val diff = cursor - context.player.one<Position>()
-//        context.action = gun.fire(context.player, Angle(diff.x, diff.y, error))
-        callback(Angle(diff.x, diff.y, error))
+        context.action = gun.fire(context.player, angle)
         return Normal(context)
     }
 }
 
-class Examine(context: UIContext) : Target(context) {
+class AimThrow(override val context: UIContext, private val entity: Entity) : TargetLine() {
+    override val onlyVisible: Boolean = false
+    override val autoAim: Boolean = true
+
+    override val speed = 500
+    override val range = 100
+    override val projectileName: String = entity.name
+
+    override fun select(): State {
+        context.action = Throw(context.player.one(), angle, entity)
+        return Normal(context)
+    }
+}
+
+class Examine(override val context: UIContext) : Target() {
 
     private fun examine(entity: Entity) {
         context.addWindow(MenuPanel(100, 30, context.settings).apply {

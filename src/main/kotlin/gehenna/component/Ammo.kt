@@ -1,5 +1,6 @@
 package gehenna.component
 
+import gehenna.action.Collide
 import gehenna.component.behaviour.ProjectileBehaviour
 import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Component
@@ -46,13 +47,13 @@ data class ProjectileSpawner(
             val bullet = context.factory.new(projectileName)
             pos.spawnHere(bullet)
             ProjectileBehaviour(
-                    bullet,
-                    random.nextAngle(angle, gun.spread),
-                    gun.damage + ammo.damage,
-                    gun.speed + ammo.speed,
-                    ammo.range,
-                    ammo.bounce,
-                    gun.delay
+                    entity = bullet,
+                    angle = random.nextAngle(angle, gun.spread),
+                    speed = gun.speed + ammo.speed,
+                    distance = ammo.range,
+                    bounce = ammo.bounce,
+                    waitTime = gun.delay,
+                    collisionAction = { Collide(bullet, it, gun.damage + ammo.damage) }
             ).attach()
         }
     }

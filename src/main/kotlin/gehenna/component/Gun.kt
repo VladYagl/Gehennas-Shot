@@ -110,14 +110,14 @@ data class Gun(
 
     var magazine: FixedQueue<Ammo> = FixedQueue(magazineCapacity)
 
-    fun load(actor: Entity, ammoStack: Collection<Ammo>, inventory: Inventory? = actor.one()): Action {
+    fun load(actor: Entity, ammoStack: Collection<Ammo>): Action {
         return object : Action(15) {
             override fun perform(context: UIContext): ActionResult {
                 var cnt = 0
                 ammoStack.forEach { new ->
                     if (!magazine.isFull()) {
                         assert(new.type == ammoType)
-                        inventory?.remove(new.item)
+                        new.item.remove()
                         magazine.add(new)
                         cnt++
                     }

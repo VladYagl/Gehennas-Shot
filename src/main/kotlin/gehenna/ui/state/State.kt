@@ -78,16 +78,17 @@ class AimGun(override val context: UIContext, private val gun: Gun) : TargetLine
     }
 }
 
-class AimThrow(override val context: UIContext, private val entity: Entity) : TargetLine() {
+class AimThrow(override val context: UIContext, private val item: Item) : TargetLine() {
     override val onlyVisible: Boolean = false
     override val autoAim: Boolean = true
 
     override val speed = 500
     override val range = 10
-    override val projectileName: String = entity.name
+    override val spread = 0.2
+    override val projectileName: String = item.entity.name
 
     override fun select(): State {
-        context.action = Throw(context.player.one(), angle, entity)
+        context.action = Throw(context.player.one(), angle, item)
         return Normal(context)
     }
 }

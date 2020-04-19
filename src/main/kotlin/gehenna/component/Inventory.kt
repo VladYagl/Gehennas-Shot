@@ -37,6 +37,10 @@ data class Item(override val entity: Entity, val volume: Int, val stackable: Boo
         slot?.unequip()
     }
 
+    fun remove() {
+        inventory?.remove(this)
+    }
+
     init {
         subscribe<Entity.Remove> {
             unequip()

@@ -95,7 +95,7 @@ class Normal(private val context: UIContext) : State() {
                     context.player.one<Inventory>().stacks,
                     "Throw what?",
                     toString = { it.entity.toString() }
-            ) { context.changeState(AimThrow(context, it.entity)) })
+            ) { context.changeState(AimThrow(context, it)) })
             true
         }
         Input.Pickup -> {

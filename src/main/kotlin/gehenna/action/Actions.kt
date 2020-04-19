@@ -75,7 +75,12 @@ data class Destroy(private val entity: Entity) : Action(0, false) {
     }
 }
 
-data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : PredictableAction<Any>(oneTurn, false) {
+data class Collide(
+        val entity: Entity,
+        val victim: Entity,
+        val damage: Dice,
+        val destroyAction: Action = Destroy(entity)
+) : PredictableAction<Any>(oneTurn, false) {
     override fun predict(pos: Position, state: Any, glyph: Glyph): Triple<Point, Any, Glyph> {
         return victim.one<Position>() to state to glyph
     }
@@ -88,7 +93,7 @@ data class Collide(val entity: Entity, val victim: Entity, val damage: Dice) : P
             logFor(victim, "$_Actor were hit by $entity for $damageRoll damage")
             it.dealDamage(damageRoll, this)
         }
-        entity.clean()
+        destroyAction.perform(context)
 
         return end()
     }
@@ -215,21 +220,28 @@ data class UseDoor(private val door: Door, private val close: Boolean) : Action(
 data class Throw(
         private val pos: Position,
         private val angle: Angle,
-        private val entity: Entity
+        private val item: Item
 ) : Action(oneTurn) {
     override fun perform(context: UIContext): ActionResult {
+        val entity = item.entity
         assert(!entity.has<Position>())
+        item.remove()
         pos.spawnHere(entity)
 
         // 0.25 ~ 15 degrees, maybe later add something like throw skill to make it more accurate + faster
+        val action = SimpleAction(addToQueue = false) {
+            entity<ProjectileBehaviour>()?.detach()
+        }
+        val damage = item.entity<MeleeWeapon>()?.damage ?: Dice.SingleDice((item.volume + 5) / 5)
         ProjectileBehaviour(
-                entity,
-                random.nextAngle(angle, 0.25),
-                Dice.Const(0),
-                500,
-                10,
-                false,
-                oneTurn / 2
+                entity = entity,
+                angle = random.nextAngle(angle, 0.2),
+                speed = 500,
+                distance = 10,
+                bounce = false,
+                waitTime = oneTurn / 10,
+                collisionAction = { Collide(entity, it, damage, action) },
+                maxDistanceAction = action
         ).attach()
 
         return end()

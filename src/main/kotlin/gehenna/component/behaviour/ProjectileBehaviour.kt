@@ -16,20 +16,22 @@ import gehenna.utils.*
 data class ProjectileBehaviour(
         override val entity: Entity,
         var angle: Angle,
-        private val damage: Dice,
         override val speed: Int,
         var distance: Int,
+        private val collisionAction: (Entity) -> Action,
         private val bounce: Boolean = true,
-        override var waitTime: Long = 0
+        override var waitTime: Long = 0,
+        private val maxDistanceAction: Action = Destroy(entity)
 ) : PredictableBehaviour<Pair<Angle, Int>>() {
     override val state: Pair<Angle, Int> get() = angle to distance
 
     private data class FollowLine(
             private val entity: Entity,
             private val angle: Angle,
-            private val damage: Dice,
             private val distance: Int,
-            private val bounce: Boolean
+            private val bounce: Boolean,
+            private val collisionAction: (Entity) -> Action,
+            private val maxDistanceAction: Action
     ) : PredictableAction<Pair<Angle, Int>>(100) {
 
         override fun predict(pos: Position, state: Pair<Angle, Int>, glyph: Glyph): Triple<Point, Pair<Angle, Int>, Glyph>? {
@@ -59,11 +61,11 @@ data class ProjectileBehaviour(
         override fun perform(context: UIContext): ActionResult {
             val pos = entity.one<Position>()
             val (next, state) = predict(pos, angle to distance, Glyph(Entity.world, '?'))
-                    ?: return Destroy(entity).perform(context)
+                    ?: return maxDistanceAction.perform(context)
             val angle = state.first
             val obstacle = pos.level.obstacle(next)
             return if (obstacle?.has<Reflecting>() == false || (obstacle != null && !bounce)) {
-                Collide(entity, obstacle, damage).also { it.time = time }.perform(context)
+                collisionAction(obstacle).also { it.time = time }.perform(context)
             } else {
                 val behaviour = entity<ProjectileBehaviour>()
                 Move(entity, (next - pos).dir).also { it.time = time }.perform(context).also {
@@ -80,7 +82,7 @@ data class ProjectileBehaviour(
     }
 
     override fun predictImpl(pos: Position, state: Pair<Angle, Int>): PredictableAction<in Pair<Angle, Int>> {
-        return FollowLine(entity, state.first, damage, state.second, bounce)
+        return FollowLine(entity, state.first, state.second, bounce, collisionAction, maxDistanceAction)
     }
 
 }

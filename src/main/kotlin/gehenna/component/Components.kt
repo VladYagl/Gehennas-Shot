@@ -120,3 +120,4 @@ data class DirectionalGlyph(
     }
 }
 
+data class LightSource(override val entity: Entity, val intensity: Int) : Component()

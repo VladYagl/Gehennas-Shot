@@ -275,5 +275,26 @@
         },
         "reflecting": {}
     },
+    "lamp": {
+        "lightSource": {
+            "intensity": 10
+        },
+        "glyph": {
+            "char": 87,
+            "priority": 20
+        }
+    },
+    "torch": {
+        "lightSource": {
+            "intensity": 7
+        },
+        "item": {
+            "volume": 15
+        },
+        "glyph": {
+            "char": 89,
+            "priority": 20
+        }
+    },
     "nothing": {}
 }

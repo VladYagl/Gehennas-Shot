@@ -5,6 +5,7 @@ import gehenna.utils.Point
 import gehenna.utils.Point.Companion.zero
 import gehenna.utils.Size
 import gehenna.utils.at
+import gehenna.utils.random
 
 class StubLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
     override fun build(previous: Level?, backPoint: Point?): Pair<Level, Point> {
@@ -24,6 +25,11 @@ class StubLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
             spawn(factory.new("dummy"), startPosition + (20 at 8))
             spawn(factory.new("dummy"), startPosition + (20 at 12))
             spawn(factory.new("dummy"), startPosition + (20 at 16))
+
+            spawn(factory.new("torch"), startPosition + (4 at 4))
+            repeat(25) {
+                spawn(factory.new("lamp"), (random.nextInt(0, size.width) at random.nextInt(0, size.height)))
+            }
 
 //            for (pos in (5 at 5) until (15 at 15)) {
 //                if (random.nextDouble() > 0.9) spawn(factory.new("soloBandit"), pos)

@@ -1,7 +1,9 @@
 package gehenna.level
 
 import gehenna.component.Floor
+import gehenna.component.LightSource
 import gehenna.component.Obstacle
+import gehenna.component.Position
 import gehenna.core.Entity
 import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
@@ -13,16 +15,39 @@ import rlforj.los.BresLos
 import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
 import java.io.ObjectInputStream
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 abstract class FovLevel(size: Size) : BasicLevel(size) {
     //fov
     private val transparent = DoubleArray(size) { 0.0 }
+
     @Transient
     private val fovAlgorithm = PrecisePermissive()
+
+    val light = Array(size) { 0 }
+
+    fun distance(a: Point, b: Point): Int {
+        return sqrt((a.x - b.x) * (a.x - b.x).toDouble() + (a.y - b.y) * (a.y - b.y)).roundToInt()
+    }
+
+    fun updateLight() {
+        for (pos in size.range) {
+            light[pos] = 0
+        }
+
+        getAll().mapNotNull { it<LightSource>() }.forEach {
+            val pos: Point = it.entity.one<Position>()
+            visitFov(pos, it.intensity) { _, point ->
+                light[point] += kotlin.math.max(it.intensity - distance(pos, point), 0)
+            }
+        }
+    }
 
     //path find
     @Transient
     private val navGrid = NavGrid(Array(size) { GridCell() }, true)
+
     @Transient
     private val pathFinderOptions = GridFinderOptions(
             true,
@@ -32,6 +57,7 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
             1.0F,
             1.0F
     )
+
     @Transient
     private val pathFinder = AStarGridFinder(GridCell::class.java, pathFinderOptions)
 

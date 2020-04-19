@@ -328,6 +328,8 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
             moveCamera(focus)
         }
 
+        level.updateLight()
+
         //visit fov //todo: if I add hearing this should not draw from it
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, point ->
@@ -336,7 +338,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
                     entity.any<CharacterBehaviour>()?.let { enemies.add(it) }
                 entity<Glyph>()?.let { glyph ->
                     if (glyph.memorable) level.remember(point, glyph, game.time)
-                    putGlyph(glyph, point)
+                    putGlyph(glyph, point, bg=ui.world.bgColor * (1 + 0.06 * level.light[point]))
                 }
             }
         }

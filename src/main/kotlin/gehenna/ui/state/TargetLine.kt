@@ -21,7 +21,7 @@ abstract class TargetLine : Target() {
             start: Point,
             nSteps: Int,
             level: Level?,
-            initColor: Color = overlay.fg * 0.5,
+            initColor: Color = overlay.fg * 0.4 + Color(64, 0, 32),
             fgColor: Color = Color.gray,
             colorDegrade: Double = 0.975
     ) {

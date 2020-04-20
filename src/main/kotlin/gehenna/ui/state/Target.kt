@@ -39,7 +39,10 @@ abstract class Target : State() {
         context.moveFocus(cursor)
         overlay.clear()
         if (level.inBounds(cursor) && isVisible(cursor)) {
-            context.log.addTemp("Here is: " + level.safeGet(cursor).packEntities().joinToString(separator = ", ") { it.name })
+            context.log.addTemp("Here is: " +
+                    level.safeGet(cursor).packEntities().joinToString(separator = ", ") { it.name } +
+                    " | light:" +
+                    (level.light.getOrNull(cursor) ?: "0"))
         } else {
             context.log.addTemp("You can't see this shit")
         }

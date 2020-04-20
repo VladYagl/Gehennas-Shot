@@ -47,6 +47,9 @@ class CaveLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
 }
 
 class CorridorLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
+
+    override val defaultLight: Int = 2
+
     private fun Level.putDoors() {
         for (p in (size - (1 at 1)).size.range) {
             if (has(p) && has(p + southeast) && !has(p + east) && !has(p + south)) {

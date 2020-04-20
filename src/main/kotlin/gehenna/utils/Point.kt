@@ -6,9 +6,7 @@ import gehenna.exception.GehennaException
 import gehenna.level.Level
 import gehenna.utils.Point.Companion.zero
 import java.io.Serializable
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.sign
+import kotlin.math.*
 
 interface Point : Serializable {
     val x: Int
@@ -102,6 +100,10 @@ data class Size(val width: Int, val height: Int) : Point {
 
 val Pair<Int, Int>.point: Point get() = PointImpl(first, second)
 val Pair<Int, Int>.dir get() = Dir(first, second)
+
+fun euclideanDistance(a: Point, b: Point): Int {
+    return sqrt((a.x - b.x) * (a.x - b.x).toDouble() + (a.y - b.y) * (a.y - b.y)).roundToInt()
+}
 
 infix fun Point.equals(other: Point) = (this - other).max == 0
 infix fun Int.at(y: Int): Point = PointImpl(this, y)

@@ -1,10 +1,12 @@
 package gehenna.component
 
+import com.sun.tools.javac.Main
 import gehenna.core.Action
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.Level
 import gehenna.utils.*
+import kotlin.math.ceil
 import kotlin.math.min
 
 data class Glyph(
@@ -120,4 +122,48 @@ data class DirectionalGlyph(
     }
 }
 
-data class LightSource(override val entity: Entity, val intensity: Int) : Component()
+data class LightSource(override val entity: Entity, val intensity: Int) : Component() {
+
+    private val added = ArrayList<LightSource>()
+
+    private fun updateLight(add: Boolean) {
+        entity<Position>()?.let { pos ->
+            pos.level.visitFov(pos, intensity) { point ->
+                val value = kotlin.math.max(intensity - euclideanDistance(pos, point), 0)
+                if (add) {
+                    pos.level.light[point] += ceil(value.toDouble() / 3).toInt()
+                } else {
+                    pos.level.light[point] -= ceil(value.toDouble() / 3).toInt()
+                }
+            }
+        }
+    }
+
+    init {
+        subscribe<Entity.Add> {
+            updateLight(true)
+        }
+        subscribe<Entity.Remove> {
+            updateLight(false)
+        }
+        subscribe<Position.Spawn> {
+            updateLight(true)
+        }
+        subscribe<Position.Despawn> {
+            updateLight(false)
+        }
+        subscribe<Slot.Equip> {
+            if (it.slot is MainHandSlot) {
+                val light = LightSource(it.slot.entity, intensity)
+                light.attach()
+                added.add(light)
+            }
+        }
+        subscribe<Slot.Unequip> {
+            added.forEach {
+                it.detach()
+            }
+            added.clear()
+        }
+    }
+}

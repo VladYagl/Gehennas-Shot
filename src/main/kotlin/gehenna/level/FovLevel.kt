@@ -7,7 +7,6 @@ import gehenna.component.Position
 import gehenna.core.Entity
 import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
-import org.xguzm.pathfinding.grid.NavigationGrid
 import org.xguzm.pathfinding.grid.finders.AStarGridFinder
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
 import org.xguzm.pathfinding.grid.heuristics.ChebyshevDistance
@@ -26,23 +25,6 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
     private val fovAlgorithm = PrecisePermissive()
 
     val light = Array(size) { 0 }
-
-    fun distance(a: Point, b: Point): Int {
-        return sqrt((a.x - b.x) * (a.x - b.x).toDouble() + (a.y - b.y) * (a.y - b.y)).roundToInt()
-    }
-
-    fun updateLight() {
-        for (pos in size.range) {
-            light[pos] = 0
-        }
-
-        getAll().mapNotNull { it<LightSource>() }.forEach {
-            val pos: Point = it.entity.one<Position>()
-            visitFov(pos, it.intensity) { _, point ->
-                light[point] += kotlin.math.max(it.intensity - distance(pos, point), 0)
-            }
-        }
-    }
 
     //path find
     @Transient
@@ -65,7 +47,13 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
         return pathFinder.findPath(from.x, from.y, to.x, to.y, navGrid)?.map { it.x at it.y }
     }
 
-    fun visitFov(from: Point, range: Int, visitor: (Entity, Point) -> Unit): FovBoard {
+    fun visitFov(from: Point, range: Int, visitor: (Point) -> Unit): FovBoard {
+        val fov = CellFov(visitor)
+        fovAlgorithm.visitFieldOfView(fov, from.x, from.y, range)
+        return fov
+    }
+
+    fun visitEntitiesInFov(from: Point, range: Int, visitor: (Entity, Point) -> Unit): FovBoard {
         val fov = EntityFov(visitor)
         fovAlgorithm.visitFieldOfView(fov, from.x, from.y, range)
         return fov
@@ -137,6 +125,12 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
     private inner class EntityFov(private val visitor: (Entity, Point) -> Unit) : FovBoard() {
         override fun visitImpl(point: Point) {
             cells[point].forEach { visitor(it, point) }
+        }
+    }
+
+    private inner class CellFov(private val visitor: (Point) -> Unit) : FovBoard() {
+        override fun visitImpl(point: Point) {
+            visitor(point)
         }
     }
 

@@ -7,6 +7,9 @@ import gehenna.utils.Dice
 import gehenna.utils.toDice
 
 interface Slot {
+    data class Equip(val slot : Slot) : Entity.Event
+    object Unequip : Entity.Event
+
     var item: Item?
 
     fun equip(newItem: Item) {
@@ -14,10 +17,12 @@ interface Slot {
         assert(isValid(newItem))
         item = newItem
         newItem.slot = this
+        newItem.entity.emit(Equip(this))
     }
 
     fun unequip() {
         item?.slot = null
+        item?.entity?.emit(Unequip)
         item = null
     }
 

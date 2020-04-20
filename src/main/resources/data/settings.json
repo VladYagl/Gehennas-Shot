@@ -27,5 +27,6 @@
     "infoWidth": 25,
     "logHeight": 5,
 
-    "animationDelay": 150
+    "animationDelay": 150,
+    "gradientLight": true
 }

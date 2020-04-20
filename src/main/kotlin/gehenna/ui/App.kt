@@ -12,6 +12,7 @@ import gehenna.core.Game
 import gehenna.factory.EntityFactory
 import gehenna.factory.LevelPartFactory
 import gehenna.level.DungeonLevelFactory
+import gehenna.level.Level
 import gehenna.level.StubLevelFactory
 import gehenna.ui.panel.GehennaPanel
 import gehenna.ui.state.State
@@ -131,16 +132,20 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
     //    private val gameContext = newSingleThreadContext("GameContext")
     private val gameContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
+    private var meanTime: Double = 0.0
     private suspend fun uiLoop() {
         while (true) {
-            val fps = 1000_000_000L / measureNanoTime {
+            val time = measureNanoTime {
                 time = game.time
                 withContext(gameContext) {
                     update()
                 }
                 ui.update()
             }
-            fpsText.line = "fps=$fps"
+            val fps = 1000_000_000L / time
+            meanTime = meanTime * 0.95 + time * 0.05
+            val meanFps = 1000_000_000L / meanTime
+            fpsText.line = "fps=$fps | avrg.=$meanFps"
         }
     }
 
@@ -162,6 +167,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
     private val timeText = TextItem()
     private val hpText = TextItem()
     private val effectsText = TextItem()
+    private val lightText = TextItem()
     private val inventoryText = TextItem(bg = Color.darkGray, alignment = Alignment.center)
     private val gunText = TextItem(bg = Color.darkGray)
     private val ammoText = TextItem(bg = Color.darkGray)
@@ -179,6 +185,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
 
         ui.info.addItem(hpText)
         ui.info.addItem(effectsText)
+        ui.info.addItem(lightText)
 
         ui.info.addItem(gunText)
         ui.info.addItem(ammoText)
@@ -201,6 +208,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
         val hand = game.player.one<MainHandSlot>()
         hpText.line = "HP : " + game.player<Health>()?.current + " / " + game.player<Health>()?.max
         effectsText.line = "Effects = " + game.player.all<Effect>().filterNot { it is PassiveHeal }
+        lightText.line = "Light: " + game.player.one<Position>().level.light[game.player.one<Position>()]
         inventoryText.line = "Inventory ${storage.currentVolume}/${storage.maxVolume}"
 
         val gun = hand.gun
@@ -293,6 +301,14 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
         return point + camera
     }
 
+    private fun bgColorBasedOnLight(point: Point, level: Level): Color {
+        return if (ui.settings.gradientLight) {
+            ui.world.bgColor + (Color(8, 8, 8) * (level.light[point] - 2))
+        } else {
+            ui.world.bgColor
+        }
+    }
+
     private val priority = IntArray(ui.worldSize) { minPriority }
     private fun putGlyph(glyph: Glyph, point: Point, fg: Color = ui.world.fgColor, bg: Color = ui.world.bgColor) {
         if (inView(point)) {
@@ -328,8 +344,6 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
             moveCamera(focus)
         }
 
-        level.updateLight()
-
         //visit fov //todo: if I add hearing this should not draw from it
         game.player.all<Senses>().forEach { sense ->
             sense.visitFov { entity, point ->
@@ -338,7 +352,7 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
                     entity.any<CharacterBehaviour>()?.let { enemies.add(it) }
                 entity<Glyph>()?.let { glyph ->
                     if (glyph.memorable) level.remember(point, glyph, game.time)
-                    putGlyph(glyph, point, bg=ui.world.bgColor * (1 + 0.06 * level.light[point]))
+                    putGlyph(glyph, point, bg = bgColorBasedOnLight(point, level))
                 }
             }
         }
@@ -353,13 +367,14 @@ class App(private val ui: UI, private val settings: Settings, private val saver:
 
         //predict
         behaviours.forEach { behaviour ->
-            var color = ui.world.fgColor * 0.5
+            //TODO: COlor constantas??
+            var color = ui.world.fgColor * 0.4 + Color(64, 0, 32)
             level.predictWithGlyph(behaviour, Behaviour.scaleTime(oneTurn, playerBehaviour.speed))
                     .asSequence()
                     .filter { (pos, _) -> game.player.all<Senses>().any { it.isVisible(pos) } && inView(pos) }
                     .forEach { (pos, glyph) ->
                         color *= 0.85
-                        putGlyph(glyph, pos, max(color, Color(40, 40, 40))) //todo constant
+                        putGlyph(glyph, pos, fg = max(color, bgColorBasedOnLight(pos, level) + Color(32, 0, 16)), bg = bgColorBasedOnLight(pos, level)) //todo constant
                     }
         }
 

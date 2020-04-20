@@ -1,16 +1,18 @@
 package gehenna.level
 
 import gehenna.core.Context
-import gehenna.utils.Point
+import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
-import gehenna.utils.Size
-import gehenna.utils.at
-import gehenna.utils.random
 
 class StubLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
+
+    override val defaultLight: Int = 2
+
     override fun build(previous: Level?, backPoint: Point?): Pair<Level, Point> {
         val startPosition = 10 at 10
         return Pair(Level(size).apply {
+            this.light.fill { defaultLight }
+
             box(zero, size)
             rect(zero, size)
             box(zero, Size(50, 50))

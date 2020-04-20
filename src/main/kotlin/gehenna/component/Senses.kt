@@ -4,6 +4,7 @@ import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
 import gehenna.utils.Point
+import gehenna.utils.*
 
 sealed class Senses : Component() {
     abstract fun visitFov(visitor: (Entity, Point) -> Unit)
@@ -14,18 +15,23 @@ sealed class Senses : Component() {
         private var count = 0L
         @Transient
         private var fov: FovLevel.FovBoard? = null
+        @Transient
+        private var level: FovLevel? = null
 
         override fun visitFov(visitor: (Entity, Point) -> Unit) {
             val pos = entity<Position>()
-            fov = pos?.level?.visitFov(pos, range) { target, point ->
-                visitor(target, point)
-                if (seen[target] != count) entity.emit(Saw(target))
-                seen[target] = count + 1
+            level = pos?.level
+            fov = pos?.level?.visitEntitiesInFov(pos, range) { target, point ->
+                if (level?.light?.get(point) ?: 0 > 0) {
+                    visitor(target, point)
+                    if (seen[target] != count) entity.emit(Saw(target))
+                    seen[target] = count + 1
+                }
             }
             count++
         }
 
-        override fun isVisible(point: Point) = fov?.isVisible(point) ?: false
+        override fun isVisible(point: Point) = fov?.isVisible(point) ?: false && (level?.light?.get(point) ?: 0) > 0
 
         data class Saw(val entity: Entity) : Entity.Event
     }

@@ -14,6 +14,9 @@ data class Position(
         private val lastPoint: Point? = null
 ) : Component(), Point {
 
+    data class Spawn(val pos: Position) : Entity.Event
+    data class Despawn(val pos: Position) : Entity.Event
+
     constructor(point: Point, level: Level, entity: Entity, lastPoint: Point? = null) : this(point.x, point.y, level, entity, lastPoint)
 
     val lastDir: Dir? get() = lastPoint?.let { (this - it).dir }
@@ -31,8 +34,14 @@ data class Position(
     val neighbors: List<Entity> get() = level[this].filter { it != entity }
 
     init {
-        subscribe<Entity.Add> { level.spawn(this) }
-        subscribe<Entity.Remove> { level.remove(this) }
+        subscribe<Entity.Add> {
+            level.spawn(this)
+            entity.emit(Spawn(this))
+        }
+        subscribe<Entity.Remove> {
+            entity.emit(Despawn(this))
+            level.remove(this)
+        }
     }
 
     fun findPath(to: Point): List<Point>? {

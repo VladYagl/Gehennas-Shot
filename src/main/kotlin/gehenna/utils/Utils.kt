@@ -11,7 +11,18 @@ import javax.swing.JOptionPane.showMessageDialog
 import kotlin.math.*
 import kotlin.random.Random
 
-operator fun Color.times(alpha: Double) = Color((red * alpha).toInt(), (green * alpha).toInt(), (blue * alpha).toInt())
+private fun applyAlpha(a: Int, alpha: Double) : Int {
+    return max(min((a * alpha).toInt(), 255), 0)
+}
+
+private fun applyAlpha(a: Int, alpha: Int) : Int {
+    return max(min((a * alpha), 255), 0)
+}
+
+operator fun Color.times(alpha: Double) = Color(applyAlpha(red, alpha), applyAlpha(green, alpha), applyAlpha(blue, alpha))
+operator fun Color.times(alpha: Int) = Color(applyAlpha(red, alpha), applyAlpha(green, alpha), applyAlpha(blue, alpha))
+
+operator fun Color.plus(other: Color) = Color(red + other.red, green + other.green, blue + other.blue)
 
 fun showError(e: Throwable) {
     val errors = StringWriter()

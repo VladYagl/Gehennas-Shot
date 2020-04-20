@@ -17,6 +17,8 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
     protected var partFactory: Factory<LevelPart> = context.partFactory
     open var size: Size = Size(5 * 8, 6 * 8)
 
+    protected open val defaultLight: Int = 0
+
     final override fun new(previous: Level?, backPoint: Point?): Pair<T, Point> {
         val (level, point) = this.build(previous, backPoint)
         context.levels.add(level)
@@ -245,6 +247,8 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
     }
 
     protected fun Level.buildLoop(startPosition: Point, build: () -> Unit) {
+        this.light.fill { defaultLight }
+
         for (i in 0..1000) {
             build()
             cleanFloors()

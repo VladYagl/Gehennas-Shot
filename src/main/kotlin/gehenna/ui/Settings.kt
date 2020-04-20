@@ -21,6 +21,8 @@ class Settings {
     val foregroundColor = lightGray!!
     val memoryColor = Color(96, 32, 32)
 
+    val gradientLight: Boolean = true
+
     fun toJson(): String {
         return klaxon.toJsonString(this)
     }

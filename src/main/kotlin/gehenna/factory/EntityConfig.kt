@@ -28,15 +28,15 @@ sealed class EntityConfig {
         override fun fromString(config: String): EntityConfig {
             val split = config.split(" ")
             return if (split.size == 1) {
-                EntityConfig.Name(config)
+                Name(config)
             } else {
                 val (name, count) = split
-                EntityConfig.Multiple((1..count.toInt()).map { EntityConfig.Name(name) })
+                Multiple((1..count.toInt()).map { Name(name) })
             }
         }
 
         override fun fromArray(array: List<*>): EntityConfig {
-            return EntityConfig.Multiple(array.map { fromAny(it!!) })
+            return Multiple(array.map { fromAny(it!!) })
         }
 
         override fun fromObject(obj: JsonObject): EntityConfig {
@@ -45,14 +45,14 @@ sealed class EntityConfig {
             obj["choice"]?.let {
                 return when (it) {
                     is JsonArray<*> -> {
-                        EntityConfig.Choice(it.map { config -> fromAny(config!!) to (1.0 / it.size) })
+                        Choice(it.map { config -> fromAny(config!!) to (1.0 / it.size) })
                     }
                     is JsonObject -> {
                         val list = it.map.map { (name, chance) ->
                             require(chance is Double) { "Chance to spawn should be Double: name = $name, chance = $chance" }
                             fromString(name) to chance
                         }
-                        EntityConfig.Choice(list)
+                        Choice(list)
                     }
                     else -> throw GehennaException("Bed choice config: $it")
                 }

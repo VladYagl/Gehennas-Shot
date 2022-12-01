@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.50"
+    kotlin("jvm") version "1.7.21"
     id("com.github.johnrengelman.shadow") version "4.0.1"
     java
     idea
@@ -13,8 +13,8 @@ version = "0.3-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://jitpack.io")
+//    jcenter()
 }
 
 dependencies {
@@ -22,10 +22,10 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
     implementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
-    implementation("org.reflections:reflections:0.9.11")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.reflections:reflections:0.10.2")
     implementation("com.github.xaguzman:pathfinding:0.2.6")
-    implementation("com.beust:klaxon:5.2")
+    implementation("com.beust:klaxon:5.6")
 //    implementation("com.github.trystan:AsciiPanel:ac179b1")
     implementation(files("lib/rlforj.0.2.jar"))
 }
@@ -38,7 +38,7 @@ idea {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 tasks.withType<Jar> {

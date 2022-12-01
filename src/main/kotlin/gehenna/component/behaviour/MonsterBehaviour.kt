@@ -51,7 +51,7 @@ data class MonsterBehaviour(
                         null
                     }
                 }
-                return if (newAmmo != null && newAmmo.isNotEmpty()) {
+                return if (!newAmmo.isNullOrEmpty()) {
                     gun.load(entity, newAmmo)
                 } else {
                     null

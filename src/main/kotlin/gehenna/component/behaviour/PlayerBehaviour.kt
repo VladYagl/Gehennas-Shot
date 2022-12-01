@@ -53,14 +53,14 @@ data class PlayerBehaviour(override val entity: Entity, public override val spee
 
     fun set(action: Action) {
         automation = null
-        channel.offer(action)
+        channel.trySend(action).isSuccess
     }
 
     private fun automate(automation: Automation) {
         automation.nextAction()?.let { action ->
             lastResult = null
             this.automation = automation
-            channel.offer(action)
+            channel.trySend(action).isSuccess
         }
     }
 

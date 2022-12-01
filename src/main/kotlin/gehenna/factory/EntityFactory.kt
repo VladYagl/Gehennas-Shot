@@ -1,7 +1,8 @@
 package gehenna.factory
 
 import com.beust.klaxon.JsonReader
-import gehenna.core.*
+import gehenna.core.Component
+import gehenna.core.Entity
 import gehenna.exception.*
 import org.reflections.Reflections
 import java.io.InputStream
@@ -61,7 +62,7 @@ class EntityFactory : JsonFactory<Entity> {
 
     private fun JsonReader.nextMutator(mutatorName: String): (Entity) -> Unit {
         val constructor = mutators.firstOrNull {
-            it.simpleName?.toLowerCase() == mutatorName.toLowerCase()
+            it.simpleName.equals(mutatorName, ignoreCase = true)
         }?.primaryConstructor ?: throw BadMutatorException(mutatorName)
         val args = nextArgs(constructor)
         return { entity ->
@@ -124,7 +125,7 @@ class EntityFactory : JsonFactory<Entity> {
 
     fun componentClassByName(name: String): KClass<out Component>? {
         return components.firstOrNull {
-            it.simpleName?.toLowerCase() == name.toLowerCase()
+            it.simpleName.equals(name, ignoreCase = true)
         }
     }
 }

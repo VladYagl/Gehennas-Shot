@@ -1,9 +1,7 @@
 package gehenna.level
 
 import gehenna.component.Floor
-import gehenna.component.LightSource
 import gehenna.component.Obstacle
-import gehenna.component.Position
 import gehenna.core.Entity
 import gehenna.utils.*
 import org.xguzm.pathfinding.grid.GridCell
@@ -14,8 +12,6 @@ import rlforj.los.BresLos
 import rlforj.los.ILosBoard
 import rlforj.los.PrecisePermissive
 import java.io.ObjectInputStream
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 abstract class FovLevel(size: Size) : BasicLevel(size) {
     //fov
@@ -72,7 +68,7 @@ abstract class FovLevel(size: Size) : BasicLevel(size) {
     }
 
     fun walkableSquare(point: Point): Int {
-        var cnt = 0;
+        var cnt = 0
         visitWalkable(point) { cnt++ }
         return cnt
     }

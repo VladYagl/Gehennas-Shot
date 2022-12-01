@@ -3,7 +3,6 @@ package gehenna.level
 import gehenna.component.Floor
 import gehenna.component.Obstacle
 import gehenna.core.Context
-import gehenna.utils.Point
 import gehenna.utils.*
 import gehenna.utils.Dir.Companion.east
 import gehenna.utils.Dir.Companion.north
@@ -13,9 +12,6 @@ import gehenna.utils.Dir.Companion.south
 import gehenna.utils.Dir.Companion.southeast
 import gehenna.utils.Dir.Companion.southwest
 import gehenna.utils.Dir.Companion.west
-import gehenna.utils.nextPoint
-import gehenna.utils.random
-import kotlin.random.Random
 
 class CaveLevelFactory(context: Context) : BaseLevelFactory<Level>(context) {
 

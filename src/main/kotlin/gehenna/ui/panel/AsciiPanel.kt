@@ -1,8 +1,5 @@
 package gehenna.ui.panel
 
-import gehenna.utils.Point
-import gehenna.utils.Size
-import gehenna.utils.at
 import gehenna.utils.*
 import java.awt.Color
 import java.awt.Dimension
@@ -57,7 +54,7 @@ open class AsciiPanel(val size: Size, font: AsciiFont, var defaultFg: Color = wh
     }
 
     private fun checkChar(character: Char) {
-        assert(character.toInt() < glyphs.size) { "character " + character + " must be within range [0," + glyphs.size + "]." }
+        assert(character.code < glyphs.size) { "character " + character + " must be within range [0," + glyphs.size + "]." }
     }
 
     private fun checkInBounds(x: Int, y: Int) {
@@ -83,7 +80,7 @@ open class AsciiPanel(val size: Size, font: AsciiFont, var defaultFg: Color = wh
                 val bg = bgColors[x][y]
                 val fg = fgColors[x][y]
                 val op = setColors(bg, fg)
-                val img = op.filter(glyphs[chars[x][y].toInt()], null)
+                val img = op.filter(glyphs[chars[x][y].code], null)
                 offscreenGraphics.drawImage(img, x * charWidth, y * charHeight, null)
                 oldBgColors[x][y] = bgColors[x][y]
                 oldFgColors[x][y] = fgColors[x][y]

@@ -47,7 +47,7 @@ fun String.prepareMessage(firstPerson: Boolean = false, actor: Entity = Entity.w
                 if (firstPerson) {
                     "You"
                 } else {
-                    actor.name.capitalize()
+                    actor.name.replaceFirstChar { it.titlecase() }
                 }
             }
             .replace(_actor.toRegex()) {
@@ -61,7 +61,7 @@ fun String.prepareMessage(firstPerson: Boolean = false, actor: Entity = Entity.w
                 if (firstPerson) {
                     "Your"
                 } else {
-                    actor.name.capitalize() + "'s"
+                    actor.name.replaceFirstChar{ it.titlecase() } + "'s"
                 }
             }
             .replace(_actor_s.toRegex()) {

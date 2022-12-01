@@ -42,7 +42,7 @@ fun Random.next4way(vararg dir: Dir = emptyArray()): Dir {
 }
 
 fun <T> Collection<Pair<T, Double>>.random(random: Random = gehenna.utils.random): T {
-    assert(this.sumByDouble { it.second } == 1.0)
+    assert(this.sumOf { it.second } == 1.0)
     val value = random.nextDouble()
     var sum = 0.0
     this.forEach {
@@ -56,7 +56,7 @@ fun <T> Collection<Pair<T, Double>>.random(random: Random = gehenna.utils.random
 }
 
 val <T : Number> Collection<T>.mean
-    get() = sumByDouble { it.toDouble() } / size
+    get() = sumOf { it.toDouble() } / size
 
 val <T : Number> Collection<T>.std
     get() = sqrt(map { it.toDouble().pow(2) }.mean - mean.pow(2))
@@ -68,11 +68,11 @@ operator fun <T, S> Iterable<T>.times(other: Iterable<S>): List<Pair<T, S>> {
     return cartesianProduct(other) { first, second -> first to second }
 }
 
-fun <T, S : Comparable<S>> Iterable<T>.minOf(func: (T) -> S): S? {
+fun <T, S : Comparable<S>> Iterable<T>.minOf(func: (T) -> S): S {
     return asSequence().map { func(it) }.min()
 }
 
-fun <T, S : Comparable<S>> Iterable<T>.maxOf(func: (T) -> S): S? {
+fun <T, S : Comparable<S>> Iterable<T>.maxOf(func: (T) -> S): S {
     return asSequence().map { func(it) }.max()
 }
 
@@ -129,7 +129,7 @@ infix fun <A, B, C> A.to(that: Pair<B, C>): Triple<A, B, C> {
     return Triple(this, that.first, that.second)
 }
 
-class FixedQueue<T>(val capacity: Int) : Queue<T> by FixedQueueImpl<T>(capacity), Serializable {
+class FixedQueue<T>(val capacity: Int) : Queue<T> by FixedQueueImpl(capacity), Serializable {
     fun isFull(): Boolean {
         return size == capacity
     }

@@ -9,7 +9,6 @@ import gehenna.factory.Factory
 import gehenna.factory.LevelPart
 import gehenna.utils.*
 import gehenna.utils.Point.Companion.zero
-import kotlin.math.pow
 import kotlin.random.Random
 
 abstract class BaseLevelFactory<T : Level>(protected val context: Context) : LevelFactory<T> {
@@ -177,7 +176,7 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
     }
 
     protected fun Level.filterBadComponents(threshold: Int): Pair<Int, Array<IntArray>> {
-        val colors = IntArray(size);
+        val colors = IntArray(size)
         var color = 0
         for (point in size.range) {
             if (isWalkable(point) && colors[point] == 0) {
@@ -202,7 +201,7 @@ abstract class BaseLevelFactory<T : Level>(protected val context: Context) : Lev
     private fun Level.getRandomPointAway(from: Point, dist: Int): Point {
         while (true) {
             val point = random.nextPoint(size)
-            if (isWalkable(point) && findPath(from, point)?.size ?: 0 > dist) {
+            if (isWalkable(point) && (findPath(from, point)?.size ?: 0) > dist) {
                 return point
             }
         }

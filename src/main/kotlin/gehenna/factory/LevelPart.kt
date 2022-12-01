@@ -6,7 +6,6 @@ import gehenna.level.BasicLevel
 import gehenna.utils.Point
 import gehenna.utils.Size
 import gehenna.utils.maxOf
-import gehenna.utils.random
 
 interface LevelPart {
     fun spawnTo(to: Point, level: BasicLevel)
@@ -21,8 +20,8 @@ class FixedPart(
 ) :
         LevelPart {
     override val size = Size(
-            entities.maxOf { it.first.x } ?: 0,
-            entities.maxOf { it.first.y } ?: 0
+            entities.maxOf { it.first.x },
+            entities.maxOf { it.first.y }
     )
 
     private fun BasicLevel.spawn(config: EntityConfig, to: Point) {

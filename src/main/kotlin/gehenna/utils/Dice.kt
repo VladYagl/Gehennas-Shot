@@ -16,7 +16,7 @@ abstract class Dice : Serializable {
         val histogram = (1..runs).groupingBy {
             roll()
         }.eachCount()
-        val max = histogram.values.max()!!
+        val max = histogram.values.max()
         return histogram.toSortedMap().map { (dice, value) ->
             "$dice:" + "#".repeat((75.toDouble() / max * value).toInt())
         }.joinToString(separator = "\n")
@@ -42,7 +42,7 @@ abstract class Dice : Serializable {
     }
 
     data class Multiplication(val dice: Dice, val count: Int) : Dice() {
-        override fun roll(random: Random) = (0 until count).map { dice.roll(random) }.sum()
+        override fun roll(random: Random) = (0 until count).sumOf { dice.roll(random) }
 
         override fun toString(): String {
             return if (dice is SingleDice) {

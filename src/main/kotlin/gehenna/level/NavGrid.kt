@@ -4,10 +4,9 @@ import org.xguzm.pathfinding.PathFinderOptions
 import org.xguzm.pathfinding.grid.NavigationGrid
 import org.xguzm.pathfinding.grid.NavigationGridGraphNode
 import org.xguzm.pathfinding.grid.finders.GridFinderOptions
-import java.util.ArrayList
 
 /**
- * NavigationGrid which if dontCrossCorners is false allows you to squeeze between two obstacles in diagonal movement
+ * NavigationGrid. When dontCrossCorners is false allows you to squeeze between two obstacles in diagonal movement
  */
 class NavGrid<T : NavigationGridGraphNode>(nodes: Array<Array<T>>, autoAssignXY: Boolean) : NavigationGrid<T>(nodes, autoAssignXY) {
 

@@ -4,8 +4,6 @@ import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.Throw
 import gehenna.action.UseDoor
 import gehenna.component.*
-import gehenna.core.Action
-import gehenna.core.Behaviour
 import gehenna.core.Entity
 import gehenna.ui.Input
 import gehenna.ui.TextItem
@@ -13,7 +11,6 @@ import gehenna.ui.UIContext
 import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
-import gehenna.utils.Angle
 
 abstract class State {
     open fun handleInput(input: Input): Boolean = false

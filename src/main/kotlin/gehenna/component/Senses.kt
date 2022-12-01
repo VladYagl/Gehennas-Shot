@@ -4,7 +4,10 @@ import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.level.FovLevel
 import gehenna.utils.Point
-import gehenna.utils.*
+import gehenna.utils.get
+import kotlin.collections.HashMap
+import kotlin.collections.forEach
+import kotlin.collections.set
 
 sealed class Senses : Component() {
     abstract fun visitFov(visitor: (Entity, Point) -> Unit)
@@ -22,7 +25,7 @@ sealed class Senses : Component() {
             val pos = entity<Position>()
             level = pos?.level
             fov = pos?.level?.visitEntitiesInFov(pos, range) { target, point ->
-                if (level?.light?.get(point) ?: 0 > 0) {
+                if ((level?.light?.get(point) ?: 0) > 0) {
                     visitor(target, point)
                     if (seen[target] != count) entity.emit(Saw(target))
                     seen[target] = count + 1

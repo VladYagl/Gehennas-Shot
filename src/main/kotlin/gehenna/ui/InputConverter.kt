@@ -13,7 +13,6 @@ import gehenna.utils.Dir.Companion.zero
 import java.awt.KeyEventDispatcher
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.*
-import java.lang.StringBuilder
 
 //todo exceptions cause it's called from different thread
 abstract class InputConverter(private val listener: InputListener) : KeyEventDispatcher {
@@ -72,7 +71,7 @@ abstract class InputConverter(private val listener: InputListener) : KeyEventDis
                         .append(if (e.isAltDown) "!" else "")
                         .append(if (e.isControlDown) "^" else "")
                         .append(if (e.isShiftDown) "+" else "")
-                        .append(codeName(e.keyCode) ?: e.keyChar.toLowerCase())
+                        .append(codeName(e.keyCode) ?: e.keyChar.lowercase())
                         .toString()
                 println(command)
                 keyMap[command]?.let { listener.onInput(it) } ?: false

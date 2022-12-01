@@ -6,8 +6,11 @@ import com.beust.klaxon.Klaxon
 import com.beust.klaxon.token.LEFT_BRACE
 import com.beust.klaxon.token.LEFT_BRACKET
 import gehenna.component.Item
-import gehenna.core.*
-import gehenna.exception.*
+import gehenna.core.Component
+import gehenna.core.Faction
+import gehenna.core.toFaction
+import gehenna.exception.UnknownArgumentException
+import gehenna.exception.UnknownTypeException
 import gehenna.utils.Dice
 import gehenna.utils.Dir
 import gehenna.utils.toDice
@@ -119,7 +122,7 @@ fun buildValueFromType(type: KType, value: Any, factory: EntityFactory): Any? {
         }
         else -> if (type.jvmErasure.java.isEnum) {
             type.jvmErasure.java.enumConstants.first {
-                value == it.toString() // toString from enum returns it's name, so it should work
+                value == it.toString() // toString from enum returns its name, so it should work
             }
         } else when (type.jvmErasure) {
             Map::class -> (value as JsonObject).map.mapKeys { (key, _) ->

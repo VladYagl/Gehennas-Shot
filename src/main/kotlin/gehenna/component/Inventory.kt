@@ -59,7 +59,7 @@ data class ItemStack(val items: Collection<Item>) : Component() {
     //TODO: check for memory leak
     override val entity: Entity = Entity(items.firstOrNull()?.entity.toString() + " x${items.size}")
 
-    val item = Item(entity, items.sumBy { it.volume })
+    val item = Item(entity, items.sumOf { it.volume })
     override val children: List<Component> = listOf(item)
 }
 
@@ -100,7 +100,7 @@ data class Inventory(
         val maxVolume: Int,
         val items: ArrayList<Item> = ArrayList()
 ) : Component() {
-    var currentVolume = items.sumBy { it.volume }
+    var currentVolume = items.sumOf { it.volume }
         private set
 
     fun add(item: Item): Boolean {

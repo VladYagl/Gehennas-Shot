@@ -2,6 +2,7 @@ package gehenna.ui.state
 
 import com.beust.klaxon.internal.firstNotNullResult
 import gehenna.action.*
+import gehenna.action.UseDoor
 import gehenna.component.*
 import gehenna.component.behaviour.CharacterBehaviour
 import gehenna.component.behaviour.PlayerBehaviour
@@ -11,7 +12,6 @@ import gehenna.ui.panel.MenuPanel
 import gehenna.ui.panel.MultiSelectPanel
 import gehenna.ui.panel.SelectPanel
 import gehenna.utils.Dir
-import kotlinx.coroutines.channels.Channel
 
 class Normal(private val context: UIContext) : State() {
 
@@ -22,7 +22,7 @@ class Normal(private val context: UIContext) : State() {
                         .filter { it.entity<Ammo>()?.type == ammoType }
                         .packStacks(),
                 title = "Load what?",
-                toString = { it.entity.name }) { func(it.entity.one<ItemStack>().items.map { el -> el.entity.one<Ammo>() }) }
+                toString = { it.entity.name }) { func(it.entity.one<ItemStack>().items.map { el -> el.entity.one() }) }
         )
     }
 

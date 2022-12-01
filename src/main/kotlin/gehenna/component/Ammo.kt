@@ -2,12 +2,11 @@ package gehenna.component
 
 import gehenna.action.Collide
 import gehenna.component.behaviour.ProjectileBehaviour
-import gehenna.core.Action.Companion.oneTurn
 import gehenna.core.Component
 import gehenna.core.Entity
 import gehenna.ui.UIContext
-import gehenna.utils.Dice
 import gehenna.utils.Angle
+import gehenna.utils.Dice
 import gehenna.utils.nextAngle
 import gehenna.utils.random
 

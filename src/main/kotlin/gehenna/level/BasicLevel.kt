@@ -34,7 +34,7 @@ abstract class BasicLevel(val size: Size) : Serializable {
     }
 
     fun remember(point: Point, glyph: Glyph, time: Long) {
-        if (time > memory[point].first || glyph.priority > memory[point].second?.priority ?: Int.MIN_VALUE)
+        if (time > memory[point].first || glyph.priority > (memory[point].second?.priority ?: Int.MIN_VALUE))
             memory[point] = time to glyph
     }
 

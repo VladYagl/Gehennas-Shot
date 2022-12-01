@@ -1,6 +1,5 @@
 package gehenna.component.behaviour
 
-import gehenna.action.Collide
 import gehenna.action.Destroy
 import gehenna.action.Move
 import gehenna.component.DirectionalGlyph
@@ -10,7 +9,10 @@ import gehenna.component.Reflecting
 import gehenna.core.*
 import gehenna.exception.GehennaException
 import gehenna.ui.UIContext
-import gehenna.utils.*
+import gehenna.utils.Angle
+import gehenna.utils.Point
+import gehenna.utils.at
+import gehenna.utils.bounce
 
 //TODO: try some player seeking behaviour
 data class ProjectileBehaviour(

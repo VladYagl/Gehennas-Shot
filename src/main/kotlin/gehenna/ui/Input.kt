@@ -1,5 +1,3 @@
-@file:Suppress("EnumEntryName")
-
 package gehenna.ui
 
 import gehenna.utils.Dir

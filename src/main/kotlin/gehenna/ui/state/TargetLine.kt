@@ -4,7 +4,6 @@ import gehenna.component.Position
 import gehenna.core.Action
 import gehenna.core.Behaviour
 import gehenna.level.Level
-import gehenna.ui.UIContext
 import gehenna.utils.*
 import java.awt.Color
 import kotlin.random.Random
@@ -60,7 +59,7 @@ abstract class TargetLine : Target() {
         }
 
         val time = Behaviour.scaleTime(angle.max.toLong() * Action.oneTurn, speed)
-        context.log.addTemp("${projectileName.capitalize()} will reach its destination in $time with ${successCount}% chance")
+        context.log.addTemp("${projectileName.replaceFirstChar{ it.titlecase() }} will reach its destination in $time with ${successCount}% chance")
 
         //            val color = context.hud.fgColor * 0.8 // TODO: constants
         val color = Color(128, 160, 210) * 0.5

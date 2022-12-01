@@ -2,7 +2,6 @@ package gehenna.action
 
 import gehenna.component.*
 import gehenna.component.behaviour.ProjectileBehaviour
-import gehenna.core.PredictableBehaviour
 import gehenna.core.*
 import gehenna.exception.GehennaException
 import gehenna.ui.UIContext
@@ -44,7 +43,7 @@ data class Move(private val entity: Entity, val dir: Dir) : PredictableAction<An
 
 object Wait : Action() {
     override fun perform(context: UIContext): ActionResult {
-        return ActionResult(context.actionQueue.minOf { it.waitTime }?.plus(1) ?: 0, true, results)
+        return ActionResult(context.actionQueue.minOf { it.waitTime }.plus(1), true, results)
     }
 }
 
@@ -55,15 +54,15 @@ data class Shoot(
         override var time: Long = oneTurn
 ) : Action() {
     override fun perform(context: UIContext): ActionResult {
-        if (gun.magazine.isEmpty()) {
+        return if (gun.magazine.isEmpty()) {
             logFor(pos.entity, "Click! $_Actor_s ${gun.entity} is out of ammo")
-            return fail()
+            fail()
         } else {
             val ammo = gun.magazine.remove()
             ammo.entity.any<ShootFunc>()?.invoke(pos, angle, gun, ammo, context)
-                    ?: throw GehennaException("Ammo doesn't have ShootFunc!")
+                ?: throw GehennaException("Ammo doesn't have ShootFunc!")
             gun.applyShootSpread()
-            return end()
+            end()
         }
     }
 }
@@ -137,9 +136,7 @@ data class ApplyEffect(
             }
             effect.attach()
         } else if (replace) {
-            entity(effect::class)?.let {
-                it.detach()
-            }
+            entity(effect::class)?.detach()
             effect.attach()
         }
         return end()

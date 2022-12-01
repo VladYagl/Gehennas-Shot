@@ -4,9 +4,9 @@ import gehenna.action.ApplyEffect
 import gehenna.action.Shoot
 import gehenna.core.*
 import gehenna.ui.UIContext
+import gehenna.utils.Angle
 import gehenna.utils.Dice
 import gehenna.utils.FixedQueue
-import gehenna.utils.Angle
 import gehenna.utils._Actor
 import kotlin.math.max
 import kotlin.math.min
@@ -16,7 +16,7 @@ data class Gun(
         val magazineCapacity: Int,
 
         /**
-         * Ammo type of a gun, Ammo must much this type to be loaded into the gun
+         * Ammo-type of a gun, Ammo must much this type to be loaded into the gun
          */
         val ammoType: AmmoType,
 
@@ -134,7 +134,7 @@ data class Gun(
                 if (magazine.size > 0) {
                     logFor(actor, "$_Actor unloaded ${magazine.first().entity}x${magazine.size} from ${this@Gun.entity}")
                 } else {
-                    logFor(actor, "${this@Gun.entity.toString().capitalize()} is Empty!")
+                    logFor(actor, "${this@Gun.entity.toString().replaceFirstChar(Char::titlecase)} is Empty!")
                 }
                 while (magazine.size > 0) {
                     inventory?.add(magazine.remove().item)
@@ -173,7 +173,7 @@ data class Gun(
     data class BurstFire(private val actor: Entity, private val angle: Angle, val gun: Gun) :
             RepeatAction<Shoot>(actor, gun.burstCount, { gun.action(actor, angle) })
 
-    fun fire(actor: Entity, angle: Angle): Action? {
+    fun fire(actor: Entity, angle: Angle): Action {
         if (magazine.isEmpty()) return action(actor, angle) // return gun action to get no ammo message
         return ApplyEffect(BurstFire(actor, angle, this), true, applyTime)
     }

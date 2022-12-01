@@ -1,9 +1,7 @@
 package gehenna.core
 
 import gehenna.component.Position
-import gehenna.core.Action.Companion.oneTurn
 import gehenna.exception.GehennaException
-import gehenna.utils.format
 import gehenna.utils.random
 import kotlin.math.roundToLong
 import kotlin.random.asJavaRandom

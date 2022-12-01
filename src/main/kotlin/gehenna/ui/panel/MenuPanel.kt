@@ -2,7 +2,6 @@ package gehenna.ui.panel
 
 import gehenna.ui.*
 import gehenna.utils.Dir
-import org.w3c.dom.Text
 import java.awt.Color
 
 open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel(width, height, settings, true), InputListener {
@@ -88,19 +87,23 @@ open class MenuPanel(width: Int, height: Int, settings: Settings) : GehennaPanel
             true
         }
         is Input.Direction -> {
-            if (input.dir == Dir.north || input.dir == Dir.south) {
-                //todo: i dont like how it looks but whatever
-                moveFocus(input.dir)
-                var cnt = 0
-                while (focusedItem?.focus() != true && cnt++ < items.size) {
+            when (input.dir) {
+                Dir.north, Dir.south -> {
+                    //todo: i dont like how it looks but whatever
                     moveFocus(input.dir)
+                    var cnt = 0
+                    while (focusedItem?.focus() != true && cnt++ < items.size) {
+                        moveFocus(input.dir)
+                    }
+                    true
                 }
-                true
-            } else if (input.dir == Dir.west || input.dir == Dir.east) {
-                focusedItem?.let { it.select() }
-                true
-            } else {
-                false
+                Dir.west, Dir.east -> {
+                    focusedItem?.let { it.select() }
+                    true
+                }
+                else -> {
+                    false
+                }
             }
         }
         Input.Cancel -> {
